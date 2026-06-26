@@ -2,7 +2,8 @@
 
 ## Objetivo
 
-Volver a un estado seguro si una integracion futura de llamadas outbound presenta fallo tecnico, fallo de seguridad o comportamiento operativo no aprobado.
+Volver a un estado seguro si una integracion futura de llamadas outbound presenta fallo tecnico,
+fallo de seguridad o comportamiento operativo no aprobado.
 
 ## Acciones inmediatas
 

@@ -6,9 +6,13 @@ Aceptado para CEDCO R02 / D02 llamadas.
 
 ## Contexto
 
-Hyperion es el nucleo multi-tenant reutilizable para agentes de IA de voz y conversacionales. El primer vertical priorizado es CEDCO R02 / D02 llamadas.
+Hyperion es el nucleo multi-tenant reutilizable para agentes de IA de voz y conversacionales. El
+primer vertical priorizado es CEDCO R02 / D02 llamadas.
 
-CEDCO D02 requiere agente de voz IA, tenant dedicado, intencion via LLM, respuestas contextuales, contexto conversacional, transferencia a humano por reglas, registro de llamadas/eventos, gobernanza, observabilidad, versionado, dashboard operativo futuro, roadmap de integracion, seguridad y habeas data.
+CEDCO D02 requiere agente de voz IA, tenant dedicado, intencion via LLM, respuestas contextuales,
+contexto conversacional, transferencia a humano por reglas, registro de llamadas/eventos,
+gobernanza, observabilidad, versionado, dashboard operativo futuro, roadmap de integracion,
+seguridad y habeas data.
 
 ## Decision
 
@@ -30,10 +34,13 @@ CEDCO D02 es el primer vertical de plataforma.
 
 ## Consecuencias
 
-- La logica de dominio no debe acoplarse a ElevenLabs, Twilio, PBX propio ni ningun proveedor de telefonia.
+- La logica de dominio no debe acoplarse a ElevenLabs, Twilio, PBX propio ni ningun proveedor de
+  telefonia.
 - Los proveedores de voz y telefonia se integran mediante puertos internos y adapters.
-- El dashboard, las integraciones y la observabilidad se construyen sobre eventos y estados sanitizados.
-- Las llamadas reales quedan bloqueadas hasta tener flags, runbooks, aprobacion humana y controles de seguridad.
+- El dashboard, las integraciones y la observabilidad se construyen sobre eventos y estados
+  sanitizados.
+- Las llamadas reales quedan bloqueadas hasta tener flags, runbooks, aprobacion humana y controles
+  de seguridad.
 
 ## Fuera de alcance
 

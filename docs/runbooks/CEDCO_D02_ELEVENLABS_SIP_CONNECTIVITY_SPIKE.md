@@ -1,6 +1,7 @@
 # CEDCO D02 - ElevenLabs SIP connectivity spike
 
-Este spike prepara una integracion futura. No ejecuta llamadas reales y no activa proveedor real en este loop.
+Este spike prepara una integracion futura. No ejecuta llamadas reales y no activa proveedor real en
+este loop.
 
 ## Checklist antes de primera integracion
 

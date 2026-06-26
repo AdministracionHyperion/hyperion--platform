@@ -1,0 +1,9 @@
+_private/
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.next/
+.git/
+*.log

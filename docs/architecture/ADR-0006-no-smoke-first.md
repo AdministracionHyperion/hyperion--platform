@@ -8,7 +8,8 @@ Aceptado.
 
 Queda prohibido smoke-first para CEDCO D02.
 
-Smoke no define arquitectura. Smoke solo entra al final para verificar que una cadena ya disenada cumple los criterios minimos.
+Smoke no define arquitectura. Smoke solo entra al final para verificar que una cadena ya disenada
+cumple los criterios minimos.
 
 ## Orden correcto
 

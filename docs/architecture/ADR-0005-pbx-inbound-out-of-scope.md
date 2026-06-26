@@ -10,9 +10,11 @@ PBX propio queda fuera de fase 1 para CEDCO D02.
 
 ## Razonamiento
 
-D02 outbound puede avanzar con Hyperion como control plane, ElevenLabs como managed voice runtime y un SIP trunk/proveedor DID para numeros y transporte.
+D02 outbound puede avanzar con Hyperion como control plane, ElevenLabs como managed voice runtime y
+un SIP trunk/proveedor DID para numeros y transporte.
 
-Construir o integrar un PBX propio en fase 1 agregaria superficie operativa no necesaria para validar el primer flujo outbound controlado.
+Construir o integrar un PBX propio en fase 1 agregaria superficie operativa no necesaria para
+validar el primer flujo outbound controlado.
 
 ## Uso futuro del PBX
 

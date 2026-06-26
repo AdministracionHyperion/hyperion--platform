@@ -48,4 +48,5 @@ Incluye:
 
 ## Resultado esperado del loop
 
-Un baseline limpio y documentacion de arquitectura que permita iniciar desarrollo posterior sin improvisar como se lanzan llamadas outbound.
+Un baseline limpio y documentacion de arquitectura que permita iniciar desarrollo posterior sin
+improvisar como se lanzan llamadas outbound.

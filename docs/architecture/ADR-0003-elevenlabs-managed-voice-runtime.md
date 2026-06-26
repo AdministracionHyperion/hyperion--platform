@@ -6,9 +6,11 @@ Aceptado.
 
 ## Contexto
 
-CEDCO D02 necesita validar una experiencia de voz con baja friccion operativa sin construir PBX propio ni stack de telefonia en fase 1.
+CEDCO D02 necesita validar una experiencia de voz con baja friccion operativa sin construir PBX
+propio ni stack de telefonia en fase 1.
 
-ElevenLabs SIP Trunk permite conectar infraestructura telefonica existente con ElevenLabs Agents. Soporta inbound y outbound, aunque este loop limita la arquitectura a outbound.
+ElevenLabs SIP Trunk permite conectar infraestructura telefonica existente con ElevenLabs Agents.
+Soporta inbound y outbound, aunque este loop limita la arquitectura a outbound.
 
 ## Decision
 
@@ -20,7 +22,8 @@ ElevenLabs maneja:
 - Conversacion administrada.
 - Inicio de llamada outbound por SIP.
 - Enrutamiento de llamadas iniciadas por ElevenLabs al SIP trunk configurado.
-- Webhooks post-call, incluidos resultados, fallos de inicio y payloads que pueden contener transcripcion o audio.
+- Webhooks post-call, incluidos resultados, fallos de inicio y payloads que pueden contener
+  transcripcion o audio.
 
 Hyperion mantiene:
 
@@ -36,7 +39,8 @@ Hyperion mantiene:
 - Hyperion no acopla el dominio a ElevenLabs.
 - Configuracion sensible nunca va al repo.
 - No se guardan API keys, agent IDs reales, phone number IDs reales, numeros reales ni secrets.
-- No hay llamadas reales hasta tener flags explicitos, runbook aprobado, secret manager configurado, logs sanitizados y aprobacion humana.
+- No hay llamadas reales hasta tener flags explicitos, runbook aprobado, secret manager configurado,
+  logs sanitizados y aprobacion humana.
 - Los webhooks deben validarse con HMAC antes de procesar payload.
 - Hyperion no debe guardar raw transcript ni audio crudo por defecto.
 

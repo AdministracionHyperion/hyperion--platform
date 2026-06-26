@@ -2,7 +2,8 @@
 
 Documentacion commiteable, limpia y sanitizada de Hyperion.
 
-Los documentos fuente privados viven en `_private/` y no deben versionarse. R00, R02 y R10 se usan como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este loop.
+Los documentos fuente privados viven en `_private/` y no deben versionarse. R00, R02 y R10 se usan
+como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este loop.
 
 ## Arquitectura
 
@@ -13,6 +14,8 @@ Los documentos fuente privados viven en `_private/` y no deben versionarse. R00,
 - [ADR-0005 - PBX inbound fuera de alcance](architecture/ADR-0005-pbx-inbound-out-of-scope.md)
 - [ADR-0006 - No smoke-first](architecture/ADR-0006-no-smoke-first.md)
 - [ADR-0007 - Limites de datos y habeas data](architecture/ADR-0007-call-data-boundaries-and-habeas-data.md)
+- [Monorepo structure](architecture/MONOREPO_STRUCTURE.md)
+- [Module boundaries](architecture/MODULE_BOUNDARIES.md)
 
 ## Producto
 
@@ -36,3 +39,4 @@ Los documentos fuente privados viven en `_private/` y no deben versionarse. R00,
 ## Delivery
 
 - [CEDCO D02 - Roadmap de delivery](delivery/CEDCO_D02_DELIVERY_ROADMAP.md)
+- [Loop 1 - Monorepo foundation report](delivery/LOOP_1_MONOREPO_FOUNDATION_REPORT.md)

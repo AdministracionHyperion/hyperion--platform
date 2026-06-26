@@ -6,7 +6,8 @@ Aceptado.
 
 ## Decision
 
-Hyperion debe operar D02 con minimo dato necesario, auditoria obligatoria y proteccion de habeas data.
+Hyperion debe operar D02 con minimo dato necesario, auditoria obligatoria y proteccion de habeas
+data.
 
 ## Datos prohibidos en repo y logs
 
@@ -31,7 +32,8 @@ Hyperion debe operar D02 con minimo dato necesario, auditoria obligatoria y prot
 
 ## ContactResolver
 
-`ContactResolver` sera un componente externo/futuro que convierte `calleeAlias` a E.164 solo al momento de dispatch.
+`ContactResolver` sera un componente externo/futuro que convierte `calleeAlias` a E.164 solo al
+momento de dispatch.
 
 Reglas:
 
@@ -78,4 +80,5 @@ Hyperion debe:
 
 ## Habeas data
 
-Toda decision de persistencia debe partir de minimizacion, finalidad, autorizacion, auditoria y capacidad de eliminacion/retencion segun politica aplicable.
+Toda decision de persistencia debe partir de minimizacion, finalidad, autorizacion, auditoria y
+capacidad de eliminacion/retencion segun politica aplicable.

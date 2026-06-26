@@ -13,7 +13,8 @@ Para CEDCO R02 / D02 llamadas se adopta Ruta B: ElevenLabs + SIP Trunk.
 Hyperion:
 
 - Ordena la llamada desde reglas de dominio.
-- Valida tenant, actor/RBAC, consentimiento, opt-out, horario, rate limit, proposito, AgentVersion y KnowledgeBaseVersion.
+- Valida tenant, actor/RBAC, consentimiento, opt-out, horario, rate limit, proposito, AgentVersion y
+  KnowledgeBaseVersion.
 - Encola y audita el trabajo.
 - Invoca un puerto interno de proveedor de llamadas.
 - Guarda solo referencias sanitizadas, estado, metricas, auditoria y feedback.
@@ -23,7 +24,8 @@ ElevenLabs:
 - Ejecuta el runtime de voz administrado.
 - Maneja el agente de voz, la conversacion y la salida por SIP.
 - Inicia llamadas outbound a traves del SIP trunk configurado.
-- Puede enviar webhooks post-call con transcripcion, audio o fallo de inicio, que Hyperion debe validar y sanitizar antes de persistir.
+- Puede enviar webhooks post-call con transcripcion, audio o fallo de inicio, que Hyperion debe
+  validar y sanitizar antes de persistir.
 
 SIP trunk / proveedor DID:
 
@@ -65,5 +67,6 @@ Response posible:
 ## Consecuencias
 
 - Hyperion no implementa telefonia propia para el primer outbound.
-- La primera llamada real controlada requiere proveedor SIP/DID definido, configuracion de prueba y runbook aprobado.
+- La primera llamada real controlada requiere proveedor SIP/DID definido, configuracion de prueba y
+  runbook aprobado.
 - No se usan API keys, agent IDs, phone number IDs, telefonos ni datos reales en repo.

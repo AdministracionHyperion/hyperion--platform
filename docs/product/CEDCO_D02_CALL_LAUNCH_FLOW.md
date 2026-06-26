@@ -1,6 +1,7 @@
 # CEDCO D02 - Flujo de lanzamiento outbound
 
-Este flujo define como se lanza una llamada outbound cuando existan implementacion, flags y proveedor de prueba autorizados. No autoriza llamadas reales en este loop.
+Este flujo define como se lanza una llamada outbound cuando existan implementacion, flags y
+proveedor de prueba autorizados. No autoriza llamadas reales en este loop.
 
 ## Flujo
 
@@ -54,4 +55,6 @@ Response posible:
 
 ## Fallos esperados
 
-El flujo puede bloquearse antes de dispatch por consentimiento, opt-out, horario, rate limit, tenant deshabilitado, agente/KB inactivo, proveedor no configurado, SIP trunk no verificado, llamadas reales deshabilitadas, aprobacion humana pendiente, alias invalido o politica PII.
+El flujo puede bloquearse antes de dispatch por consentimiento, opt-out, horario, rate limit, tenant
+deshabilitado, agente/KB inactivo, proveedor no configurado, SIP trunk no verificado, llamadas
+reales deshabilitadas, aprobacion humana pendiente, alias invalido o politica PII.
