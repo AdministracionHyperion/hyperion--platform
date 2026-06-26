@@ -60,6 +60,12 @@ const placeholderValues = new Set([
   "not_set",
   "unset",
   "your_value_here",
+  "hyperion_test",
+]);
+
+const allowedDatabaseUrls = new Set([
+  "postgresql://placeholder:placeholder@localhost:5432/hyperion",
+  "postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public",
 ]);
 
 export function runRepoGuard(options = {}) {
@@ -170,7 +176,7 @@ function validateSourceBoundaries(filePath, text, issues) {
     }
   }
 
-  if (text.includes(["process", "env"].join("."))) {
+  if (text.includes(["process", "env"].join(".")) && !isDbIntegrationPath(filePath)) {
     issues.push(`${filePath}: process.env is not allowed in domain or packages/db`);
   }
 
@@ -199,10 +205,11 @@ function validateSourceBoundaries(filePath, text, issues) {
 }
 
 function validateDatabaseUrls(filePath, text, issues) {
-  const realDatabaseUrl =
-    /postgres(?:ql)?:\/\/(?!placeholder:placeholder@localhost:5432\/hyperion)[^\s"')]+/iu;
-  if (realDatabaseUrl.test(text)) {
-    issues.push(`${filePath}: concrete DATABASE_URL must not be hardcoded`);
+  const databaseUrlPattern = /postgres(?:ql)?:\/\/[^\s"')]+/giu;
+  for (const match of text.matchAll(databaseUrlPattern)) {
+    if (!allowedDatabaseUrls.has(match[0])) {
+      issues.push(`${filePath}: concrete DATABASE_URL must not be hardcoded`);
+    }
   }
 }
 
@@ -226,6 +233,10 @@ function validateSensitiveAssignments(filePath, text, issues) {
 
 function isTestPath(filePath) {
   return /\.test\.[cm]?[jt]s$/u.test(filePath);
+}
+
+function isDbIntegrationPath(filePath) {
+  return filePath.startsWith("packages/db/src/integration/");
 }
 
 function shouldInspectContent(filePath) {

@@ -198,7 +198,12 @@ describe("Prisma client factory", () => {
       .flatMap(
         (filePath) => readFileSync(filePath, "utf8").match(/postgres(?:ql)?:\/\/[^\s"']+/giu) ?? [],
       )
-      .filter((url) => !url.includes("placeholder"));
+      .filter(
+        (url) =>
+          !url.includes("placeholder") &&
+          url !==
+            "postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public",
+      );
 
     expect(urls).toEqual([]);
   });

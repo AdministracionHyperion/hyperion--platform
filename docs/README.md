@@ -60,6 +60,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 
 - [CEDCO D02 - Roadmap de delivery](delivery/CEDCO_D02_DELIVERY_ROADMAP.md)
 - [CI Quality Gates](delivery/CI_QUALITY_GATES.md)
+- [DB Integration Tests](delivery/DB_INTEGRATION_TESTS.md)
 - [Branch Protection Prep](delivery/BRANCH_PROTECTION_PREP.md)
 - [Loop 1 - Monorepo foundation report](delivery/LOOP_1_MONOREPO_FOUNDATION_REPORT.md)
 - [Loop 2 - Core Platform Domain report](delivery/LOOP_2_CORE_PLATFORM_DOMAIN_REPORT.md)
@@ -68,3 +69,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 5 - CEDCO D02 Domain report](delivery/LOOP_5_CEDCO_D02_DOMAIN_REPORT.md)
 - [Loop 6 - Persistence report](delivery/LOOP_6_PERSISTENCE_REPORT.md)
 - [Loop 7 - CI Quality Gates report](delivery/LOOP_7_CI_QUALITY_GATES_REPORT.md)
+- [Loop 8 - DB Integration report](delivery/LOOP_8_DB_INTEGRATION_REPORT.md)

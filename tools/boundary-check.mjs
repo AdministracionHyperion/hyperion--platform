@@ -223,7 +223,7 @@ export function runBoundaryCheck() {
       }
 
       if (rootPath === "packages/db") {
-        if (text.includes("process.env")) {
+        if (text.includes("process.env") && !filePath.startsWith("packages/db/src/integration/")) {
           issues.push(`${filePath}: process.env is not allowed in packages/db`);
         }
 

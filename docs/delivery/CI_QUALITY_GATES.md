@@ -16,12 +16,13 @@ y ejecuciones manuales.
 - Architecture check.
 - DB schema check.
 - Repo guard.
+- Job `db-integration` con PostgreSQL temporal.
 
-## Sin DB real
+## DB efimera controlada
 
-El CI no levanta PostgreSQL ni ejecuta migraciones contra una base real. Prisma usa un placeholder
-controlado dentro del wrapper local para `validate` y `generate`. Las pruebas con DB real quedan
-para un loop futuro de integration tests.
+El job `verify` no levanta PostgreSQL. El job `db-integration` levanta un service PostgreSQL
+temporal con credenciales sinteticas y aplica migraciones solo contra esa base efimera. No usa una
+DB de cliente ni una DB externa persistente.
 
 ## Sin secrets
 
@@ -42,6 +43,13 @@ pnpm db:validate
 pnpm db:generate
 pnpm db:schema:check
 pnpm run repo:guard
+```
+
+Con PostgreSQL temporal disponible:
+
+```bash
+DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public" pnpm db:migrate:test
+DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public" pnpm test:integration:db
 ```
 
 ## Que bloquea repo guard
