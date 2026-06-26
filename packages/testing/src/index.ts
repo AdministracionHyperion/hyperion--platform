@@ -4,3 +4,4 @@ export const testingPackageBoundary = {
 } as const;
 
 export * from "./core";
+export * from "./agent-platform";

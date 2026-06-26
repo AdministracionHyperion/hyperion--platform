@@ -19,8 +19,8 @@ const importRules = [
   },
   {
     from: "modules/agent-platform",
-    denied: ["modules/products"],
-    message: "modules/agent-platform must not import products",
+    denied: ["modules/products", "modules/integrations/provider-adapters"],
+    message: "modules/agent-platform must not import products or provider adapters",
   },
   {
     from: "modules/voice",
@@ -32,6 +32,10 @@ const importRules = [
 const providerImportPatterns = [
   "elevenlabs",
   "@elevenlabs",
+  "openai",
+  "@openai",
+  "anthropic",
+  "@anthropic",
   "twilio",
   "freeswitch",
   "kamailio",
@@ -40,6 +44,19 @@ const providerImportPatterns = [
   "siptrunk",
   "sip-trunk-adapter",
 ];
+
+const vectorDbImportPatterns = [
+  "pinecone",
+  "weaviate",
+  "qdrant",
+  "chromadb",
+  "milvus",
+  "pgvector",
+  "vectordb",
+  "vector-db",
+];
+
+const realIngestionImports = ["fs", "node:fs", "fs/promises", "node:fs/promises"];
 
 export function runBoundaryCheck() {
   const issues = [];
@@ -71,6 +88,54 @@ export function runBoundaryCheck() {
 
       if (rootPath === "modules/core" && text.includes("process.env")) {
         issues.push(`${filePath}: process.env is not allowed in core domain`);
+      }
+
+      if (rootPath === "modules/agent-platform") {
+        if (text.includes("process.env")) {
+          issues.push(`${filePath}: process.env is not allowed in agent-platform domain`);
+        }
+
+        if (text.includes("_private")) {
+          issues.push(`${filePath}: agent-platform must not read private source documents`);
+        }
+
+        for (const importTarget of imports) {
+          if (realIngestionImports.includes(importTarget)) {
+            issues.push(`${filePath}: filesystem ingestion is not allowed in agent-platform yet`);
+          }
+        }
+      }
+
+      if (
+        rootPath === "modules/agent-platform" &&
+        filePath.startsWith("modules/agent-platform/knowledge-rag/")
+      ) {
+        for (const importTarget of imports) {
+          const lower = importTarget.toLowerCase();
+          if (vectorDbImportPatterns.some((pattern) => lower.includes(pattern))) {
+            issues.push(
+              `${filePath}: real vector database imports are not allowed yet (${importTarget})`,
+            );
+          }
+        }
+      }
+
+      if (
+        rootPath === "modules/agent-platform" &&
+        filePath.startsWith("modules/agent-platform/evals/")
+      ) {
+        for (const importTarget of imports) {
+          const lower = importTarget.toLowerCase();
+          if (
+            ["langchain", "llamaindex", "openai", "anthropic"].some((pattern) =>
+              lower.includes(pattern),
+            )
+          ) {
+            issues.push(
+              `${filePath}: real LLM imports are not allowed in evals yet (${importTarget})`,
+            );
+          }
+        }
       }
     }
   }
