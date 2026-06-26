@@ -14,6 +14,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [ADR-0005 - PBX inbound fuera de alcance](architecture/ADR-0005-pbx-inbound-out-of-scope.md)
 - [ADR-0006 - No smoke-first](architecture/ADR-0006-no-smoke-first.md)
 - [ADR-0007 - Limites de datos y habeas data](architecture/ADR-0007-call-data-boundaries-and-habeas-data.md)
+- [Core Platform Domain](architecture/CORE_PLATFORM_DOMAIN.md)
 - [Monorepo structure](architecture/MONOREPO_STRUCTURE.md)
 - [Module boundaries](architecture/MODULE_BOUNDARIES.md)
 
@@ -29,6 +30,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 
 - [CEDCO D02 - PII y habeas data](security/CEDCO_D02_PII_AND_HABEAS_DATA.md)
 - [CEDCO D02 - Webhook sanitizer](security/CEDCO_D02_WEBHOOK_SANITIZER.md)
+- [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
 
 ## Runbooks
 
@@ -40,3 +42,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 
 - [CEDCO D02 - Roadmap de delivery](delivery/CEDCO_D02_DELIVERY_ROADMAP.md)
 - [Loop 1 - Monorepo foundation report](delivery/LOOP_1_MONOREPO_FOUNDATION_REPORT.md)
+- [Loop 2 - Core Platform Domain report](delivery/LOOP_2_CORE_PLATFORM_DOMAIN_REPORT.md)
