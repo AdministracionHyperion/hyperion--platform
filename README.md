@@ -22,13 +22,24 @@ Estructura base:
 
 ## Scripts
 
-- `pnpm check`: ejecuta formato, lint, typecheck, tests y secret scan.
+- `pnpm check`: ejecuta formato, lint, Prisma checks, typecheck, tests, secret scan, architecture
+  check, DB schema check y repo guard.
 - `pnpm lint`: ejecuta ESLint.
 - `pnpm typecheck`: ejecuta TypeScript sin emitir archivos.
 - `pnpm test`: ejecuta Vitest.
 - `pnpm secret:scan`: revisa patrones obvios de secretos en archivos trackeables.
+- `pnpm run repo:guard`: bloquea `_private`, R03/activos fijos, `.env` reales, proveedores reales,
+  runtime indebido y columnas Prisma prohibidas.
+
+## CI
+
+GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
+hacia `main` y ejecuciones manuales. El workflow usa `pnpm install --frozen-lockfile` y los quality
+gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 
 ## Estado actual
 
-La base tecnica existe sin runtime de producto. No hay API real, dashboard real, workers reales,
-base de datos real, adapter ElevenLabs, llamadas ni proveedores activos.
+La base tecnica existe sin runtime de producto. CEDCO R02 / D02 llamadas sigue siendo el unico
+vertical activo. R03/activos fijos queda fuera de alcance. No hay API real, dashboard real, workers
+reales, conexion a base de datos real, adapter ElevenLabs, adapter SIP, llamadas, proveedores
+activos, produccion ni deploy.
