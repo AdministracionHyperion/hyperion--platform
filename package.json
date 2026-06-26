@@ -6,7 +6,12 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "architecture:check": "node tools/boundary-check.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run secret:scan && pnpm run architecture:check",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run db:format && pnpm run db:validate && pnpm run db:generate && pnpm run typecheck && pnpm run test && pnpm run secret:scan && pnpm run architecture:check && pnpm run db:schema:check",
+    "db:format": "node tools/prisma-cli.mjs format --schema packages/db/prisma/schema.prisma",
+    "db:validate": "node tools/prisma-cli.mjs validate --schema packages/db/prisma/schema.prisma",
+    "db:generate": "node tools/prisma-cli.mjs generate --schema packages/db/prisma/schema.prisma",
+    "db:migration:check": "node tools/db-schema-check.mjs",
+    "db:schema:check": "node tools/db-schema-check.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -23,8 +28,12 @@
     "eslint": "^10.5.0",
     "globals": "^17.7.0",
     "prettier": "^3.8.5",
+    "prisma": "^6.19.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.0",
     "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
   }
 }

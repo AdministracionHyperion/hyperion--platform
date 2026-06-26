@@ -9,6 +9,7 @@ const restrictedRoots = [
   "modules/agent-platform",
   "modules/voice",
   "modules/products/cedco/d02-calls",
+  "packages/db",
 ];
 
 const importRules = [
@@ -217,6 +218,27 @@ export function runBoundaryCheck() {
             issues.push(
               `${filePath}: filesystem ingestion is not allowed in CEDCO D02 domain (${importTarget})`,
             );
+          }
+        }
+      }
+
+      if (rootPath === "packages/db") {
+        if (text.includes("process.env")) {
+          issues.push(`${filePath}: process.env is not allowed in packages/db`);
+        }
+
+        if (text.includes("_private")) {
+          issues.push(`${filePath}: packages/db must not read private source documents`);
+        }
+
+        if (/\bR03\b|activos[-_ ]?fijos/iu.test(text)) {
+          issues.push(`${filePath}: packages/db must not implement R03 or fixed-assets scope`);
+        }
+
+        for (const importTarget of imports) {
+          const lower = importTarget.toLowerCase();
+          if (providerImportPatterns.some((pattern) => lower.includes(pattern))) {
+            issues.push(`${filePath}: provider imports are not allowed in packages/db`);
           }
         }
       }

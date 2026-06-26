@@ -1,0 +1,616 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                String             @id
+  name              String
+  status            String
+  locale            String?
+  timezone          String?
+  dataRetentionDays Int?
+  piiPolicy         Json?
+  metadata          Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  memberships       TenantMembership[]
+
+  @@index([status])
+}
+
+model User {
+  id          String             @id
+  displayName String?
+  status      String
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  memberships TenantMembership[]
+}
+
+model TenantMembership {
+  id        String   @id
+  tenantId  String
+  userId    String
+  roles     Json
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id            String   @id
+  tenantId      String
+  actorId       String?
+  correlationId String
+  action        String
+  resourceType  String
+  resourceId    String
+  result        String
+  metadata      Json?
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([correlationId])
+  @@index([resourceType, resourceId])
+}
+
+model FeatureFlag {
+  id          String   @id
+  tenantId    String?
+  flagKey     String
+  enabled     Boolean
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, flagKey])
+  @@index([flagKey])
+}
+
+model VersionedResource {
+  id            String    @id
+  tenantId      String
+  resourceType  String
+  resourceId    String
+  versionNumber Int
+  status        String
+  createdBy     String
+  activatedAt   DateTime?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([tenantId, resourceType, resourceId, versionNumber])
+  @@index([tenantId, resourceType, resourceId, status])
+}
+
+model FeedbackEvent {
+  id            String   @id
+  tenantId      String
+  actorId       String?
+  correlationId String
+  source        String
+  resourceType  String
+  resourceId    String
+  outcome       String
+  score         Float?
+  metadata      Json?
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([resourceType, resourceId])
+  @@index([correlationId])
+}
+
+model OutboxEvent {
+  id            String    @id
+  tenantId      String
+  actorId       String?
+  correlationId String
+  type          String
+  payload       Json
+  status        String
+  occurredAt    DateTime
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([correlationId])
+}
+
+model Agent {
+  id            String   @id
+  tenantId      String
+  name          String
+  description   String?
+  status        String
+  defaultLocale String
+  createdBy     String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model AgentVersion {
+  id                     String    @id
+  tenantId               String
+  agentId                String
+  versionNumber          Int
+  status                 String
+  promptVersionId        String?
+  flowVersionId          String?
+  knowledgeBaseVersionId String?
+  capabilities           Json
+  createdBy              String
+  metadata               Json?
+  createdAt              DateTime  @default(now())
+  activatedAt            DateTime?
+
+  @@unique([tenantId, agentId, versionNumber])
+  @@index([tenantId, agentId, status])
+}
+
+model AgentDeployment {
+  id             String   @id
+  tenantId       String
+  agentId        String
+  agentVersionId String
+  environment    String
+  status         String
+  deployedBy     String
+  deployedAt     DateTime
+  metadata       Json?
+
+  @@index([tenantId])
+  @@index([agentId])
+}
+
+model PromptTemplate {
+  id          String   @id
+  tenantId    String
+  name        String
+  description String?
+  scope       String
+  createdBy   String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model PromptVersion {
+  id            String    @id
+  tenantId      String
+  promptId      String
+  versionNumber Int
+  status        String
+  template      String
+  variables     Json
+  policy        Json
+  createdBy     String
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  activatedAt   DateTime?
+
+  @@unique([tenantId, promptId, versionNumber])
+  @@index([tenantId, promptId, status])
+}
+
+model FlowDefinition {
+  id          String   @id
+  tenantId    String
+  name        String
+  description String?
+  createdBy   String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model FlowVersion {
+  id            String    @id
+  tenantId      String
+  flowId        String
+  versionNumber Int
+  status        String
+  nodes         Json
+  transitions   Json
+  createdBy     String
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  activatedAt   DateTime?
+
+  @@unique([tenantId, flowId, versionNumber])
+  @@index([tenantId, flowId, status])
+}
+
+model KnowledgeBase {
+  id          String   @id
+  tenantId    String
+  name        String
+  description String?
+  createdBy   String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model KnowledgeBaseVersion {
+  id              String    @id
+  tenantId        String
+  knowledgeBaseId String
+  versionNumber   Int
+  status          String
+  retrievalPolicy Json
+  createdBy       String
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  activatedAt     DateTime?
+
+  @@unique([tenantId, knowledgeBaseId, versionNumber])
+  @@index([tenantId, knowledgeBaseId, status])
+}
+
+model KnowledgeDocument {
+  id              String    @id
+  tenantId        String
+  knowledgeBaseId String
+  title           String
+  sourceType      String
+  status          String
+  metadata        Json?
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime?
+
+  @@index([tenantId])
+  @@index([knowledgeBaseId])
+}
+
+model KnowledgeChunk {
+  id         String   @id
+  tenantId   String
+  documentId String
+  text       String
+  ordinal    Int
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, ordinal])
+  @@index([tenantId])
+  @@index([documentId])
+}
+
+model EvalScenario {
+  id                String   @id
+  tenantId          String
+  name              String
+  description       String?
+  category          String
+  input             Json
+  expectedBehavior  String
+  forbiddenBehavior String
+  criteria          Json
+  createdBy         String
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([category])
+}
+
+model EvalRun {
+  id             String    @id
+  tenantId       String
+  agentVersionId String?
+  status         String
+  startedBy      String
+  startedAt      DateTime
+  completedAt    DateTime?
+  metadata       Json?
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+model EvalResult {
+  id             String   @id
+  tenantId       String
+  evalRunId      String
+  evalScenarioId String
+  status         String
+  score          Float
+  findings       Json
+  metadata       Json?
+  occurredAt     DateTime
+  createdAt      DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([evalRunId])
+}
+
+model CallSession {
+  id                  String    @id
+  tenantId            String
+  direction           String
+  status              String
+  agentRuntimeRef     Json?
+  knowledgeRuntimeRef Json?
+  correlationId       String
+  metadata            Json?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([correlationId])
+}
+
+model CallParticipant {
+  id           String   @id
+  tenantId     String
+  callId       String
+  role         String
+  displayAlias String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([callId])
+}
+
+model ConversationTurn {
+  id              String   @id
+  tenantId        String
+  callId          String
+  role            String
+  contentRedacted String
+  metadata        Json?
+  occurredAt      DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([callId])
+}
+
+model CallEvent {
+  id            String   @id
+  tenantId      String
+  callId        String
+  actorId       String?
+  correlationId String
+  type          String
+  status        String?
+  metadata      Json?
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([callId])
+  @@index([correlationId])
+}
+
+model ProviderCallEvent {
+  id              String   @id
+  tenantId        String
+  callId          String?
+  providerName    String
+  providerEventId String
+  providerCallId  String?
+  status          String?
+  metadata        Json?
+  occurredAt      DateTime
+  createdAt       DateTime @default(now())
+
+  @@unique([providerName, providerEventId])
+  @@index([tenantId])
+  @@index([callId])
+}
+
+model PostCallResult {
+  id                 String   @id
+  tenantId           String
+  callId             String
+  status             String
+  durationSeconds    Int?
+  redactedSummary    String?
+  outcome            String?
+  handoffRecommended Boolean?
+  metadata           Json?
+  occurredAt         DateTime
+  createdAt          DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([callId])
+}
+
+model HandoffRequest {
+  id              String    @id
+  tenantId        String
+  callId          String
+  status          String
+  priority        String
+  reason          String
+  targetQueue     String
+  redactedSummary String
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  assignedAt      DateTime?
+  resolvedAt      DateTime?
+
+  @@index([tenantId])
+  @@index([callId])
+  @@index([status])
+}
+
+model HandoffAssignment {
+  id                String    @id
+  tenantId          String
+  handoffId         String
+  assignedToActorId String
+  assignedByActorId String
+  status            String
+  metadata          Json?
+  assignedAt        DateTime
+  resolvedAt        DateTime?
+
+  @@index([tenantId])
+  @@index([handoffId])
+}
+
+model CedcoSite {
+  id        String   @id
+  tenantId  String
+  name      String
+  city      String
+  status    String
+  timezone  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model CedcoService {
+  id                            String   @id
+  tenantId                      String
+  name                          String
+  category                      String
+  availableSiteIds              Json
+  requiresEligibilityCheck      Boolean
+  requiresSchedulingIntegration Boolean
+  metadata                      Json?
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model CedcoAgreement {
+  id                   String   @id
+  tenantId             String
+  name                 String
+  status               String
+  applicableServiceIds Json
+  notesRedacted        String?
+  metadata             Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model CedcoD02Configuration {
+  id                           String   @id
+  tenantId                     String
+  defaultLocale                String
+  activeAgentVersionId         String?
+  activePromptVersionId        String?
+  activeFlowVersionId          String?
+  activeKnowledgeBaseVersionId String?
+  allowedSiteIds               Json
+  allowedServiceIds            Json
+  handoffEnabled               Boolean
+  schedulingMode               String
+  eligibilityMode              String
+  realCallsEnabled             Boolean  @default(false)
+  metadata                     Json?
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  @@unique([tenantId])
+}
+
+model CedcoSchedulingRequest {
+  id                String   @id
+  tenantId          String
+  callId            String?
+  patientContextRef String
+  serviceId         String
+  siteId            String?
+  status            String
+  mode              String
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([callId])
+}
+
+model CedcoEligibilityCheck {
+  id                String   @id
+  tenantId          String
+  patientContextRef String
+  agreementId       String?
+  serviceId         String?
+  status            String
+  mode              String
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model CedcoD02EvalScenario {
+  id                String   @id
+  tenantId          String
+  intent            String
+  objective         String
+  input             Json
+  expectedBehavior  String
+  forbiddenBehavior String
+  severity          String
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([intent])
+}
+
+model CedcoD02Metric {
+  id         String   @id
+  tenantId   String
+  key        String
+  value      Float
+  dimensions Json?
+  occurredAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([key])
+  @@index([occurredAt])
+}

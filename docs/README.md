@@ -19,6 +19,8 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Core Platform Domain](architecture/CORE_PLATFORM_DOMAIN.md)
 - [Monorepo structure](architecture/MONOREPO_STRUCTURE.md)
 - [Module boundaries](architecture/MODULE_BOUNDARIES.md)
+- [Persistence Architecture](architecture/PERSISTENCE_ARCHITECTURE.md)
+- [Prisma Schema Boundaries](architecture/PRISMA_SCHEMA_BOUNDARIES.md)
 - [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
 - [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
@@ -44,6 +46,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 - Webhook sanitizer](security/CEDCO_D02_WEBHOOK_SANITIZER.md)
 - [Agent Platform Security Baseline](security/AGENT_PLATFORM_SECURITY_BASELINE.md)
 - [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
+- [Database Security Baseline](security/DATABASE_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -61,3 +64,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 3 - Agent Platform Domain report](delivery/LOOP_3_AGENT_PLATFORM_DOMAIN_REPORT.md)
 - [Loop 4 - Voice Platform Domain report](delivery/LOOP_4_VOICE_PLATFORM_DOMAIN_REPORT.md)
 - [Loop 5 - CEDCO D02 Domain report](delivery/LOOP_5_CEDCO_D02_DOMAIN_REPORT.md)
+- [Loop 6 - Persistence report](delivery/LOOP_6_PERSISTENCE_REPORT.md)
