@@ -27,6 +27,11 @@ const importRules = [
     denied: ["modules/products", "modules/integrations/provider-adapters"],
     message: "modules/voice must not import products or provider adapters",
   },
+  {
+    from: "modules/products/cedco/d02-calls",
+    denied: ["modules/integrations/provider-adapters"],
+    message: "modules/products/cedco/d02-calls must not import provider adapters",
+  },
 ];
 
 const providerImportPatterns = [
@@ -182,7 +187,48 @@ export function runBoundaryCheck() {
           }
         }
       }
+
+      if (rootPath === "modules/products/cedco/d02-calls") {
+        if (text.includes("process.env")) {
+          issues.push(`${filePath}: process.env is not allowed in CEDCO D02 domain`);
+        }
+
+        if (text.includes("_private")) {
+          issues.push(`${filePath}: CEDCO D02 domain must not read private source documents`);
+        }
+
+        if (/\bfetch\s*\(/u.test(text)) {
+          issues.push(`${filePath}: fetch is not allowed in CEDCO D02 domain`);
+        }
+
+        if (/\bR03\b|activos[-_ ]?fijos|assets/iu.test(text)) {
+          issues.push(`${filePath}: CEDCO D02 must not implement R03 or fixed-assets scope`);
+        }
+
+        for (const importTarget of imports) {
+          const lower = importTarget.toLowerCase();
+          if (realNetworkImports.includes(lower)) {
+            issues.push(
+              `${filePath}: real network imports are not allowed in CEDCO D02 domain (${importTarget})`,
+            );
+          }
+
+          if (realIngestionImports.includes(lower)) {
+            issues.push(
+              `${filePath}: filesystem ingestion is not allowed in CEDCO D02 domain (${importTarget})`,
+            );
+          }
+        }
+      }
     }
+  }
+
+  if (existsDirectory(path.join(root, "modules/products/cedco/r03"))) {
+    issues.push("modules/products/cedco/r03 must not exist in this scope");
+  }
+
+  if (existsDirectory(path.join(root, "modules/products/cedco/assets"))) {
+    issues.push("modules/products/cedco/assets must not exist in this scope");
   }
 
   return issues;

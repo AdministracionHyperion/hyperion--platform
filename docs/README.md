@@ -23,6 +23,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
 - [Voice Provider Contracts](architecture/VOICE_PROVIDER_CONTRACTS.md)
+- [CEDCO D02 Vertical Boundaries](architecture/CEDCO_D02_VERTICAL_BOUNDARIES.md)
 
 ## Producto
 
@@ -31,6 +32,11 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 - Estados de llamada outbound](product/CEDCO_D02_OUTBOUND_CALL_STATES.md)
 - [CEDCO D02 - Matriz de proveedores](product/CEDCO_D02_PROVIDER_MATRIX.md)
 - [CEDCO D02 - Definition of Done](product/CEDCO_D02_DEFINITION_OF_DONE.md)
+- [CEDCO D02 - Domain](product/CEDCO_D02_DOMAIN.md)
+- [CEDCO D02 - Intents and flows](product/CEDCO_D02_INTENTS_AND_FLOWS.md)
+- [CEDCO D02 - Sites, services and agreements](product/CEDCO_D02_SITE_SERVICE_AGREEMENTS.md)
+- [CEDCO D02 - Handoff and compliance](product/CEDCO_D02_HANDOFF_AND_COMPLIANCE.md)
+- [CEDCO D02 - Eval scenarios](product/CEDCO_D02_EVAL_SCENARIOS.md)
 
 ## Seguridad
 
@@ -39,6 +45,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Agent Platform Security Baseline](security/AGENT_PLATFORM_SECURITY_BASELINE.md)
 - [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
+- [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
 ## Runbooks
 
@@ -53,3 +60,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 2 - Core Platform Domain report](delivery/LOOP_2_CORE_PLATFORM_DOMAIN_REPORT.md)
 - [Loop 3 - Agent Platform Domain report](delivery/LOOP_3_AGENT_PLATFORM_DOMAIN_REPORT.md)
 - [Loop 4 - Voice Platform Domain report](delivery/LOOP_4_VOICE_PLATFORM_DOMAIN_REPORT.md)
+- [Loop 5 - CEDCO D02 Domain report](delivery/LOOP_5_CEDCO_D02_DOMAIN_REPORT.md)
