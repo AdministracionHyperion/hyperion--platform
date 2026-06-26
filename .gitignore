@@ -1,0 +1,12 @@
+_private/
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.next/
+.DS_Store
+*.log
