@@ -5,3 +5,4 @@ export const testingPackageBoundary = {
 
 export * from "./core";
 export * from "./agent-platform";
+export * from "./voice";

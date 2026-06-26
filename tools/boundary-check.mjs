@@ -24,8 +24,8 @@ const importRules = [
   },
   {
     from: "modules/voice",
-    denied: ["modules/products"],
-    message: "modules/voice must not import products",
+    denied: ["modules/products", "modules/integrations/provider-adapters"],
+    message: "modules/voice must not import products or provider adapters",
   },
 ];
 
@@ -37,12 +37,18 @@ const providerImportPatterns = [
   "anthropic",
   "@anthropic",
   "twilio",
+  "telnyx",
+  "plivo",
+  "vonage",
   "freeswitch",
   "kamailio",
   "asterisk",
   "sip-provider",
   "siptrunk",
   "sip-trunk-adapter",
+  "sip.js",
+  "jssip",
+  "drachtio",
 ];
 
 const vectorDbImportPatterns = [
@@ -57,6 +63,18 @@ const vectorDbImportPatterns = [
 ];
 
 const realIngestionImports = ["fs", "node:fs", "fs/promises", "node:fs/promises"];
+const realNetworkImports = [
+  "http",
+  "https",
+  "node:http",
+  "node:https",
+  "net",
+  "node:net",
+  "dgram",
+  "node:dgram",
+  "ws",
+  "websocket",
+];
 
 export function runBoundaryCheck() {
   const issues = [];
@@ -133,6 +151,33 @@ export function runBoundaryCheck() {
           ) {
             issues.push(
               `${filePath}: real LLM imports are not allowed in evals yet (${importTarget})`,
+            );
+          }
+        }
+      }
+
+      if (rootPath === "modules/voice") {
+        if (text.includes("process.env")) {
+          issues.push(`${filePath}: process.env is not allowed in voice domain`);
+        }
+
+        if (text.includes("_private")) {
+          issues.push(`${filePath}: voice domain must not read private source documents`);
+        }
+
+        if (/\bfetch\s*\(/u.test(text)) {
+          issues.push(`${filePath}: fetch is not allowed in voice domain`);
+        }
+
+        if (/adapter/iu.test(path.basename(filePath))) {
+          issues.push(`${filePath}: real adapters are not allowed in voice domain`);
+        }
+
+        for (const importTarget of imports) {
+          const lower = importTarget.toLowerCase();
+          if (realNetworkImports.includes(lower)) {
+            issues.push(
+              `${filePath}: real network imports are not allowed in voice domain (${importTarget})`,
             );
           }
         }

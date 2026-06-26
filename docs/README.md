@@ -19,6 +19,10 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Core Platform Domain](architecture/CORE_PLATFORM_DOMAIN.md)
 - [Monorepo structure](architecture/MONOREPO_STRUCTURE.md)
 - [Module boundaries](architecture/MODULE_BOUNDARIES.md)
+- [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
+- [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
+- [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
+- [Voice Provider Contracts](architecture/VOICE_PROVIDER_CONTRACTS.md)
 
 ## Producto
 
@@ -34,6 +38,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 - Webhook sanitizer](security/CEDCO_D02_WEBHOOK_SANITIZER.md)
 - [Agent Platform Security Baseline](security/AGENT_PLATFORM_SECURITY_BASELINE.md)
 - [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
+- [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 
 ## Runbooks
 
@@ -47,3 +52,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 1 - Monorepo foundation report](delivery/LOOP_1_MONOREPO_FOUNDATION_REPORT.md)
 - [Loop 2 - Core Platform Domain report](delivery/LOOP_2_CORE_PLATFORM_DOMAIN_REPORT.md)
 - [Loop 3 - Agent Platform Domain report](delivery/LOOP_3_AGENT_PLATFORM_DOMAIN_REPORT.md)
+- [Loop 4 - Voice Platform Domain report](delivery/LOOP_4_VOICE_PLATFORM_DOMAIN_REPORT.md)
