@@ -1,0 +1,148 @@
+import { describe, expect, it } from "vitest";
+import { createJobEnvelope, createJobId, type JobEnvelope, type JobType } from "../core";
+import { createWorkerApp } from "../worker-app";
+
+describe("worker job handlers", () => {
+  it("processes outbox.process without external publish", async () => {
+    const result = await runJob(jobFixture("job-outbox-001", "outbox.process"));
+    expect(result?.output).toMatchObject({ processed: true, externalPublish: "not-configured" });
+  });
+
+  it("prepares voice.call.prepare without dispatch", async () => {
+    const result = await runJob(jobFixture("job-voice-prepare-001", "voice.call.prepare"));
+    expect(result?.output).toMatchObject({ prepared: true, dispatch: "not_started" });
+  });
+
+  it("processes voice.call.event.process metadata", async () => {
+    const result = await runJob(
+      jobFixture("job-voice-event-001", "voice.call.event.process", {
+        metadata: { channel: "worker-test" },
+      }),
+    );
+    expect(result?.success).toBe(true);
+  });
+
+  it("blocks voice.post_call.process with rawTranscript before persistence", async () => {
+    const result = await runJob(
+      jobFixture("job-post-call-001", "voice.post_call.process", {
+        rawTranscript: "synthetic blocked transcript",
+      }),
+    );
+    expect(result?.status).toBe("blocked");
+  });
+
+  it("processes safe voice.post_call.process payloads", async () => {
+    const result = await runJob(
+      jobFixture("job-post-call-002", "voice.post_call.process", {
+        redactedSummary: "synthetic safe summary",
+      }),
+    );
+    expect(result?.success).toBe(true);
+  });
+
+  it("evaluates CEDCO D02 readiness with missing config blockers", async () => {
+    const result = await runJob(
+      jobFixture("job-cedco-readiness-001", "cedco_d02.readiness.evaluate", {}),
+    );
+    expect(result?.output?.blockingReasons).toContain("missing_agent_version");
+  });
+
+  it("evaluates CEDCO D02 compliance and blocks diagnosis", async () => {
+    const result = await runJob(
+      jobFixture("job-cedco-compliance-001", "cedco_d02.compliance.evaluate", {
+        textRedacted: "diagnosticar dolor fuerte",
+      }),
+    );
+    expect(result?.output?.blocked).toBe(true);
+  });
+
+  it("records CEDCO D02 metrics with sanitized dimensions", async () => {
+    const app = createWorkerApp();
+    await app.queue.enqueue(
+      jobFixture("job-cedco-metric-001", "cedco_d02.metric.record", {
+        key: "cedco_d02.synthetic",
+        value: 1,
+        dimensions: { channel: "worker-test" },
+      }),
+    );
+
+    const result = await app.runner.processNext();
+
+    expect(result?.success).toBe(true);
+    expect(JSON.stringify(app.services.recordedMetrics?.())).toContain("worker-test");
+  });
+
+  it("does not create provider references for safe jobs", async () => {
+    const result = await runJob(jobFixture("job-no-provider-001", "voice.call.prepare"));
+    expect(JSON.stringify(result)).not.toMatch(/elevenlabs|twilio|providerCallId/iu);
+  });
+
+  it("does not create R03 assets scope from any job", async () => {
+    const result = await runJob(jobFixture("job-safe-scope-001", "cedco_d02.metric.record"));
+    expect(JSON.stringify(result)).not.toMatch(/r03|activos-fijos|assets/iu);
+  });
+
+  it("processes all registered safe job types", async () => {
+    const app = createWorkerApp();
+    await app.queue.enqueue(jobFixture("job-all-types-001", "outbox.process"));
+    await app.queue.enqueue(jobFixture("job-all-types-002", "voice.call.prepare"));
+    await app.queue.enqueue(jobFixture("job-all-types-003", "voice.call.event.process"));
+    await app.queue.enqueue(jobFixture("job-all-types-004", "voice.post_call.process"));
+    await app.queue.enqueue(jobFixture("job-all-types-005", "voice.call.mock_session.run"));
+    await app.queue.enqueue(
+      jobFixture("job-all-types-006", "voice.call.mock_session.finalize", {
+        sessionId: "mock-session-corr-worker-jobs-001",
+      }),
+    );
+    await app.queue.enqueue(jobFixture("job-all-types-007", "cedco_d02.readiness.evaluate"));
+    await app.queue.enqueue(jobFixture("job-all-types-008", "cedco_d02.compliance.evaluate"));
+    await app.queue.enqueue(jobFixture("job-all-types-009", "cedco_d02.metric.record"));
+    await app.queue.enqueue(jobFixture("job-all-types-010", "cedco_d02.mock_flow.run"));
+    await app.queue.enqueue(
+      jobFixture("job-all-types-011", "voice.provider_event.sanitized.process", {
+        eventId: "provider-event-all-types",
+        type: "provider.mock.call.completed",
+        providerCallRef: "mock_call_all_types_001",
+      }),
+    );
+    await app.queue.enqueue(
+      jobFixture("job-all-types-012", "cedco_d02.post_call_event.process", {
+        eventId: "provider-event-all-types-d02",
+        type: "provider.mock.post_call.available",
+        providerCallRef: "mock_call_all_types_d02_001",
+        safeSummary: "Synthetic summary.",
+      }),
+    );
+
+    const results = await app.runner.processAll(14);
+
+    expect(results.every((result) => result.success)).toBe(true);
+    expect(await app.queue.listByStatus("succeeded")).toHaveLength(12);
+  });
+});
+
+async function runJob(job: JobEnvelope) {
+  const app = createWorkerApp();
+  await app.queue.enqueue(job);
+  return app.runner.processNext();
+}
+
+function jobFixture(
+  jobIdValue: string,
+  type: JobType,
+  payload: Readonly<Record<string, unknown>> = {},
+): JobEnvelope {
+  const jobId = createJobId(jobIdValue);
+  if (!jobId.ok) {
+    throw new Error("invalid test job id");
+  }
+
+  return createJobEnvelope({
+    jobId: jobId.value,
+    type,
+    tenantId: "cedco-test",
+    actorId: "actor-test",
+    correlationId: "corr-worker-jobs-001",
+    payload,
+  });
+}

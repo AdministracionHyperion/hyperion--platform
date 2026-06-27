@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "modules/core/*"
+  - "modules/agent-platform/*"
+  - "modules/voice/*"
+  - "modules/integrations/*"
+  - "modules/products/cedco/*"

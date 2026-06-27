@@ -1,0 +1,164 @@
+name: CI / Verify
+
+on:
+  push:
+    branches:
+      - main
+      - "foundation/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify monorepo
+        run: pnpm check
+
+      - name: Validate Prisma schema
+        run: pnpm db:validate
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Check database schema boundaries
+        run: pnpm db:schema:check
+
+      - name: Run repository guard
+        run: pnpm run repo:guard
+
+  db-integration:
+    name: db-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hyperion_test
+          POSTGRES_PASSWORD: hyperion_test
+          POSTGRES_DB: hyperion_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hyperion_test -d hyperion_test" --health-interval 10s
+          --health-timeout 5s --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma schema
+        run: pnpm db:validate
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply test migrations
+        run: pnpm db:migrate:test
+
+      - name: Run DB integration tests
+        run: pnpm test:integration:db
+
+      - name: Check database schema boundaries
+        run: pnpm db:schema:check
+
+      - name: Run repository guard
+        run: pnpm run repo:guard
+
+  api-integration:
+    name: api-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hyperion_test
+          POSTGRES_PASSWORD: hyperion_test
+          POSTGRES_DB: hyperion_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hyperion_test -d hyperion_test" --health-interval 10s
+          --health-timeout 5s --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma schema
+        run: pnpm db:validate
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply test migrations
+        run: pnpm db:migrate:test
+
+      - name: Run API integration tests
+        run: pnpm test:integration:api
+
+      - name: Check database schema boundaries
+        run: pnpm db:schema:check
+
+      - name: Run repository guard
+        run: pnpm run repo:guard
