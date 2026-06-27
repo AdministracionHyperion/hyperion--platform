@@ -1,9 +1,9 @@
 # CEDCO D03 Fixed Assets
 
-Estado: lane habilitada.
+Estado: contratos de dominio habilitados.
 
-Este modulo reserva el carril de CEDCO D03 para activos fijos. No implementa dominio funcional,
-runtime, DB, API, dashboard, workers ni import/export.
+Este modulo define contratos iniciales de dominio para CEDCO D03 activos fijos. No implementa
+runtime, DB, API, dashboard, workers ni import/export real.
 
 ## Limites
 
@@ -17,7 +17,9 @@ runtime, DB, API, dashboard, workers ni import/export.
 - No fotos reales.
 - No inventarios reales.
 - No migracion Prisma.
+- No endpoints.
+- No imports hacia D02, voice, dialer ni providers.
 
 ## Proximo Paso
 
-`D03-1 - Domain contracts for fixed assets`.
+Revisar estos contratos y planear el loop futuro de persistencia/API con migraciones coordinadas.
