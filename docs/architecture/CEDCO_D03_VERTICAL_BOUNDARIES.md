@@ -33,3 +33,5 @@ objects, entidades, policies, ports, use cases y testing utilities.
 
 Siguen pendientes DB, migraciones Prisma, API, dashboard, workers, import/export real y cualquier
 integracion productiva.
+
+Estas reglas estan cubiertas por `tools/repo-guard.mjs` y por `tools/boundary-check.mjs`.

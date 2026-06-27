@@ -5,27 +5,28 @@
 ```bash
 git clone https://github.com/AdministracionHyperion/hyperion--platform.git
 cd hyperion--platform
-git checkout foundation/cedco-d02-sip-first-architecture
+git checkout main
+git pull --ff-only origin main
 pnpm install
 pnpm check
 ```
 
 ## Ramas
 
-Crear trabajo nuevo desde la rama foundation vigente:
+Crear trabajo nuevo desde `main` actualizado:
 
 ```bash
-git checkout foundation/cedco-d02-sip-first-architecture
-git pull
+git checkout main
+git pull --ff-only origin main
 git checkout -b feature/mi-loop
 ```
 
 Convenciones recomendadas:
 
-- `foundation/cedco-d03-fixed-assets-lane`.
-- `feature/cedco-d03-fixed-assets-domain`.
+- `feature/cedco-d03-fixed-assets-domain-expansion`.
 - `feature/cedco-d03-fixed-assets-api`.
 - `feature/cedco-d03-fixed-assets-dashboard`.
+- `hardening/<tema>`.
 
 ## Checks Locales
 

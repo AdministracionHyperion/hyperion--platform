@@ -9,7 +9,7 @@ controladas. No hay llamadas reales, PBX, SIP real, runtime de voz ni integracio
 - `PUT /api/v1/tenants/:tenantId/products/cedco/d02/configuration`
 
 `realCallsEnabled` queda `false`. Si el cliente intenta ponerlo en `true`, la API responde
-`validation_error`.
+`policy_blocked`.
 
 ## Intenciones y readiness
 
@@ -33,3 +33,12 @@ solicitud de humano recomiendan handoff sin diagnosticar.
 - `GET /api/v1/tenants/:tenantId/products/cedco/d02/metrics/summary`
 
 Scheduling solo devuelve mock o integration_required. Eligibility no valida derechos reales.
+
+## Metadata
+
+Los endpoints sensibles D02 usan allowlists por contrato. Se permiten referencias sinteticas como
+`source`, `channel`, `scenarioId`, `safeCallSessionRef`, `consentRef`, `safeContactRef`,
+`patientContextRef`, `serviceRef`, `siteRef`, `agreementRef` y `metricName`.
+
+Se rechazan claves o valores con telefono, email, documento, transcript crudo, audio URL, raw
+payload, tokens, secrets, provider URLs, `agent_id` real-looking o `phone_number_id` real-looking.

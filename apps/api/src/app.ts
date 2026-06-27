@@ -5,11 +5,13 @@ import { registerApiRoutes } from "./http/route-registry";
 import { registerRequestContextPlugin } from "./http/request-context-plugin";
 import { getHeaderValue } from "./http/request-context";
 import { registerApiObservabilityPlugin } from "./observability";
-import { registerApiPolicyGatesPlugin } from "./security";
+import { registerApiAuthModePlugin, registerApiPolicyGatesPlugin } from "./security";
 import { createFakeApiServices, type ApiServices } from "./services";
+import type { ApiAuthMode } from "./config/api-config";
 
 export interface CreateApiAppDependencies {
   readonly services?: ApiServices;
+  readonly authMode?: ApiAuthMode;
 }
 
 export async function createApiApp(
@@ -22,6 +24,7 @@ export async function createApiApp(
 
   await registerApiObservabilityPlugin(app, services);
   await registerRequestContextPlugin(app);
+  await registerApiAuthModePlugin(app, dependencies.authMode ?? "header-dev");
   await registerApiPolicyGatesPlugin(app, services);
 
   app.setErrorHandler((error, request, reply) => {

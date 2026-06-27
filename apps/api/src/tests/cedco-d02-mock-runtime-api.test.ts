@@ -46,6 +46,33 @@ describe("CEDCO D02 mock runtime API", () => {
     await app.close();
   });
 
+  it("accepts allowlisted mock-flow metadata", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url,
+      headers: cedcoD02MockHeaders,
+      payload: {
+        ...cedcoD02MockFlowFixture,
+        metadata: { source: "synthetic-test", scenarioId: "mock-flow-safe-metadata" },
+      },
+    });
+    expect(response.statusCode).toBe(201);
+    await app.close();
+  });
+
+  it("rejects non-allowlisted mock-flow metadata keys", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url,
+      headers: cedcoD02MockHeaders,
+      payload: { ...cedcoD02MockFlowFixture, metadata: { unexpected: "blocked" } },
+    });
+    expect(response.statusCode).toBe(400);
+    await app.close();
+  });
+
   it.each(["phoneNumber", "rawTranscript", "audioUrl", "token"] as const)(
     "rejects payload with %s",
     async (field) => {

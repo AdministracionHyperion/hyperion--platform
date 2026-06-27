@@ -5,13 +5,15 @@
 - [ ] No datos reales.
 - [ ] No secretos.
 - [ ] No `_private`.
-- [ ] No R03/activos fijos.
+- [ ] No paths `r03/`, `assets/` o `activos-fijos/` no autorizados.
+- [ ] D03 fixed-assets solo se toca si el PR es del carril D03 y respeta boundaries.
 - [ ] No proveedores reales.
 - [ ] No llamadas reales.
 - [ ] No provider egress.
 - [ ] No DB externa real.
 - [ ] No API/runtime si el PR no corresponde.
-- [ ] D03 no toca D02/voice/providers si el PR es de activos fijos.
+- [ ] D03 no toca D02, voice, dialer, providers, Prisma, API, dashboard ni workers salvo aprobacion
+      explicita.
 - [ ] `pnpm check` pasa localmente.
 - [ ] `CI / Verify` pasa en GitHub.
 - [ ] Se documentan riesgos y limites.

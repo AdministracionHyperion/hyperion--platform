@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { runBoundaryCheck } from "./boundary-check.mjs";
+import { runBoundaryCheck, runBoundaryCheckForFiles } from "./boundary-check.mjs";
 
 describe("boundary check", () => {
   it("passes for the current monorepo boundaries", () => {
@@ -56,5 +56,79 @@ describe("boundary check", () => {
 
     expect(output).toContain("modules/products/cedco/r03 must not exist");
     expect(output).toContain("modules/products/cedco/assets must not exist");
+  });
+
+  it("keeps CEDCO D03 in restricted architecture roots", () => {
+    const output = readFileSync(join(process.cwd(), "tools", "boundary-check.mjs"), "utf8");
+
+    expect(output).toContain("modules/products/cedco/d03-fixed-assets");
+    expect(output).toContain("process.env is not allowed in CEDCO D03 domain");
+    expect(output).toContain("fetch is not allowed in CEDCO D03 domain");
+  });
+
+  it("fails D03 imports from D02", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/cross.ts":
+        'import { value } from "../../d02-calls/src";\nexport { value };',
+    });
+
+    expect(issues.some((issue) => issue.includes("must not import D02"))).toBe(true);
+  });
+
+  it("fails D03 imports from voice", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/voice.ts":
+        'import { value } from "../../../../voice/src";\nexport { value };',
+    });
+
+    expect(issues.some((issue) => issue.includes("must not import D02, voice, or providers"))).toBe(
+      true,
+    );
+  });
+
+  it("fails D03 provider imports", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/provider.ts":
+        'import value from "twilio";\nexport { value };',
+    });
+
+    expect(issues.some((issue) => issue.includes("provider import is not allowed"))).toBe(true);
+  });
+
+  it("fails D03 fetch usage", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/fetch.ts":
+        "export async function load() { return fetch('/internal'); }",
+    });
+
+    expect(issues.some((issue) => issue.includes("fetch is not allowed in CEDCO D03"))).toBe(true);
+  });
+
+  it("fails D03 process.env usage", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/env.ts": "export const value = process.env.X;",
+    });
+
+    expect(issues.some((issue) => issue.includes("process.env is not allowed in CEDCO D03"))).toBe(
+      true,
+    );
+  });
+
+  it("fails D03 filesystem imports", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/files.ts":
+        'import { readFile } from "node:fs";\nexport { readFile };',
+    });
+
+    expect(issues.some((issue) => issue.includes("filesystem imports are not allowed"))).toBe(true);
+  });
+
+  it("allows safe D03 domain files", () => {
+    const issues = runBoundaryCheckForFiles({
+      "modules/products/cedco/d03-fixed-assets/src/safe.ts":
+        'import type { SafeMetadata } from "../../../../../packages/shared/src/core";\nexport type Local = SafeMetadata;',
+    });
+
+    expect(issues).toEqual([]);
   });
 });

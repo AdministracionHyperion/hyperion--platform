@@ -37,6 +37,58 @@ describe("mock provider event ingestion API", () => {
     await app.close();
   });
 
+  it("accepts allowlisted provider event metadata", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url,
+      headers: mockProviderEventHeaders,
+      payload: {
+        ...mockProviderEventFixture,
+        eventId: "provider-event-safe-metadata",
+        metadata: {
+          safeCallSessionRef: "mock-session-provider-event-001",
+          channel: "mock-provider-event-test",
+          scenarioId: "provider-event-safe-metadata",
+        },
+      },
+    });
+    expect(response.statusCode).toBe(202);
+    await app.close();
+  });
+
+  it("rejects non-allowlisted provider event metadata keys", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url,
+      headers: mockProviderEventHeaders,
+      payload: {
+        ...mockProviderEventFixture,
+        eventId: "provider-event-unsafe-metadata-key",
+        metadata: { unexpected: "blocked" },
+      },
+    });
+    expect(response.statusCode).toBe(400);
+    await app.close();
+  });
+
+  it("rejects provider URLs in provider event metadata", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url,
+      headers: mockProviderEventHeaders,
+      payload: {
+        ...mockProviderEventFixture,
+        eventId: "provider-event-provider-url",
+        metadata: { source: "https://api.elevenlabs.example.invalid/provider" },
+      },
+    });
+    expect(response.statusCode).toBe(400);
+    await app.close();
+  });
+
   it("rejects missing signature", async () => {
     const app = await createApiApp();
     const { "x-hyperion-mock-signature": _signature, ...headersWithoutSignature } =

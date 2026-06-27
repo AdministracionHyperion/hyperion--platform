@@ -81,6 +81,19 @@ describe("internal dialer readiness API", () => {
   it.each([
     ["agent_id", { metadata: { agent_id: "agent_1234567890123456" } }],
     ["phone_number_id", { metadata: { phone_number_id: "phone_1234567890123456" } }],
+  ] as const)("dry-run rejects %s before adapter execution", async (_label, patch) => {
+    const app = await createApiApp();
+    const response = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/dry-run`,
+      headers,
+      payload: { ...safeDryRunPayload, ...patch },
+    });
+    expect(response.statusCode).toBe(400);
+    await app.close();
+  });
+
+  it.each([
     ["external callback URL", { callbackAlias: "https://example.invalid/callback" }],
     ["future live runtime mode", { runtimeMode: "future_live" }],
   ] as const)("dry-run blocks %s", async (_label, patch) => {

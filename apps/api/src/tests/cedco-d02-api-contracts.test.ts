@@ -148,12 +148,31 @@ describe("CEDCO D02 API contracts", () => {
       method: "POST",
       url: `${tenantBase}/handoff/evaluate`,
       headers: voiceHeaders,
-      payload: { intent: "urgencia", confidence: 0.9 },
+      payload: {
+        intent: "urgencia",
+        confidence: 0.9,
+        metadata: { reason: "synthetic-urgent-case" },
+      },
     });
     const body = response.json<Envelope<{ shouldHandoff: boolean; reason: string }>>();
 
     expect(response.statusCode).toBe(200);
     expect(body.data).toMatchObject({ shouldHandoff: true, reason: "urgent_case" });
+  });
+
+  it("handoff evaluation rejects unsafe metadata", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: `${tenantBase}/handoff/evaluate`,
+      headers: voiceHeaders,
+      payload: {
+        intent: "urgencia",
+        confidence: 0.9,
+        metadata: { rawTranscript: "blocked" },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
   });
 
   it("scheduling request never creates a real appointment", async () => {
@@ -166,12 +185,30 @@ describe("CEDCO D02 API contracts", () => {
         serviceId: "odontologia-general-test",
         siteId: "bucaramanga",
         mode: "mock",
+        metadata: { source: "contract-test", siteRef: "bucaramanga" },
       },
     });
     const body = response.json<Envelope>();
 
     expect(response.statusCode).toBe(201);
     expect(body.data).toMatchObject({ status: "mock_confirmed", realAppointmentCreated: false });
+  });
+
+  it("scheduling request rejects non-allowlisted metadata", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: `${tenantBase}/scheduling/requests`,
+      headers: voiceHeaders,
+      payload: {
+        patientContextRef: "cedco-context-ref-001",
+        serviceId: "odontologia-general-test",
+        siteId: "bucaramanga",
+        mode: "mock",
+        metadata: { unexpected: "blocked" },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
   });
 
   it("eligibility check never validates real rights", async () => {
@@ -184,6 +221,7 @@ describe("CEDCO D02 API contracts", () => {
         agreementId: "convenio-test",
         serviceId: "odontologia-general-test",
         mode: "integration_required",
+        metadata: { source: "contract-test", agreementRef: "convenio-test" },
       },
     });
     const body = response.json<Envelope>();
@@ -193,6 +231,23 @@ describe("CEDCO D02 API contracts", () => {
       status: "integration_required",
       realEligibilityChecked: false,
     });
+  });
+
+  it("eligibility check rejects unsafe metadata", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: `${tenantBase}/eligibility/checks`,
+      headers: voiceHeaders,
+      payload: {
+        patientContextRef: "cedco-context-ref-001",
+        agreementId: "convenio-test",
+        serviceId: "odontologia-general-test",
+        mode: "integration_required",
+        metadata: { token: "blocked" },
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
   });
 
   it("returns an empty safe metrics summary", async () => {

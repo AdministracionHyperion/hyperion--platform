@@ -65,7 +65,7 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 ## Que bloquea repo guard
 
 - `_private/` trackeado.
-- R03, assets o activos fijos bajo CEDCO.
+- Paths legacy `r03/`, `assets/` o `activos-fijos` bajo CEDCO.
 - `.env`, `.env.local` o `.env.production` trackeados.
 - `node_modules`, `dist`, `build` o `coverage` trackeados.
 - Word, zip o PDF trackeados sin autorizacion futura.
@@ -86,5 +86,6 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 
 ## Falta para produccion
 
-Faltan branch protection activa, revision de migraciones en entorno controlado, observabilidad
-operativa, manejo de secrets, retencion de datos, runtime y deploy separados.
+Branch protection de `main` esta configurada para PR, checks requeridos y bloqueo de force push.
+Siguen faltando auth real, revision de migraciones en entorno controlado, observabilidad operativa,
+manejo de secrets, retencion de datos, runtime y deploy separados.

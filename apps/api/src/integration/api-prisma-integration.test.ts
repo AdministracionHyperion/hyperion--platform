@@ -215,7 +215,7 @@ runWhenDatabaseExists("API Prisma integration", () => {
     expect(response.statusCode).toBe(404);
   });
 
-  it("persists voice call events with sanitized metadata", async () => {
+  it("persists voice call events with allowed metadata", async () => {
     await createVoiceCall();
     const response = await app.inject({
       method: "POST",
@@ -223,7 +223,7 @@ runWhenDatabaseExists("API Prisma integration", () => {
       headers: voiceHeaders,
       payload: {
         type: "call_status_changed",
-        metadata: { email: "synthetic@example.invalid", safe: "ok" },
+        metadata: { channel: "integration-test", safe: "ok" },
       },
     });
     const row = await harness.prisma.callEvent.findFirst({
@@ -231,7 +231,7 @@ runWhenDatabaseExists("API Prisma integration", () => {
     });
 
     expect(response.statusCode).toBe(201);
-    expect(row?.metadata).toMatchObject({ email: "[REDACTED]", safe: "ok" });
+    expect(row?.metadata).toMatchObject({ channel: "integration-test", safe: "ok" });
   });
 
   it.each(["phoneNumber", "rawTranscript", "audioUrl"])(
