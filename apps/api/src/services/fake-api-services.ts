@@ -17,6 +17,7 @@ import {
   BlockedInternalDialerAdapter,
   buildDialerReadinessReport,
   defaultDialerHardeningStatus,
+  toInternalDialerDryRunResponse,
   type DialerDispatchRequest,
 } from "../../../../modules/integrations/provider-adapters/internal-dialer/src";
 import { createActorId } from "../../../../modules/core/identity-access/src";
@@ -443,11 +444,7 @@ export function createFakeApiServices(): ApiServices {
           toDialerDispatchRequest(context, input),
           operationContext,
         );
-        return {
-          ...result,
-          providerEgressAttempted: false,
-          realCallAttempted: false,
-        };
+        return toInternalDialerDryRunResponse(result);
       },
     },
   };
@@ -490,18 +487,19 @@ function toDialerDispatchRequest(
   input: InternalDialerDryRunBody,
 ): DialerDispatchRequest {
   return {
-    externalRequestId: input.externalRequestId,
+    idempotencyKey: input.idempotency_key ?? "",
+    externalRequestId: input.external_request_id ?? input.idempotency_key ?? "",
     tenantId: context.tenantId,
     mode: input.mode,
     runtimeMode: input.runtimeMode,
-    safeContactRef: input.safeContactRef,
-    agentAlias: input.agentAlias,
-    callerAlias: input.callerAlias,
-    dynamicVars: sanitizeMetadata(input.dynamicVars),
-    consent: { granted: true, consentRef: input.consentRef },
+    safeContactRef: input.safe_contact_ref,
+    agentAlias: input.agent_alias,
+    callerAlias: input.caller_alias,
+    dynamicVars: sanitizeMetadata(input.dynamic_vars),
+    consent: { granted: input.consent.granted, consentRef: input.consent_ref },
     callback: {
-      ...(input.callbackAlias ? { callbackAlias: input.callbackAlias } : {}),
-      internalEventTopic: input.internalEventTopic ?? "internal.events.dialer.dry_run",
+      ...(input.callback_alias ? { callbackAlias: input.callback_alias } : {}),
+      internalEventTopic: input.internal_event_topic ?? "internal.events.dialer.dry_run",
     },
     metadata: sanitizeMetadata({
       ...input.metadata,

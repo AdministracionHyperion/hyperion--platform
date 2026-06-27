@@ -15,6 +15,7 @@ blocked-by-default.
 
 Campos permitidos:
 
+- `idempotencyKey`.
 - `externalRequestId`.
 - `tenantId`.
 - `mode`: `single` o `campaign`.
@@ -37,6 +38,8 @@ Campos permitidos:
 - `status`: `blocked`, `dry_run_accepted`, `accepted_future` o `failed`.
 - `providerConversationRef` sanitizado opcional.
 - `idempotencyKey`.
+- `wouldCallProvider=false`.
+- `providerEgress=false`.
 - `blockedReasons`.
 - `auditRef` opcional.
 - `metadata` sanitizada.
@@ -45,6 +48,7 @@ Campos permitidos:
 
 - `dispatch` queda bloqueado por defecto.
 - `dryRun` solo acepta `runtimeMode=dry_run`.
+- `dispatch` devuelve `reason=live_dispatch_disabled`.
 - No hay red.
 - No hay HTTP client.
 - No hay provider SDK.

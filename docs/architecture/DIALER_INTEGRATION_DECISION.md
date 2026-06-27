@@ -25,7 +25,8 @@ actual, ElevenLabs, SIP ni Twilio.
 
 ## Motivos
 
-- El Dialer no tiene dry-run real.
+- El Dialer sanitized ya tiene dry-run interno, pero Hyperion aun no debe usar endpoints de llamada
+  real ni provider egress.
 - La llamada unitaria no tiene idempotency key persistida.
 - `outcome_data` puede persistir transcript, audio URL, audio base64 o payload crudo.
 - La firma de webhook puede ser condicional si falta secret.
@@ -40,4 +41,4 @@ Single-call controlado puede ir por driver interno hardened o driver ElevenLabs 
 mismo puerto. Campanas y rotacion DDI pueden ir por un `DialerCurrentAdapter` solo despues del P0
 hardening.
 
-Hasta entonces, Hyperion solo tiene contrato bloqueado y dry-run seguro.
+Hasta entonces, Hyperion solo tiene contrato alineado, dry-run seguro y dispatch bloqueado.

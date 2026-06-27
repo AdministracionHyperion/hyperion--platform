@@ -76,13 +76,14 @@ export class BlockedInternalDialerAdapter implements InternalDialerAdapterPort {
       hardeningStatus: this.hardeningStatus,
       operation: "dispatch",
     });
+    const blockedReasons = result.blockedReasons.includes("live_dispatch_disabled")
+      ? result.blockedReasons
+      : (["live_dispatch_disabled", ...result.blockedReasons] as const);
     const blocked: DialerDispatchResult = {
       ...result,
       status: "blocked",
-      blockedReasons:
-        result.blockedReasons.length > 0
-          ? result.blockedReasons
-          : ["dialer_p0_hardening_incomplete"],
+      reason: "live_dispatch_disabled",
+      blockedReasons: blockedReasons.length > 0 ? blockedReasons : ["live_dispatch_disabled"],
     };
     this.emit("internal_dialer.dispatch_blocked", blocked, context);
     return blocked;
@@ -97,7 +98,10 @@ export class BlockedInternalDialerAdapter implements InternalDialerAdapterPort {
       externalRequestId: requestId,
       status: "blocked",
       idempotencyKey: requestId,
-      blockedReasons: ["dialer_p0_hardening_incomplete"],
+      wouldCallProvider: false,
+      providerEgress: false,
+      reason: "live_dispatch_disabled",
+      blockedReasons: ["live_dispatch_disabled", "dialer_p0_hardening_incomplete"],
       metadata: { source: "blocked_internal_dialer_adapter" } as SafeMetadata,
     };
     this.emit("internal_dialer.status_read", result, context);

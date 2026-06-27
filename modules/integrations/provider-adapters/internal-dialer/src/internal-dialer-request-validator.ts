@@ -17,12 +17,18 @@ export function validateInternalDialerRequest(input: {
   const policyReasons = evaluateInternalDialerPolicy(input);
   const sanitization = sanitizeDialerContractPayload(input.request, policyReasons);
   const blockedReasons = sanitization.reasons;
+  const idempotencyKey = input.request.idempotencyKey || "missing";
 
   return {
-    internalCallId: `internal_dialer_${input.request.externalRequestId || "missing"}`,
+    internalCallId: `dryrun_${idempotencyKey}`,
     externalRequestId: input.request.externalRequestId,
     status: blockedReasons.length > 0 ? "blocked" : "dry_run_accepted",
-    idempotencyKey: input.request.externalRequestId,
+    idempotencyKey,
+    wouldCallProvider: false,
+    providerEgress: false,
+    ...(blockedReasons.includes("live_dispatch_disabled")
+      ? { reason: "live_dispatch_disabled" as const }
+      : {}),
     blockedReasons: blockedReasons as readonly DialerBlockedReason[],
     metadata:
       blockedReasons.length > 0

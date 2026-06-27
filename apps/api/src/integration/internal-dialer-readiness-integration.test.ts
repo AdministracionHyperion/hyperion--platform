@@ -11,11 +11,12 @@ const headers = {
   "x-correlation-id": "corr-dialer-readiness-integration-001",
 };
 const safeDryRunPayload = {
-  externalRequestId: "dialer-dry-run-integration-001",
-  safeContactRef: "safe-contact-ref-integration",
-  agentAlias: "cedco-agent-alias",
-  callerAlias: "cedco-caller-alias",
-  consentRef: "consent-ref-integration",
+  idempotency_key: "hyperion-key-integration-001",
+  safe_contact_ref: "safe-contact-ref-integration",
+  agent_alias: "cedco-agent-alias",
+  caller_alias: "cedco-caller-alias",
+  consent: { granted: true },
+  consent_ref: "consent-ref-integration",
 };
 
 let harness: ApiPrismaTestHarness;
@@ -57,11 +58,15 @@ runWhenDatabaseExists("internal dialer readiness Prisma integration", () => {
       headers,
       payload: safeDryRunPayload,
     });
-    const body = response.json<Envelope<{ status: string; providerEgressAttempted: boolean }>>();
+    const body =
+      response.json<
+        Envelope<{ status: string; idempotency_key: string; provider_egress: boolean }>
+      >();
     const persistedCalls = await harness.prisma.callSession.findMany();
     expect(response.statusCode).toBe(200);
     expect(body.data?.status).toBe("dry_run_accepted");
-    expect(body.data?.providerEgressAttempted).toBe(false);
+    expect(body.data?.idempotency_key).toBe("hyperion-key-integration-001");
+    expect(body.data?.provider_egress).toBe(false);
     expect(persistedCalls).toHaveLength(0);
   });
 
@@ -69,7 +74,7 @@ runWhenDatabaseExists("internal dialer readiness Prisma integration", () => {
     { phoneNumber: "+15555550123" },
     { metadata: { agent_id: "agent_1234567890123456" } },
     { metadata: { phone_number_id: "phone_1234567890123456" } },
-    { callbackAlias: "https://example.invalid/callback" },
+    { callback_alias: "https://example.invalid/callback" },
     { runtimeMode: "future_live" },
   ])("blocks unsafe dry-run payload %j", async (patch) => {
     const response = await harness.app.inject({

@@ -7,8 +7,8 @@ runtime, mock provider events, evals, dashboard y CI remoto verde.
 
 ## D03 Lane
 
-Carril `modules/products/cedco/d03-fixed-assets` habilitado. No hay dominio funcional, DB, API,
-dashboard, workers ni import/export.
+Carril `modules/products/cedco/d03-fixed-assets` habilitado con contratos iniciales de dominio. No
+hay DB, API, dashboard, workers ni import/export.
 
 ## Governance
 
@@ -22,8 +22,9 @@ VM no fue auditada en este loop.
 
 ## Dialer Integration Contract
 
-Decision C) hibrida documentada. `InternalDialerAdapter` queda como frontera blocked-by-default.
+Decision C) hibrida documentada. `InternalDialerAdapter` queda como frontera dry-run/blocked.
 Hyperion no usa `/api/demo/call`, campaign start, ElevenLabs directo, SIP directo ni Twilio directo.
+Nadie debe llamar directamente el dialer desde D02 fuera de `InternalDialerAdapter`.
 
 ## Proxima Accion Recomendada
 

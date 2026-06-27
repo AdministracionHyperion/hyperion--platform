@@ -6,6 +6,7 @@ import type { DialerDispatchMode } from "./dialer-dispatch-mode";
 import type { DialerRuntimeMode } from "./dialer-runtime-mode";
 
 export interface DialerDispatchRequest {
+  readonly idempotencyKey: string;
   readonly externalRequestId: string;
   readonly tenantId: string;
   readonly mode: DialerDispatchMode;

@@ -4,6 +4,7 @@ export function createSafeInternalDialerRequest(
   input: Partial<DialerDispatchRequest> = {},
 ): DialerDispatchRequest {
   return {
+    idempotencyKey: "hyperion-key-test-001",
     externalRequestId: "dialer-request-test-001",
     tenantId: "cedco-test",
     mode: "single",
