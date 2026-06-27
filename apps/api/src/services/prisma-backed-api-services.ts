@@ -19,6 +19,12 @@ import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
 import { evaluateCedcoHandoff } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-handoff";
 import {
+  runCedcoD02InternalDialerDryRun,
+  type CedcoD02DialerDryRunInput,
+  type CedcoD02DialerDryRunResult,
+  type CedcoD02InternalDialerDryRunRequest,
+} from "../../../../modules/products/cedco/d02-calls/src/application/dialer-dry-run";
+import {
   runCedcoD02MockCallFlow,
   type CedcoD02MockCallFlowResult,
 } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
@@ -74,6 +80,7 @@ import type {
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
   MockProviderEventBody,
+  RunCedcoD02DialerDryRunBody,
   RunCedcoD02MockCallFlowBody,
   InternalDialerDryRunBody,
 } from "../contracts";
@@ -164,6 +171,7 @@ class PrismaBackedApiServices implements ApiServices {
         this.createCedcoSchedulingRequest(context, input),
       createEligibilityCheck: (context, input) => this.createCedcoEligibilityCheck(context, input),
       getMetricsSummary: (context) => this.getCedcoMetricsSummary(context),
+      runDialerDryRun: (context, input) => this.runCedcoD02DialerDryRun(context, input),
       runMockCallFlow: (context, input) => this.runCedcoD02MockCallFlow(context, input),
     };
     this.operationsDashboard = {
@@ -224,6 +232,45 @@ class PrismaBackedApiServices implements ApiServices {
     );
 
     return toInternalDialerDryRunResponse(result);
+  }
+
+  private async runCedcoD02DialerDryRun(
+    context: RequestContext,
+    input: RunCedcoD02DialerDryRunBody,
+  ) {
+    const operationContext = createOperationContext({
+      tenantId: context.tenantId,
+      actorId: context.actorId,
+      correlationId: context.correlationId,
+      occurredAt: context.occurredAt,
+      source: context.source,
+    });
+    if (!operationContext.ok) {
+      throw validationError(operationContext.error.message);
+    }
+
+    const result = await runCedcoD02InternalDialerDryRun({
+      intent: toCedcoD02DialerDryRunIntent(context, input),
+      logger: this.observability.logger,
+      metrics: this.observability.metrics,
+      audit: {
+        record: (event) => this.recordAuditEvent(event),
+      },
+      dialer: {
+        dryRun: async (request) =>
+          toInternalDialerDryRunResponse(
+            await this.internalDialerAdapter.dryRun(
+              toDialerDispatchRequest(context, request),
+              operationContext.value,
+            ),
+          ),
+      },
+    });
+    if (!result.ok) {
+      throw validationError(result.error.message);
+    }
+
+    return toCedcoD02DialerDryRunResponse(result.value, this.observability.metrics);
   }
 
   private async getFeatureFlag(context: RequestContext, flagKey: string) {
@@ -948,7 +995,7 @@ function defaultCedcoConfiguration(context: RequestContext) {
 
 function toDialerDispatchRequest(
   context: RequestContext,
-  input: InternalDialerDryRunBody,
+  input: InternalDialerDryRunBody | CedcoD02InternalDialerDryRunRequest,
 ): DialerDispatchRequest {
   return {
     idempotencyKey: input.idempotency_key ?? "",
@@ -969,6 +1016,49 @@ function toDialerDispatchRequest(
       ...input.metadata,
       source: "api_internal_dialer_dry_run",
     }),
+  };
+}
+
+function toCedcoD02DialerDryRunIntent(
+  context: RequestContext,
+  input: RunCedcoD02DialerDryRunBody,
+): CedcoD02DialerDryRunInput {
+  return {
+    tenantId: context.tenantId,
+    actorId: context.actorId,
+    correlationId: context.correlationId,
+    ...(input.idempotency_key ? { idempotencyKey: input.idempotency_key } : {}),
+    ...(input.external_request_id ? { externalRequestId: input.external_request_id } : {}),
+    safeContactRef: input.safe_contact_ref,
+    ...(input.patient_context_ref ? { patientContextRef: input.patient_context_ref } : {}),
+    ...(input.cedco_site_id ? { cedcoSiteId: input.cedco_site_id } : {}),
+    ...(input.service_id ? { serviceId: input.service_id } : {}),
+    ...(input.agreement_id ? { agreementId: input.agreement_id } : {}),
+    ...(input.call_purpose ? { callPurpose: input.call_purpose } : {}),
+    ...(input.objective ? { objective: input.objective } : {}),
+    consent: { granted: input.consent.granted },
+    consentRef: input.consent_ref,
+    ...(input.metadata ? { metadata: input.metadata } : {}),
+    ...(input.dynamic_vars ? { dynamicVars: input.dynamic_vars } : {}),
+  };
+}
+
+function toCedcoD02DialerDryRunResponse(
+  value: CedcoD02DialerDryRunResult,
+  metrics: MetricsRegistryPort,
+) {
+  return {
+    flowId: value.flowId,
+    status: value.status,
+    idempotency_key_ref: value.idempotencyKeyRef,
+    internal_call_id: value.internalCallId,
+    safe_contact_ref: value.safeContactRef,
+    blocked_reasons: value.blockedReasons,
+    provider_egress: value.providerEgress,
+    would_call_provider: value.wouldCallProvider,
+    auditRefs: value.auditRefs,
+    metadata: value.metadata,
+    metricsSnapshot: metrics.snapshot(),
   };
 }
 

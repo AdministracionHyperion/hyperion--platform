@@ -39,6 +39,7 @@ export const complianceMetadataSchema = d02MetadataSchema;
 export const handoffMetadataSchema = d02MetadataSchema;
 export const readinessMetadataSchema = d02MetadataSchema;
 export const metricsMetadataSchema = d02MetadataSchema;
+export const dialerDryRunMetadataSchema = d02MetadataSchema;
 
 export const cedcoSchedulingModeSchema = z.enum(["disabled", "mock", "integration"]);
 export const cedcoEligibilityModeSchema = z.enum(["disabled", "mock", "integration"]);
@@ -157,6 +158,33 @@ export const runCedcoD02MockCallFlowBodySchema = z
   })
   .strict();
 
+export const runCedcoD02DialerDryRunBodySchema = z
+  .object({
+    idempotency_key: z.string().min(1).optional(),
+    external_request_id: z.string().min(1).optional(),
+    cedco_site_id: z.string().min(1).optional(),
+    service_id: z.string().min(1).optional(),
+    agreement_id: z.string().min(1).optional(),
+    safe_contact_ref: z.string().min(1),
+    patient_context_ref: z.string().min(1).optional(),
+    consent: z.object({ granted: z.boolean() }).strict(),
+    consent_ref: z.string().min(1),
+    call_purpose: z
+      .enum([
+        "orientation",
+        "scheduling_support",
+        "eligibility_support",
+        "reminder",
+        "follow_up",
+        "human_handoff",
+      ])
+      .optional(),
+    objective: cedcoObjectiveSchema.optional(),
+    dynamic_vars: dialerDryRunMetadataSchema.optional(),
+    metadata: dialerDryRunMetadataSchema.optional(),
+  })
+  .strict();
+
 export type CedcoConfigurationBody = z.infer<typeof cedcoConfigurationSchema>;
 export type ClassifyCedcoIntentBody = z.infer<typeof classifyCedcoIntentBodySchema>;
 export type EvaluateCedcoReadinessBody = z.infer<typeof evaluateCedcoReadinessBodySchema>;
@@ -167,3 +195,4 @@ export type CreateCedcoSchedulingRequestBody = z.infer<
 >;
 export type CreateCedcoEligibilityCheckBody = z.infer<typeof createCedcoEligibilityCheckBodySchema>;
 export type RunCedcoD02MockCallFlowBody = z.infer<typeof runCedcoD02MockCallFlowBodySchema>;
+export type RunCedcoD02DialerDryRunBody = z.infer<typeof runCedcoD02DialerDryRunBodySchema>;

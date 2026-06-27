@@ -1,6 +1,7 @@
 export * from "./application/mock-runtime";
 export * from "./application/dashboard";
 export * from "./application/provider-events";
+export * from "./application/dialer-dry-run";
 export * from "./cedco-agreement";
 export * from "./cedco-agreement-id";
 export * from "./cedco-agreement-repository.port";
