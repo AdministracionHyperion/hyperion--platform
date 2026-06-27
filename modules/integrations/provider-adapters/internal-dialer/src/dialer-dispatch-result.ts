@@ -16,6 +16,9 @@ export interface DialerDispatchResult {
   readonly status: DialerDispatchStatus;
   readonly providerConversationRef?: string;
   readonly idempotencyKey: string;
+  readonly wouldCallProvider: false;
+  readonly providerEgress: false;
+  readonly reason?: DialerBlockedReason;
   readonly blockedReasons: readonly DialerBlockedReason[];
   readonly auditRef?: string;
   readonly metadata: SafeMetadata;

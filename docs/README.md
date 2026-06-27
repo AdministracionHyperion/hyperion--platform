@@ -65,6 +65,10 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 - [Operational Dashboard API](api/OPERATIONAL_DASHBOARD_API.md)
 - [Internal Dialer Readiness API](api/INTERNAL_DIALER_READINESS_API.md)
 
+## Integraciones
+
+- [Internal Dialer Adapter Contract](integrations/INTERNAL_DIALER_ADAPTER_CONTRACT.md)
+
 ## Evals
 
 - [CEDCO D02 Eval Suite](evals/CEDCO_D02_EVAL_SUITE.md)
@@ -84,6 +88,7 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 - [CEDCO D02 - Sites, services and agreements](product/CEDCO_D02_SITE_SERVICE_AGREEMENTS.md)
 - [CEDCO D02 - Handoff and compliance](product/CEDCO_D02_HANDOFF_AND_COMPLIANCE.md)
 - [CEDCO D02 - Eval scenarios](product/CEDCO_D02_EVAL_SCENARIOS.md)
+- [CEDCO D02 - Dialer Alignment](product/CEDCO_D02_DIALER_ALIGNMENT.md)
 - [CEDCO D03 - Product Scope](product/CEDCO_D03_PRODUCT_SCOPE.md)
 - [CEDCO D03 - Developer Handoff](product/CEDCO_D03_DEVELOPER_HANDOFF.md)
 - [CEDCO D03 - Domain Contracts](product/CEDCO_D03_DOMAIN_CONTRACTS.md)
@@ -165,6 +170,7 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 - [Dialer Next Actions](delivery/DIALER_NEXT_ACTIONS.md)
 - [Loop 18 - Dialer Integration Contract report](delivery/LOOP_18_DIALER_INTEGRATION_CONTRACT_REPORT.md)
 - [Loop 19 - Dialer Readiness Surfaces report](delivery/LOOP_19_DIALER_READINESS_SURFACES_REPORT.md)
+- [Platform D02 Dialer H2 report](delivery/PLATFORM_D02_DIALER_H2_REPORT.md)
 - [API Runtime Composition Report](delivery/API_RUNTIME_COMPOSITION_REPORT.md)
 - [Auth Real Roadmap](delivery/AUTH_REAL_ROADMAP.md)
 - [Team Ready Hardening Report](delivery/TEAM_READY_HARDENING_REPORT.md)

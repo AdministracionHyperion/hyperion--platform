@@ -11,10 +11,12 @@ Los endpoints actuales del dialer son referencia de auditoria, no contrato de Hy
 
 ## Razon
 
-- No hay dry-run real.
+- El dry-run interno sanitized existe, pero los endpoints demo/campaign/webhook no son el contrato
+  de Hyperion.
 - Falta idempotencia persistida en llamada unitaria.
 - Webhook signature puede depender de configuracion.
 - Outcome data puede mezclar payload crudo.
 - Rate limit y dispatcher actuales son in-memory.
 
-Hyperion solo puede usar contratos mock/dry-run seguros hasta que exista endpoint interno hardened.
+Hyperion solo puede usar el contrato interno dry-run/blocked via `InternalDialerAdapter`. No debe
+usar demo, campaign start ni webhooks reales.

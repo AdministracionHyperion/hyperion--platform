@@ -4,7 +4,7 @@
 
 1. Completar P0 hardening en el dialer.
 2. Crear endpoint interno separado de demo/UI.
-3. Confirmar dry-run real.
+3. Mantener dry-run interno sin provider egress.
 4. Confirmar idempotency key persistida.
 5. Confirmar webhook signature obligatorio.
 6. Confirmar auth obligatorio.
@@ -15,7 +15,7 @@
 ## Hyperion
 
 - Mantener `dispatch` bloqueado.
-- Exponer solo readiness/dry-run en loops futuros.
+- Exponer solo readiness/dry-run.
 - No llamar `/api/demo/call`.
 - No llamar campaign start.
 - No llamar ElevenLabs/SIP/Twilio.

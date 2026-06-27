@@ -31,7 +31,10 @@ export class FakeInternalDialerClient implements InternalDialerClientPort {
       externalRequestId: requestId,
       status: "blocked",
       idempotencyKey: requestId,
-      blockedReasons: ["dialer_p0_hardening_incomplete"],
+      wouldCallProvider: false,
+      providerEgress: false,
+      reason: "live_dispatch_disabled",
+      blockedReasons: ["live_dispatch_disabled", "dialer_p0_hardening_incomplete"],
       metadata: { fake: true },
     };
   }
@@ -45,8 +48,12 @@ function safeResult(
     internalCallId: `fake_internal_dialer_${request.externalRequestId}`,
     externalRequestId: request.externalRequestId,
     status,
-    idempotencyKey: request.externalRequestId,
-    blockedReasons: status === "blocked" ? ["dialer_p0_hardening_incomplete"] : [],
+    idempotencyKey: request.idempotencyKey,
+    wouldCallProvider: false,
+    providerEgress: false,
+    ...(status === "blocked" ? { reason: "live_dispatch_disabled" as const } : {}),
+    blockedReasons:
+      status === "blocked" ? ["live_dispatch_disabled", "dialer_p0_hardening_incomplete"] : [],
     metadata: { fake: true },
   };
 }

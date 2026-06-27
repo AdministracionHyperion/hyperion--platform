@@ -22,6 +22,14 @@ describe("InternalDialerAdapter blocked contract", () => {
     correlationId: "corr-dialer-test-001",
   });
 
+  it("requires idempotency key", async () => {
+    const result = await adapter().validateRequest(
+      createSafeInternalDialerRequest({ idempotencyKey: "" }),
+      context,
+    );
+    expect(result.blockedReasons).toContain("missing_idempotency_key");
+  });
+
   it("requires externalRequestId", async () => {
     const result = await adapter().validateRequest(
       createSafeInternalDialerRequest({ externalRequestId: "" }),
@@ -36,6 +44,14 @@ describe("InternalDialerAdapter blocked contract", () => {
       context,
     );
     expect(result.blockedReasons).toContain("missing_tenant_id");
+  });
+
+  it("requires safeContactRef", async () => {
+    const result = await adapter().validateRequest(
+      createSafeInternalDialerRequest({ safeContactRef: "" }),
+      context,
+    );
+    expect(result.blockedReasons).toContain("missing_safe_contact_ref");
   });
 
   it("requires granted consent", async () => {
@@ -60,25 +76,35 @@ describe("InternalDialerAdapter blocked contract", () => {
     expect(result.metadata.safeContactRef).toBe("safe-contact-ref-test");
   });
 
-  it("blocks phone, phoneNumber and to_number payloads", () => {
+  it("blocks phone, phoneNumber, to_number and from_number payloads", () => {
     expect(sanitizeDialerContractPayload({ phone: "+15555550123" }).ok).toBe(false);
     expect(sanitizeDialerContractPayload({ phoneNumber: "+15555550123" }).ok).toBe(false);
     expect(sanitizeDialerContractPayload({ to_number: "+15555550123" }).ok).toBe(false);
+    expect(sanitizeDialerContractPayload({ from_number: "+15555550123" }).ok).toBe(false);
   });
 
-  it("blocks raw transcript, audio url and raw payload", () => {
+  it("blocks raw transcript, transcript, audio url, recording url, audio base64 and raw payload", () => {
     expect(
       sanitizeDialerContractPayload({
         rawTranscript: "unsafe",
+        transcript: "unsafe",
         audioUrl: "https://media.example.invalid/audio.wav",
+        recordingUrl: "https://media.example.invalid/recording.wav",
+        audio_b64: "blocked",
         rawPayload: {},
       }).ok,
     ).toBe(false);
   });
 
-  it("blocks token, secret and apiKey payloads", () => {
+  it("blocks token, secret, password, apiKey and api_key payloads", () => {
     expect(
-      sanitizeDialerContractPayload({ token: "value", secret: "value", apiKey: "value" }).ok,
+      sanitizeDialerContractPayload({
+        token: "value",
+        secret: "value",
+        password: "value",
+        apiKey: "value",
+        api_key: "value",
+      }).ok,
     ).toBe(false);
   });
 
@@ -103,6 +129,18 @@ describe("InternalDialerAdapter blocked contract", () => {
   it("dryRun with safe request returns dry_run_accepted", async () => {
     const result = await adapter().dryRun(createSafeInternalDialerRequest(), context);
     expect(result.status).toBe("dry_run_accepted");
+    expect(result.idempotencyKey).toBe("hyperion-key-test-001");
+    expect(result.internalCallId).toBe("dryrun_hyperion-key-test-001");
+    expect(result.providerEgress).toBe(false);
+    expect(result.wouldCallProvider).toBe(false);
+  });
+
+  it("duplicate idempotency key is deterministic in dry-run contract mode", async () => {
+    const request = createSafeInternalDialerRequest({ idempotencyKey: "hyperion-key-duplicate" });
+    const first = await adapter().dryRun(request, context);
+    const second = await adapter().dryRun(request, context);
+    expect(second.idempotencyKey).toBe(first.idempotencyKey);
+    expect(second.internalCallId).toBe(first.internalCallId);
   });
 
   it("dryRun does not call network", async () => {
@@ -114,6 +152,10 @@ describe("InternalDialerAdapter blocked contract", () => {
   it("dispatch default returns blocked", async () => {
     const result = await adapter().dispatch(createSafeInternalDialerRequest(), context);
     expect(result.status).toBe("blocked");
+    expect(result.reason).toBe("live_dispatch_disabled");
+    expect(result.blockedReasons).toContain("live_dispatch_disabled");
+    expect(result.providerEgress).toBe(false);
+    expect(result.wouldCallProvider).toBe(false);
   });
 
   it("dispatch blocks realCallsEnabled=false", async () => {

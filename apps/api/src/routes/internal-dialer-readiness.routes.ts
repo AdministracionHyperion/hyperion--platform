@@ -20,7 +20,17 @@ export async function registerInternalDialerReadinessRoutes(
     validateWithSchema(internalDialerParamsSchema, request.params);
     const body = validateWithSchema(internalDialerDryRunBodySchema, request.body);
     const context = getRequiredRequestContext(request, ["voice:call:write"]);
-    const result = await dependencies.services.internalDialer.dryRun(context, body);
+    const result = await dependencies.services.internalDialer.dryRun(context, {
+      ...body,
+      idempotency_key: body.idempotency_key ?? getSingleHeader(request.headers["idempotency-key"]),
+    });
     return ok(result, context);
   });
+}
+
+function getSingleHeader(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : undefined;
+  }
+  return typeof value === "string" ? value : undefined;
 }

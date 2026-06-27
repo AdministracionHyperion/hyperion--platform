@@ -26,11 +26,12 @@ export function evaluateInternalDialerPolicy(
   const hardening = input.hardeningStatus ?? defaultDialerHardeningStatus;
   const request = input.request;
 
+  for (const reason of validateIdempotencyKey(request.idempotencyKey)) reasons.add(reason);
   if (!request.externalRequestId.trim()) reasons.add("missing_external_request_id");
   if (!request.tenantId.trim()) reasons.add("missing_tenant_id");
+  for (const reason of validateSafeContactRef(request.safeContactRef)) reasons.add(reason);
   if (!input.context.correlationId.trim()) reasons.add("missing_correlation_id");
-  if (!request.consent.granted) reasons.add("missing_consent");
-  if (!request.consent.consentRef.trim()) reasons.add("missing_consent_ref");
+  for (const reason of validateConsentContract(request.consent)) reasons.add(reason);
   if (hasExternalCallback(request)) reasons.add("external_callback_url_blocked");
 
   if (input.operation === "dry_run" && request.runtimeMode !== "dry_run") {
@@ -38,6 +39,7 @@ export function evaluateInternalDialerPolicy(
   }
 
   if (input.operation === "dispatch") {
+    reasons.add("live_dispatch_disabled");
     if (!flags.realCallsEnabled) reasons.add("real_calls_disabled");
     if (!flags.providerEgressEnabled) reasons.add("provider_egress_disabled");
     if (!request.approvals?.approvalRef?.trim()) reasons.add("missing_approval_ref");
@@ -47,6 +49,31 @@ export function evaluateInternalDialerPolicy(
     if (!hardening.p0Complete) reasons.add("dialer_p0_hardening_incomplete");
   }
 
+  return [...reasons];
+}
+
+export function validateIdempotencyKey(value: string): readonly DialerBlockedReason[] {
+  if (!value.trim()) {
+    return ["missing_idempotency_key"];
+  }
+
+  if (!/^[a-z0-9][a-z0-9._:-]{2,127}$/iu.test(value)) {
+    return ["invalid_idempotency_key"];
+  }
+
+  return [];
+}
+
+export function validateSafeContactRef(value: string): readonly DialerBlockedReason[] {
+  return value.trim() ? [] : ["missing_safe_contact_ref"];
+}
+
+export function validateConsentContract(
+  consent: DialerDispatchRequest["consent"],
+): readonly DialerBlockedReason[] {
+  const reasons = new Set<DialerBlockedReason>();
+  if (!consent.granted) reasons.add("missing_consent");
+  if (!consent.consentRef.trim()) reasons.add("missing_consent_ref");
   return [...reasons];
 }
 

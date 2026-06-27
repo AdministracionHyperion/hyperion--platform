@@ -17,6 +17,7 @@ export * from "./dialer-runtime-mode";
 export * from "./dialer-target";
 export * from "./internal-dialer-adapter.port";
 export * from "./internal-dialer-client.port";
+export * from "./internal-dialer-endpoint-contract";
 export * from "./internal-dialer-policy";
 export * from "./internal-dialer-request-validator";
 export * from "./readiness";

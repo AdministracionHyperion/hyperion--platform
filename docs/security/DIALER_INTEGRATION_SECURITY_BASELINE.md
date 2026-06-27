@@ -35,7 +35,7 @@
 - Provider config ref.
 - Secret manager ref.
 - Idempotency key persistida.
-- Dry-run real.
+- Dry-run interno sin provider egress.
 - Firma webhook obligatoria.
 - Auth obligatorio en prod.
 - Sin raw outcome persistence.

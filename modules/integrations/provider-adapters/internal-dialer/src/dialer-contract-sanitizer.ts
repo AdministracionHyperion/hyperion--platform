@@ -2,7 +2,7 @@ import { sanitizeMetadata, type SafeMetadata } from "../../../../../packages/sha
 import type { DialerBlockedReason } from "./dialer-blocked-reason";
 
 const forbiddenKeyPattern =
-  /(?:phoneNumber|phone|to_number|from_number|phoneE164Persisted|rawTranscript|transcript|audioUrl|recordingUrl|rawPayload|email|documentNumber|apiKey|token|secret|password)/iu;
+  /(?:phoneNumber|phone|to_number|from_number|phoneE164Persisted|rawTranscript|transcript|audioUrl|recordingUrl|audio_b64|rawPayload|email|documentNumber|apiKey|api_key|token|secret|password)/iu;
 const realProviderIdPattern =
   /\b(?:agent_id|phone_number_id)\b|(?:agent|phone)[_-]?[a-z0-9]{16,}/iu;
 const externalUrlPattern = /https?:\/\//iu;
@@ -35,4 +35,10 @@ export function sanitizeDialerContractPayload(
     reasons: [...reasons],
     metadata: sanitizeMetadata(value as Readonly<Record<string, unknown>>),
   };
+}
+
+export function assertNoDialerForbiddenPayloadFields(
+  value: unknown,
+): readonly DialerBlockedReason[] {
+  return sanitizeDialerContractPayload(value).reasons;
 }

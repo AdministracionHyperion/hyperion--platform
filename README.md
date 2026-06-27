@@ -84,8 +84,9 @@ La decision de integracion del dialer es hibrida: Hyperion solo cruza por `Inter
 bloqueado por defecto. No se usan endpoints demo/campaign-start, ElevenLabs directo, SIP directo ni
 Twilio directo.
 
-Las primeras superficies del dialer son solo readiness y dry-run. Exponen el estado P0 y validan
-solicitudes sinteticas por el adapter bloqueado; no hacen dispatch ni provider egress.
+Las primeras superficies del dialer son solo readiness y dry-run. El contrato esta alineado con el
+dialer sanitized main: exige idempotency key, `safe_contact_ref` y consentimiento, devuelve
+`would_call_provider=false` y `provider_egress=false`, y mantiene dispatch live bloqueado.
 
 ## Dashboard
 
