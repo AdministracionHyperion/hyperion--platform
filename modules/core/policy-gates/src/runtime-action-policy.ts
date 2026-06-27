@@ -117,5 +117,24 @@ export function getRuntimeActionRequirements(action: PolicyGateAction): RuntimeA
           cedcoD02EligibilityIntegrationEnabled: "eligibility_integration_disabled",
         },
       };
+    case "dialer.internal.dry_run":
+    case "dialer.internal.status_read":
+      return {
+        requiredFlags: [],
+        requiredPermissions: ["voice:call:write"],
+        requiredRefs: [],
+        disabledReasonByFlag: {},
+      };
+    case "dialer.internal.dispatch":
+    case "dialer.hardening.p0_required":
+      return {
+        requiredFlags: ["realCallsEnabled", "providerEgressEnabled"],
+        requiredPermissions: ["voice:call:dispatch"],
+        requiredRefs: ["approvalRef", "runbookRef", "providerConfigRef", "secretManagerRef"],
+        disabledReasonByFlag: {
+          realCallsEnabled: "real_calls_disabled",
+          providerEgressEnabled: "provider_egress_disabled",
+        },
+      };
   }
 }

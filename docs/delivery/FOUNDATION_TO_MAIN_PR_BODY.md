@@ -23,6 +23,8 @@ Este PR propone llevar la foundation avanzada de Hyperion Platform desde
 - Governance docs.
 - D03 fixed assets lane habilitada.
 - Dialer audit intake read-only.
+- Dialer integration decision: C) Hibrido.
+- InternalDialerAdapter contract bloqueado por defecto.
 
 ## Que NO Incluye
 
@@ -33,6 +35,9 @@ Este PR propone llevar la foundation avanzada de Hyperion Platform desde
 - No ElevenLabs real.
 - No SIP real.
 - No adapter real.
+- No HTTP client real hacia dialer.
+- No uso de `/api/demo/call`.
+- No uso de `/api/campaigns/{campaign_id}/start`.
 - No secrets.
 - No DB externa real.
 - No D03 funcional completo.
@@ -53,6 +58,7 @@ Required checks esperados:
 - Sin secrets.
 - Sin rutas reales de webhook o dispatch.
 - Sin provider egress.
+- Sin llamadas al dialer.
 - D02 sigue mock-only.
 - D03 lane no toca D02 ni voice.
 
@@ -61,6 +67,7 @@ Required checks esperados:
 - `main` debe protegerse antes de merges futuros.
 - Auth real y secret manager siguen pendientes.
 - Dialer necesita auditoria read-only separada.
+- Dialer requiere hardening P0 antes de cualquier dispatch real.
 - D03 requiere domain contracts en loop posterior.
 
 ## Branch Protection Recomendada

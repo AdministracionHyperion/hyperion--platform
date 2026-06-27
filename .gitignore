@@ -1,4 +1,5 @@
 _private/
+_external/
 .env
 .env.*
 !.env.example

@@ -34,8 +34,8 @@ Hyperion usa directo para flujos nuevos y adapter para compatibilidad temporal.
 
 ## Decision
 
-- Opcion elegida:
-- Razon:
+- Opcion elegida: C) Hibrido con `InternalDialerAdapter` como frontera.
+- Razon: evita usar endpoints demo/campaign-start actuales hasta completar P0 hardening.
 - Riesgos:
 - Requisitos previos:
 - Runbook requerido:

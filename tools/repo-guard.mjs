@@ -15,6 +15,7 @@ const restrictedSourceRoots = [
   "modules/voice/",
   "modules/products/cedco/d02-calls/",
   "modules/products/cedco/d03-fixed-assets/",
+  "modules/integrations/provider-adapters/internal-dialer/",
   "packages/db/",
   "packages/observability/",
 ];
@@ -140,6 +141,14 @@ function validateTrackedFileList(trackedFiles, issues) {
       issues.push(`${filePath}: private source files must not be tracked`);
     }
 
+    if (lower.startsWith("_external/")) {
+      issues.push(`${filePath}: external reference repositories must not be tracked`);
+    }
+
+    if (lower.startsWith("src/dialer/") || lower.startsWith("hyperion-dialer-sanitized/")) {
+      issues.push(`${filePath}: sanitized dialer source must not be copied into Hyperion`);
+    }
+
     if (lower.startsWith("modules/products/cedco/r03/")) {
       issues.push(`${filePath}: CEDCO R03 is out of scope`);
     }
@@ -216,11 +225,79 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
     validateSourceBoundaries(filePath, text, issues);
     validateEvalBoundaries(filePath, text, issues);
     validateD03Boundaries(filePath, text, issues);
+    validateInternalDialerBoundaries(filePath, text, issues);
     validateApiBoundaries(filePath, text, issues);
     validateWebBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
     validateRuntimeFlags(filePath, text, issues);
+  }
+}
+
+function validateInternalDialerBoundaries(filePath, text, issues) {
+  const isInternalDialerPath = filePath.startsWith(
+    "modules/integrations/provider-adapters/internal-dialer/",
+  );
+
+  if (!isInternalDialerPath && !filePath.startsWith("apps/api/")) {
+    return;
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    !isConceptOnlyPath(filePath) &&
+    /["'`](?:\/api\/demo\/call|\/api\/campaigns\/[^"'`]+\/start|\/webhooks\/call-completed|\/webhooks\/call-status|\/internal\/hyperion\/calls\/dispatch)["'`]/iu.test(
+      text,
+    )
+  ) {
+    issues.push(`${filePath}: active dialer/demo/webhook/dispatch endpoint is not allowed`);
+  }
+
+  if (!isInternalDialerPath) {
+    return;
+  }
+
+  const imports = readImports(text);
+  for (const importTarget of imports) {
+    const lower = importTarget.toLowerCase();
+    if (providerImportPatterns.some((pattern) => lower.includes(pattern))) {
+      issues.push(
+        `${filePath}: internal dialer adapter must not import providers (${importTarget})`,
+      );
+    }
+    if (networkImports.includes(lower)) {
+      issues.push(
+        `${filePath}: internal dialer adapter must not import network modules (${importTarget})`,
+      );
+    }
+  }
+
+  if (/\bfetch\s*\(/u.test(text)) {
+    issues.push(`${filePath}: internal dialer adapter must not perform network fetches`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    /\b(?:ELEVENLABS_API_KEY|DEMO_API_KEY|DEMO_AGENT_ID|DEMO_DDI_PHONE_NUMBER_ID)\b/u.test(text)
+  ) {
+    issues.push(`${filePath}: internal dialer adapter must not reference real dialer env keys`);
+  }
+
+  if (
+    (!isTestPath(filePath) &&
+      /\b(?:agent_id|phone_number_id)\b\s*[:=]\s*["'][a-z0-9_-]{10,}["']/iu.test(text)) ||
+    (!isTestPath(filePath) && /\+[1-9][0-9]{7,14}\b/u.test(text))
+  ) {
+    issues.push(
+      `${filePath}: internal dialer adapter must not contain real provider ids or phones`,
+    );
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    /https?:\/\/[^"'\s]*(?:elevenlabs|twilio|sip|api\.)[^"'\s]*/iu.test(text)
+  ) {
+    issues.push(`${filePath}: internal dialer adapter must not contain provider URLs`);
   }
 }
 

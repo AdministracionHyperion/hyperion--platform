@@ -15,6 +15,10 @@ export const policyGateActions = [
   "cedco.d02.scheduling.integration.enable",
   "cedco.d02.eligibility.integration.enable",
   "cedco.d02.production.ready",
+  "dialer.internal.dry_run",
+  "dialer.internal.dispatch",
+  "dialer.internal.status_read",
+  "dialer.hardening.p0_required",
 ] as const;
 
 export type PolicyGateAction = (typeof policyGateActions)[number];

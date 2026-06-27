@@ -78,6 +78,10 @@ ni datos reales.
 El intake de dialer queda documentado como auditoria read-only fuera de este repo. No se debe copiar
 snapshot crudo, `.env`, logs, audios, transcripts, dumps, certificados ni backups.
 
+La decision de integracion del dialer es hibrida: Hyperion solo cruza por `InternalDialerAdapter`,
+bloqueado por defecto. No se usan endpoints demo/campaign-start, ElevenLabs directo, SIP directo ni
+Twilio directo.
+
 ## Dashboard
 
 `apps/web` contiene un dashboard operacional skeleton solo lectura para observar mock runtime, mock

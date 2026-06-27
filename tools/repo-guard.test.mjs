@@ -20,6 +20,14 @@ describe("repo guard", () => {
     expect(issues.some((issue) => issue.includes("private source files"))).toBe(true);
   });
 
+  it("detects tracked external reference repos", () => {
+    const issues = runWithFiles({
+      "_external/hyperion-dialer-sanitized/README.md": "external",
+    });
+
+    expect(issues.some((issue) => issue.includes("external reference repositories"))).toBe(true);
+  });
+
   it("detects CEDCO R03 paths", () => {
     const issues = runWithFiles({
       "modules/products/cedco/r03/index.ts": "export const outOfScope = true;",
@@ -172,6 +180,49 @@ describe("repo guard", () => {
     });
 
     expect(issues.some((issue) => issue.includes("real provider import"))).toBe(true);
+  });
+
+  it("detects active demo dialer endpoint in API source", () => {
+    const issues = runWithFiles({
+      "apps/api/src/routes/bad.ts": 'export const route = "/api/demo/call";',
+    });
+
+    expect(issues.some((issue) => issue.includes("active dialer"))).toBe(true);
+  });
+
+  it("detects active campaign start endpoint in API source", () => {
+    const issues = runWithFiles({
+      "apps/api/src/routes/bad.ts": 'export const route = "/api/campaigns/campaign-id/start";',
+    });
+
+    expect(issues.some((issue) => issue.includes("active dialer"))).toBe(true);
+  });
+
+  it("detects fetch in internal dialer adapter", () => {
+    const issues = runWithFiles({
+      "modules/integrations/provider-adapters/internal-dialer/src/client.ts":
+        "export async function call() { return fetch('/api/demo/call'); }",
+    });
+
+    expect(issues.some((issue) => issue.includes("network fetches"))).toBe(true);
+  });
+
+  it("detects provider import in internal dialer adapter", () => {
+    const issues = runWithFiles({
+      "modules/integrations/provider-adapters/internal-dialer/src/provider.ts":
+        'import client from "elevenlabs";\nexport { client };',
+    });
+
+    expect(issues.some((issue) => issue.includes("must not import providers"))).toBe(true);
+  });
+
+  it("detects real dialer env key references in internal dialer adapter", () => {
+    const issues = runWithFiles({
+      "modules/integrations/provider-adapters/internal-dialer/src/env.ts":
+        'export const keyName = "DEMO_API_KEY";',
+    });
+
+    expect(issues.some((issue) => issue.includes("dialer env keys"))).toBe(true);
   });
 
   it("detects dangerous runtime flags hardcoded true", () => {
