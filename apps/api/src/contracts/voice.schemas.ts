@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { callIdParamsSchema, safeMetadataSchema, tenantParamsSchema } from "./common.schemas";
 
+export const providerEventMetadataSchema = z
+  .object({
+    source: z.string().min(1).max(120).optional(),
+    channel: z.string().min(1).max(120).optional(),
+    safeCallSessionRef: z.string().min(1).max(120).optional(),
+    eventRef: z.string().min(1).max(120).optional(),
+    outcome: z.string().min(1).max(120).optional(),
+    disposition: z.string().min(1).max(120).optional(),
+    scenarioId: z.string().min(1).max(120).optional(),
+    testCaseId: z.string().min(1).max(120).optional(),
+    correlationId: z.string().min(1).max(120).optional(),
+  })
+  .strict()
+  .default({});
+
 export const createVoiceCallParamsSchema = tenantParamsSchema;
 
 export const createVoiceCallBodySchema = z
@@ -44,7 +59,7 @@ export const mockProviderEventBodySchema = z
     safeIntent: z.string().min(1).optional(),
     disposition: z.string().min(1).optional(),
     handoffRecommended: z.boolean().optional(),
-    metadata: safeMetadataSchema.optional(),
+    metadata: providerEventMetadataSchema.optional(),
   })
   .strict();
 

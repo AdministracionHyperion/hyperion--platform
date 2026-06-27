@@ -3,8 +3,9 @@
 ## Proposito
 
 CEDCO D02 es el vertical de llamadas salientes/controladas para CEDCO sobre Hyperion Platform. Este
-dominio compone Core Platform, Agent Platform y Voice Platform sin implementar runtime, proveedores
-reales ni persistencia.
+dominio compone Core Platform, Agent Platform y Voice Platform. El dominio no implementa runtime ni
+proveedores reales; las capas superiores del repo ya agregan persistencia Prisma, API HTTP, workers
+in-memory, mock runtime, mock provider events, evals y dashboard operacional solo lectura.
 
 ## Entidades
 
@@ -85,11 +86,18 @@ KnowledgeBaseVersion.
 Voice Platform aporta CallSession, CallObjective, CallContext, CallId y handoff como contratos de
 voz.
 
+## Existe En Capas Superiores
+
+- Persistencia Prisma/PostgreSQL baseline.
+- API HTTP contractual con Fastify.
+- Workers foundation in-memory, sin daemon real.
+- Runtime mock end-to-end.
+- Mock provider event ingestion.
+- Evals deterministicas.
+- Dashboard operacional solo lectura.
+
 ## Todavia no existe
 
-- Persistencia real.
-- API HTTP.
-- Dashboard.
 - Workers reales.
 - Runtime de llamadas.
 - Adapter ElevenLabs.

@@ -2,7 +2,9 @@
 
 Repositorio limpio para la plataforma multi-tenant de agentes de IA Hyperion.
 
-El primer vertical priorizado es CEDCO R02 / D02 llamadas. R03 queda fuera del alcance actual.
+El primer vertical priorizado es CEDCO R02 / D02 llamadas. CEDCO D03 fixed assets ya tiene contratos
+iniciales de dominio, pero sigue sin DB, API, dashboard, workers ni import/export real. Los paths
+legacy `r03/`, `assets/` y `activos-fijos/` siguen bloqueados.
 
 La carpeta `_private/` contiene fuentes locales de referencia no commiteables y no debe subirse a
 GitHub.
@@ -32,8 +34,8 @@ Estructura base:
 - `pnpm evals:cedco-d02`: ejecuta el gate local de evals CEDCO D02.
 - `pnpm test:workers`: ejecuta los tests unitarios de workers foundation.
 - `pnpm secret:scan`: revisa patrones obvios de secretos en archivos trackeables.
-- `pnpm run repo:guard`: bloquea `_private`, R03/activos fijos, `.env` reales, proveedores reales,
-  runtime indebido y columnas Prisma prohibidas.
+- `pnpm run repo:guard`: bloquea `_private`, paths R03/assets/activos-fijos no autorizados, `.env`
+  reales, proveedores reales, runtime indebido y columnas Prisma prohibidas.
 
 ## Observabilidad
 
@@ -102,6 +104,6 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura,
 policy gates, workers foundation in-memory, runtime mock end-to-end, ingestion mock de eventos,
 evals deterministicas y dashboard operacional solo lectura, pero sin runtime real de producto. CEDCO
-R02 / D02 llamadas sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance.
-No hay workers daemon reales, adapter ElevenLabs, adapter SIP, webhook real de proveedor, llamadas,
-proveedores activos, produccion ni deploy.
+R02 / D02 llamadas sigue siendo el unico vertical operativo; CEDCO D03 fixed assets tiene dominio
+inicial para trabajo paralelo controlado. No hay workers daemon reales, adapter ElevenLabs, adapter
+SIP, webhook real de proveedor, llamadas, proveedores activos, produccion ni deploy.

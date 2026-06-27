@@ -1,13 +1,13 @@
 # Main PR Readiness
 
-Checklist antes de abrir PR de foundation hacia `main`:
+Checklist antes de abrir PR hacia `main`:
 
 - [ ] CI remoto verde.
 - [ ] `CI / Verify / verify` verde.
 - [ ] `CI / Verify / db-integration` verde.
 - [ ] `CI / Verify / api-integration` verde.
 - [ ] `_private/` no esta trackeado.
-- [ ] No hay R03 no autorizado.
+- [ ] No hay paths `r03/`, `assets/` o `activos-fijos/` no autorizados.
 - [ ] No hay `modules/products/cedco/assets`.
 - [ ] No hay `modules/products/cedco/activos-fijos`.
 - [ ] No hay providers reales.
@@ -21,5 +21,6 @@ Checklist antes de abrir PR de foundation hacia `main`:
 - [ ] El PR incluye riesgos residuales.
 - [ ] Reviewers asignados.
 
-El PR no debe hacer merge automatico. La revision debe confirmar que D02 sigue mock-only y que el
-carril D03 no implementa dominio funcional todavia.
+El PR no debe hacer merge automatico. La revision debe confirmar que D02 sigue mock-only y que D03
+solo toca el carril autorizado con boundaries, sin DB/API/dashboard/workers salvo aprobacion
+explicita.

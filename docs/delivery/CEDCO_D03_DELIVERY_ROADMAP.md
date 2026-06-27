@@ -2,18 +2,20 @@
 
 ## Estado
 
-D03 tiene carril habilitado y documentacion base. No hay dominio funcional todavia.
+D03 tiene carril habilitado, documentacion base y contratos iniciales de dominio. No hay DB, API,
+dashboard, workers, migraciones ni import/export real.
 
 ## Secuencia Recomendada
 
-1. D03-1 domain contracts.
-2. D03-2 inventory model.
-3. D03-3 movement lifecycle.
-4. D03-4 depreciation rules.
-5. D03-5 audit/reporting.
-6. D03-6 DB/API review.
-7. D03-7 dashboard.
-8. D03-8 import/export controls.
+1. D03-1 domain contracts. Completado.
+2. D03-2 domain expansion and test coverage.
+3. D03-3 inventory model hardening.
+4. D03-4 movement lifecycle.
+5. D03-5 depreciation rules.
+6. D03-6 audit/reporting.
+7. D03-7 DB/API review.
+8. D03-8 dashboard.
+9. D03-9 import/export controls.
 
 ## Gates
 

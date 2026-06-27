@@ -3,7 +3,8 @@
 Documentacion commiteable, limpia y sanitizada de Hyperion.
 
 Los documentos fuente privados viven en `_private/` y no deben versionarse. R00, R02 y R10 se usan
-como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este loop.
+como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de dominio; los paths legacy
+`r03/`, `assets/` y `activos-fijos/` siguen bloqueados.
 
 ## Arquitectura
 
@@ -43,6 +44,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Foundation Governance Checkpoint](governance/FOUNDATION_GOVERNANCE_CHECKPOINT.md)
 - [Main PR Readiness](governance/MAIN_PR_READINESS.md)
 - [Branch Protection Required](governance/BRANCH_PROTECTION_REQUIRED.md)
+- [Main Branch Protection Status](governance/MAIN_BRANCH_PROTECTION_STATUS.md)
 - [Contributor Workflow](governance/CONTRIBUTOR_WORKFLOW.md)
 - [Parallel Workstreams](governance/PARALLEL_WORKSTREAMS.md)
 
@@ -56,6 +58,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [API Policy Gates](api/API_POLICY_GATES.md)
 - [API Rate Limits](api/API_RATE_LIMITS.md)
 - [API Security Baseline](api/API_SECURITY_BASELINE.md)
+- [API Runtime Composition](api/API_RUNTIME_COMPOSITION.md)
 - [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
 - [CEDCO D02 Mock Runtime API](api/CEDCO_D02_MOCK_RUNTIME_API.md)
 - [Mock Provider Event Ingestion API](api/MOCK_PROVIDER_EVENT_INGESTION_API.md)
@@ -96,6 +99,9 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Policy Gates Security Baseline](security/POLICY_GATES_SECURITY_BASELINE.md)
 - [Rate Limit Security Baseline](security/RATE_LIMIT_SECURITY_BASELINE.md)
 - [Runtime Blockers](security/RUNTIME_BLOCKERS.md)
+- [API Runtime Bootstrap Security](security/API_RUNTIME_BOOTSTRAP_SECURITY.md)
+- [Auth Production Blocker](security/AUTH_PRODUCTION_BLOCKER.md)
+- [D02 Metadata Allowlists](security/D02_METADATA_ALLOWLISTS.md)
 - [Worker Security Baseline](security/WORKER_SECURITY_BASELINE.md)
 - [Mock Runtime Security Baseline](security/MOCK_RUNTIME_SECURITY_BASELINE.md)
 - [Provider Event Security Baseline](security/PROVIDER_EVENT_SECURITY_BASELINE.md)
@@ -159,5 +165,8 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Dialer Next Actions](delivery/DIALER_NEXT_ACTIONS.md)
 - [Loop 18 - Dialer Integration Contract report](delivery/LOOP_18_DIALER_INTEGRATION_CONTRACT_REPORT.md)
 - [Loop 19 - Dialer Readiness Surfaces report](delivery/LOOP_19_DIALER_READINESS_SURFACES_REPORT.md)
+- [API Runtime Composition Report](delivery/API_RUNTIME_COMPOSITION_REPORT.md)
+- [Auth Real Roadmap](delivery/AUTH_REAL_ROADMAP.md)
+- [Team Ready Hardening Report](delivery/TEAM_READY_HARDENING_REPORT.md)
 - [CEDCO D03 Delivery Roadmap](delivery/CEDCO_D03_DELIVERY_ROADMAP.md)
 - [Foundation To Main PR Body](delivery/FOUNDATION_TO_MAIN_PR_BODY.md)

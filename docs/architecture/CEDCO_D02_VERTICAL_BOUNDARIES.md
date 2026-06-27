@@ -30,7 +30,9 @@ CEDCO D02 no depende de:
 ## Fuera de alcance
 
 CEDCO D02 no implementa R03 ni activos fijos. Tampoco implementa PBX, inbound, llamadas reales,
-persistencia, API HTTP ni runtime.
+adapter real, provider egress ni runtime real. Persistencia, API HTTP, workers in-memory, evals,
+mock runtime y dashboard read-only existen en capas superiores y deben permanecer desacoplados del
+dominio vertical.
 
 ## Ruta futura
 

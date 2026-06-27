@@ -1,7 +1,44 @@
 import { z } from "zod";
-import { safeMetadataSchema, tenantParamsSchema } from "./common.schemas";
+import { tenantParamsSchema } from "./common.schemas";
 
 export const cedcoD02ParamsSchema = tenantParamsSchema;
+
+const d02MetadataSchema = z
+  .object({
+    source: z.string().min(1).max(120).optional(),
+    channel: z.string().min(1).max(120).optional(),
+    safe: z.string().min(1).max(120).optional(),
+    purpose: z.string().min(1).max(120).optional(),
+    reason: z.string().min(1).max(240).optional(),
+    mode: z.string().min(1).max(80).optional(),
+    scenarioId: z.string().min(1).max(120).optional(),
+    testCaseId: z.string().min(1).max(120).optional(),
+    correlationId: z.string().min(1).max(120).optional(),
+    safeCallSessionRef: z.string().min(1).max(120).optional(),
+    mockFlowRef: z.string().min(1).max(120).optional(),
+    eventRef: z.string().min(1).max(120).optional(),
+    outcome: z.string().min(1).max(120).optional(),
+    disposition: z.string().min(1).max(120).optional(),
+    priority: z.enum(["low", "normal", "high", "critical"]).optional(),
+    notes: z.string().min(1).max(240).optional(),
+    consentRef: z.string().min(1).max(120).optional(),
+    safeContactRef: z.string().min(1).max(120).optional(),
+    patientContextRef: z.string().min(1).max(120).optional(),
+    serviceRef: z.string().min(1).max(120).optional(),
+    siteRef: z.string().min(1).max(120).optional(),
+    agreementRef: z.string().min(1).max(120).optional(),
+    metricName: z.string().min(1).max(120).optional(),
+  })
+  .strict()
+  .default({});
+
+export const mockFlowMetadataSchema = d02MetadataSchema;
+export const schedulingMetadataSchema = d02MetadataSchema;
+export const eligibilityMetadataSchema = d02MetadataSchema;
+export const complianceMetadataSchema = d02MetadataSchema;
+export const handoffMetadataSchema = d02MetadataSchema;
+export const readinessMetadataSchema = d02MetadataSchema;
+export const metricsMetadataSchema = d02MetadataSchema;
 
 export const cedcoSchedulingModeSchema = z.enum(["disabled", "mock", "integration"]);
 export const cedcoEligibilityModeSchema = z.enum(["disabled", "mock", "integration"]);
@@ -42,7 +79,7 @@ export const cedcoConfigurationSchema = z
     schedulingMode: cedcoSchedulingModeSchema.default("mock"),
     eligibilityMode: cedcoEligibilityModeSchema.default("mock"),
     realCallsEnabled: z.boolean().default(false),
-    metadata: safeMetadataSchema.optional(),
+    metadata: readinessMetadataSchema.optional(),
   })
   .strict();
 
@@ -57,7 +94,7 @@ export const evaluateCedcoReadinessBodySchema = z
   .object({
     configuration: cedcoConfigurationSchema,
     objective: cedcoObjectiveSchema.optional(),
-    metadata: safeMetadataSchema.optional(),
+    metadata: readinessMetadataSchema.optional(),
   })
   .strict();
 
@@ -65,7 +102,7 @@ export const evaluateCedcoComplianceBodySchema = z
   .object({
     text: z.string().min(1),
     intent: cedcoIntentSchema.optional(),
-    metadata: safeMetadataSchema.optional(),
+    metadata: complianceMetadataSchema.optional(),
   })
   .strict();
 
@@ -74,6 +111,7 @@ export const evaluateCedcoHandoffBodySchema = z
     intent: cedcoIntentSchema,
     confidence: z.number().min(0).max(1).optional(),
     reason: z.string().optional(),
+    metadata: handoffMetadataSchema.optional(),
   })
   .strict();
 
@@ -83,7 +121,7 @@ export const createCedcoSchedulingRequestBodySchema = z
     serviceId: z.string().min(1),
     siteId: z.string().min(1).optional(),
     mode: z.enum(["mock", "integration_required"]),
-    metadata: safeMetadataSchema.optional(),
+    metadata: schedulingMetadataSchema.optional(),
   })
   .strict();
 
@@ -93,7 +131,7 @@ export const createCedcoEligibilityCheckBodySchema = z
     agreementId: z.string().min(1).optional(),
     serviceId: z.string().min(1).optional(),
     mode: z.enum(["mock", "integration_required"]),
-    metadata: safeMetadataSchema.optional(),
+    metadata: eligibilityMetadataSchema.optional(),
   })
   .strict();
 
@@ -115,7 +153,7 @@ export const runCedcoD02MockCallFlowBodySchema = z
     ]),
     objective: cedcoObjectiveSchema,
     scriptId: z.string().min(1).optional(),
-    metadata: safeMetadataSchema.optional(),
+    metadata: mockFlowMetadataSchema.optional(),
   })
   .strict();
 

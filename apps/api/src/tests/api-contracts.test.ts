@@ -221,20 +221,20 @@ describe("Agent and Voice route contracts", () => {
     });
   });
 
-  it("registers voice events with sanitized metadata", async () => {
+  it("registers voice events with allowed metadata", async () => {
     const response = await app.inject({
       method: "POST",
       url: `${tenantBase}/voice/calls/call-test-003/events`,
       headers: adminHeaders,
       payload: {
         type: "status_changed",
-        metadata: { email: "redacted@example.invalid", safe: "ok" },
+        metadata: { channel: "contract-test", safe: "ok" },
       },
     });
     const body = response.json<Envelope<{ metadata: Record<string, unknown> }>>();
 
     expect(response.statusCode).toBe(201);
-    expect(body.data?.metadata).toMatchObject({ email: "[REDACTED]", safe: "ok" });
+    expect(body.data?.metadata).toMatchObject({ channel: "contract-test", safe: "ok" });
   });
 
   it("returns not_found for missing voice calls", async () => {

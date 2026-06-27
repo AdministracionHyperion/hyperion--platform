@@ -10,6 +10,7 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - `correlationId` se conserva o se genera.
 - Zod valida params y bodies.
 - Payloads con campos prohibidos se rechazan.
+- CEDCO D02 usa allowlists de metadata por endpoint sensible.
 - Metadata se sanitiza antes de responder desde servicios fake.
 - Metadata se sanitiza antes de persistir desde servicios Prisma.
 - Request logging no registra bodies crudos ni headers sensibles.
@@ -17,6 +18,8 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - Policy gates bloquean acciones runtime peligrosas por defecto.
 - Rate limits in-memory protegen rutas publicas y protegidas.
 - Errores no exponen stack traces.
+- `API_SERVICES_MODE` bloquea fake services en produccion.
+- `AUTH_MODE` bloquea `header-dev` en produccion.
 
 ## Datos prohibidos
 
@@ -25,6 +28,7 @@ proveedores. CEDCO D02 tampoco acepta historia clinica real ni datos de paciente
 
 ## Limites
 
-No hay auth real, sesiones, cookies, OAuth, rate limit ni mTLS. Los integration tests usan
-PostgreSQL efimero y no conectan bases externas. Esos controles entran despues de que la superficie
-contractual este estable.
+No hay auth real, sesiones, cookies, OAuth, rate limit distribuido ni mTLS. En produccion,
+`AUTH_MODE=jwt-required` bloquea rutas protegidas hasta implementar JWT real. Los integration tests
+usan PostgreSQL efimero y no conectan bases externas. Esos controles entran despues de que la
+superficie contractual este estable.
