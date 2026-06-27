@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "architecture:check": "node tools/boundary-check.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run db:format && pnpm run db:validate && pnpm run db:generate && pnpm run typecheck && pnpm run test && pnpm run secret:scan && pnpm run architecture:check && pnpm run db:schema:check && pnpm run repo:guard",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run db:format && pnpm run db:validate && pnpm run db:generate && pnpm run typecheck && pnpm run test && pnpm run test:evals && pnpm run evals:cedco-d02 && pnpm run secret:scan && pnpm run architecture:check && pnpm run db:schema:check && pnpm run repo:guard",
     "db:format": "node tools/prisma-cli.mjs format --schema packages/db/prisma/schema.prisma",
     "db:validate": "node tools/prisma-cli.mjs validate --schema packages/db/prisma/schema.prisma",
     "db:generate": "node tools/prisma-cli.mjs generate --schema packages/db/prisma/schema.prisma",
@@ -22,6 +22,10 @@
     "test:integration": "node -e \"console.log('No integration tests yet.');\"",
     "test:integration:api": "vitest run apps/api/src/integration --maxWorkers=1",
     "test:integration:db": "vitest run packages/db/src/integration/prisma-integration.test.ts",
+    "test:evals": "vitest run modules/products/cedco/d02-calls/src/evals apps/evals/src",
+    "evals:cedco-d02": "node apps/evals/cedco-d02-eval-cli.mjs",
+    "evals:cedco-d02:json": "node apps/evals/cedco-d02-eval-cli.mjs --json",
+    "evals:cedco-d02:report": "node apps/evals/cedco-d02-eval-cli.mjs --report",
     "repo:guard": "node tools/repo-guard.mjs",
     "secret:scan": "node tools/secret-scan.mjs",
     "format:check": "prettier --check ."

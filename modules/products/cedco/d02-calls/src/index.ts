@@ -36,6 +36,7 @@ export * from "./cedco-site";
 export * from "./cedco-site-id";
 export * from "./cedco-site-repository.port";
 export * from "./cedco-site-status";
+export * from "./evals";
 export * from "./use-cases/classify-cedco-call-intent";
 export * from "./use-cases/create-cedco-d02-configuration";
 export * from "./use-cases/create-cedco-d02-eval-scenario";

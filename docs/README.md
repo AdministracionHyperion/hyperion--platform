@@ -47,6 +47,13 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 Mock Runtime API](api/CEDCO_D02_MOCK_RUNTIME_API.md)
 - [Mock Provider Event Ingestion API](api/MOCK_PROVIDER_EVENT_INGESTION_API.md)
 
+## Evals
+
+- [CEDCO D02 Eval Suite](evals/CEDCO_D02_EVAL_SUITE.md)
+- [CEDCO D02 Eval Scoring](evals/CEDCO_D02_EVAL_SCORING.md)
+- [CEDCO D02 Eval Cases](evals/CEDCO_D02_EVAL_CASES.md)
+- [CEDCO D02 Eval Results Sample](evals/CEDCO_D02_EVAL_RESULTS_SAMPLE.md)
+
 ## Producto
 
 - [CEDCO D02 - Alcance de producto](product/CEDCO_D02_PRODUCT_SCOPE.md)
@@ -105,3 +112,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 13 - Workers foundation report](delivery/LOOP_13_WORKERS_FOUNDATION_REPORT.md)
 - [Loop 14 - Mock Call Runtime report](delivery/LOOP_14_MOCK_CALL_RUNTIME_REPORT.md)
 - [Loop 15 - Provider Event Ingestion report](delivery/LOOP_15_PROVIDER_EVENT_INGESTION_REPORT.md)
+- [Loop 16 - CEDCO D02 Eval Suite report](delivery/LOOP_16_CEDCO_D02_EVAL_SUITE_REPORT.md)

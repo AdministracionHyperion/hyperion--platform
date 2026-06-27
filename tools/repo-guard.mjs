@@ -7,6 +7,7 @@ const defaultRoot = process.cwd();
 
 const restrictedSourceRoots = [
   "apps/api/",
+  "apps/evals/",
   "apps/workers/",
   "modules/core/",
   "modules/agent-platform/",
@@ -190,6 +191,7 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
     }
 
     validateSourceBoundaries(filePath, text, issues);
+    validateEvalBoundaries(filePath, text, issues);
     validateApiBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
@@ -290,6 +292,35 @@ function validateWorkerBoundaries(filePath, text, imports, issues) {
   }
 }
 
+function validateEvalBoundaries(filePath, text, issues) {
+  if (!isEvalPath(filePath)) {
+    return;
+  }
+
+  const imports = readImports(text);
+  for (const importTarget of imports) {
+    const lower = importTarget.toLowerCase();
+    if (providerImportPatterns.some((pattern) => lower.includes(pattern))) {
+      issues.push(`${filePath}: evals must not import real provider SDKs (${importTarget})`);
+    }
+    if (networkImports.includes(lower)) {
+      issues.push(`${filePath}: evals must not import network modules (${importTarget})`);
+    }
+  }
+
+  if (/\bfetch\s*\(/u.test(text)) {
+    issues.push(`${filePath}: evals must not perform network fetches`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    !isAllowedUnsafeEvalFixturePath(filePath) &&
+    /\b(rawTranscript|audioUrl|recordingUrl|phoneNumber|documentNumber)\b/u.test(text)
+  ) {
+    issues.push(`${filePath}: unsafe eval fixtures must stay in approved negative-test paths`);
+  }
+}
+
 function validateApiBoundaries(filePath, text, issues) {
   if (!filePath.startsWith("apps/api/")) {
     return;
@@ -361,7 +392,12 @@ function validateDatabaseUrls(filePath, text, issues) {
 }
 
 function validateSensitiveAssignments(filePath, text, issues) {
-  if (isConceptOnlyPath(filePath) || isTestPath(filePath) || filePath === "package.json") {
+  if (
+    isConceptOnlyPath(filePath) ||
+    isTestPath(filePath) ||
+    isAllowedUnsafeEvalFixturePath(filePath) ||
+    filePath === "package.json"
+  ) {
     return;
   }
 
@@ -379,7 +415,12 @@ function validateSensitiveAssignments(filePath, text, issues) {
 }
 
 function validateRuntimeFlags(filePath, text, issues) {
-  if (isConceptOnlyPath(filePath) || isTestPath(filePath) || isPolicyGateDefinitionPath(filePath)) {
+  if (
+    isConceptOnlyPath(filePath) ||
+    isTestPath(filePath) ||
+    isPolicyGateDefinitionPath(filePath) ||
+    isAllowedUnsafeEvalFixturePath(filePath)
+  ) {
     return;
   }
 
@@ -404,6 +445,24 @@ function isApiRuntimeConfigPath(filePath) {
     filePath === "apps/api/src/config/api-config.ts" ||
     filePath === "apps/api/src/main.ts" ||
     filePath.startsWith("apps/api/src/integration/")
+  );
+}
+
+function isEvalPath(filePath) {
+  return (
+    filePath.startsWith("apps/evals/") ||
+    filePath.startsWith("modules/products/cedco/d02-calls/src/evals/") ||
+    filePath.startsWith("packages/testing/src/evals/")
+  );
+}
+
+function isAllowedUnsafeEvalFixturePath(filePath) {
+  return (
+    filePath ===
+      "modules/products/cedco/d02-calls/src/evals/scenarios/unsafe-payload.scenarios.ts" ||
+    filePath === "modules/products/cedco/d02-calls/src/evals/eval-assertions.ts" ||
+    filePath === "modules/products/cedco/d02-calls/src/evals/eval-fixtures.ts" ||
+    filePath.startsWith("packages/testing/src/evals/")
   );
 }
 

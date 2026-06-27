@@ -22,6 +22,7 @@ y ejecuciones manuales.
 - Tests de policy gates, runtime blockers y rate limits dentro de `pnpm check` y `api-integration`.
 - Tests de workers foundation dentro de `pnpm check`.
 - Tests de runtime mock CEDCO D02 dentro de `pnpm check` y `api-integration`.
+- Tests y gate de evals deterministicas CEDCO D02 dentro de `pnpm check`.
 
 ## DB efimera controlada
 
@@ -48,6 +49,8 @@ pnpm db:validate
 pnpm db:generate
 pnpm db:schema:check
 pnpm run repo:guard
+pnpm test:evals
+pnpm evals:cedco-d02
 ```
 
 Con PostgreSQL temporal disponible:

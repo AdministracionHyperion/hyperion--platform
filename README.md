@@ -14,6 +14,7 @@ Este repositorio usa pnpm workspaces, TypeScript, Vitest, ESLint y Prettier.
 Estructura base:
 
 - `apps/api`: skeleton HTTP contractual con Fastify, sin runtime de llamadas todavia.
+- `apps/evals`: runner local de evals deterministicas, sin LLM ni proveedor real.
 - `apps/web`: boundary de dashboard/web, sin UI real todavia.
 - `apps/workers`: base contractual de workers con cola in-memory, sin daemon real todavia.
 - `packages/*`: paquetes compartidos de plataforma.
@@ -27,6 +28,8 @@ Estructura base:
 - `pnpm lint`: ejecuta ESLint.
 - `pnpm typecheck`: ejecuta TypeScript sin emitir archivos.
 - `pnpm test`: ejecuta Vitest.
+- `pnpm test:evals`: ejecuta la suite deterministica de evals CEDCO D02.
+- `pnpm evals:cedco-d02`: ejecuta el gate local de evals CEDCO D02.
 - `pnpm test:workers`: ejecuta los tests unitarios de workers foundation.
 - `pnpm secret:scan`: revisa patrones obvios de secretos en archivos trackeables.
 - `pnpm run repo:guard`: bloquea `_private`, R03/activos fijos, `.env` reales, proveedores reales,
@@ -58,6 +61,13 @@ La ingestion mock de eventos de proveedor normaliza eventos post-call sinteticos
 replay protection in-memory, sanitizacion estricta y persistencia segura reutilizando tablas
 existentes. No hay webhook real ni payload crudo persistido.
 
+## Evals
+
+CEDCO D02 tiene una suite deterministica que valida readiness, compliance, scheduling, eligibility,
+orientation, handoff, payloads inseguros, limites clinicos, runtime mock y mock provider event
+ingestion. No usa LLM real, provider real, SIP, numeros reales, datos reales, red externa ni DB
+externa.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -67,7 +77,8 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 ## Estado actual
 
 La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura,
-policy gates, workers foundation in-memory y runtime mock end-to-end, pero sin runtime real de
-producto. CEDCO R02 / D02 llamadas sigue siendo el unico vertical activo. R03/activos fijos queda
-fuera de alcance. No hay dashboard real, workers daemon reales, adapter ElevenLabs, adapter SIP,
-webhook real de proveedor, llamadas, proveedores activos, produccion ni deploy.
+policy gates, workers foundation in-memory, runtime mock end-to-end, ingestion mock de eventos y
+evals deterministicas, pero sin runtime real de producto. CEDCO R02 / D02 llamadas sigue siendo el
+unico vertical activo. R03/activos fijos queda fuera de alcance. No hay dashboard real, workers
+daemon reales, adapter ElevenLabs, adapter SIP, webhook real de proveedor, llamadas, proveedores
+activos, produccion ni deploy.
