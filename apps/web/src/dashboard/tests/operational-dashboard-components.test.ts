@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createDashboardFixture } from "../../../../../packages/testing/src";
 import { renderDashboardShell } from "../components/dashboard-shell";
 import { renderDisabledControlsPanel } from "../components/disabled-controls-panel";
+import { renderDialerReadinessPanel } from "../components/dialer-readiness-panel";
 import { renderEvalSummaryPanel } from "../components/eval-summary-panel";
 import { renderMockCallFlowTable } from "../components/mock-call-flow-table";
 import { renderPolicyGatePanel } from "../components/policy-gate-panel";
@@ -52,9 +53,18 @@ describe("operational dashboard components", () => {
     expect(renderDisabledControlsPanel()).not.toMatch(/onclick|fetch|submit/iu);
   });
 
+  it("dialer readiness panel shows blocked state", () => {
+    const html = renderDialerReadinessPanel();
+    expect(html).toContain("Dialer readiness");
+    expect(html).toContain("blocked");
+    expect(html).toContain("Dispatch remains unavailable");
+    expect(html).not.toMatch(/onclick|fetch|dispatch\s*\(/iu);
+  });
+
   it("dashboard shell renders all panels", () => {
     const html = renderDashboardShell(dashboard);
     expect(html).toContain("Metrics snapshot");
     expect(html).toContain("Audit preview");
+    expect(html).toContain("Dialer readiness");
   });
 });

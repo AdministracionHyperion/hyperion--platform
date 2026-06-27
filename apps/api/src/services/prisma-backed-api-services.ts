@@ -32,6 +32,12 @@ import {
 } from "../../../../modules/core/operations-dashboard/src";
 import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import {
+  BlockedInternalDialerAdapter,
+  buildDialerReadinessReport,
+  defaultDialerHardeningStatus,
+  type DialerDispatchRequest,
+} from "../../../../modules/integrations/provider-adapters/internal-dialer/src";
+import {
   ingestProviderEvent,
   InMemoryReplayProtectionStore,
   MockProviderEventNormalizer,
@@ -68,6 +74,7 @@ import type {
   EvaluateCedcoReadinessBody,
   MockProviderEventBody,
   RunCedcoD02MockCallFlowBody,
+  InternalDialerDryRunBody,
 } from "../contracts";
 import type { ApiAuditRecord, ApiServices } from "./api-services";
 
@@ -93,15 +100,22 @@ class PrismaBackedApiServices implements ApiServices {
   public readonly voice: ApiServices["voice"];
   public readonly cedcoD02: ApiServices["cedcoD02"];
   public readonly operationsDashboard: ApiServices["operationsDashboard"];
+  public readonly internalDialer: ApiServices["internalDialer"];
   private readonly providerReplayProtection = new InMemoryReplayProtectionStore();
   private readonly providerNormalizer = new MockProviderEventNormalizer();
   private readonly providerSignatureVerifier = new MockProviderSignatureVerifier();
+  private readonly internalDialerAdapter: BlockedInternalDialerAdapter;
 
   public constructor(
     private readonly composition: PrismaApiComposition,
     logger: LoggerPort = new InMemoryLogger(),
     metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
   ) {
+    this.internalDialerAdapter = new BlockedInternalDialerAdapter({
+      hardeningStatus: defaultDialerHardeningStatus,
+      logger,
+      metrics,
+    });
     const rateLimitStore = new InMemoryRateLimitStore();
     let testRateLimitRule: RateLimitRule | undefined;
     this.observability = {
@@ -159,6 +173,11 @@ class PrismaBackedApiServices implements ApiServices {
         (await this.getOperationsDashboard(context)).providerEvents,
       getEvalSummary: async (context) => (await this.getOperationsDashboard(context)).evalSummary,
     };
+    this.internalDialer = {
+      getReadiness: (_context) =>
+        Promise.resolve(buildDialerReadinessReport(defaultDialerHardeningStatus)),
+      dryRun: (context, input) => this.internalDialerDryRun(context, input),
+    };
   }
 
   private get prisma(): HyperionPrismaClient {
@@ -184,6 +203,30 @@ class PrismaBackedApiServices implements ApiServices {
         occurredAt: event.occurredAt,
       },
     });
+  }
+
+  private async internalDialerDryRun(context: RequestContext, input: InternalDialerDryRunBody) {
+    const operationContext = createOperationContext({
+      tenantId: context.tenantId,
+      actorId: context.actorId,
+      correlationId: context.correlationId,
+      occurredAt: context.occurredAt,
+      source: context.source,
+    });
+    if (!operationContext.ok) {
+      throw validationError(operationContext.error.message);
+    }
+
+    const result = await this.internalDialerAdapter.dryRun(
+      toDialerDispatchRequest(context, input),
+      operationContext.value,
+    );
+
+    return {
+      ...result,
+      providerEgressAttempted: false,
+      realCallAttempted: false,
+    };
   }
 
   private async getFeatureFlag(context: RequestContext, flagKey: string) {
@@ -903,6 +946,31 @@ function defaultCedcoConfiguration(context: RequestContext) {
     eligibilityMode: "mock",
     realCallsEnabled: false,
     metadata: {},
+  };
+}
+
+function toDialerDispatchRequest(
+  context: RequestContext,
+  input: InternalDialerDryRunBody,
+): DialerDispatchRequest {
+  return {
+    externalRequestId: input.externalRequestId,
+    tenantId: context.tenantId,
+    mode: input.mode,
+    runtimeMode: input.runtimeMode,
+    safeContactRef: input.safeContactRef,
+    agentAlias: input.agentAlias,
+    callerAlias: input.callerAlias,
+    dynamicVars: sanitizeMetadata(input.dynamicVars),
+    consent: { granted: true, consentRef: input.consentRef },
+    callback: {
+      ...(input.callbackAlias ? { callbackAlias: input.callbackAlias } : {}),
+      internalEventTopic: input.internalEventTopic ?? "internal.events.dialer.dry_run",
+    },
+    metadata: sanitizeMetadata({
+      ...input.metadata,
+      source: "api_internal_dialer_dry_run",
+    }),
   };
 }
 

@@ -82,6 +82,9 @@ La decision de integracion del dialer es hibrida: Hyperion solo cruza por `Inter
 bloqueado por defecto. No se usan endpoints demo/campaign-start, ElevenLabs directo, SIP directo ni
 Twilio directo.
 
+Las primeras superficies del dialer son solo readiness y dry-run. Exponen el estado P0 y validan
+solicitudes sinteticas por el adapter bloqueado; no hacen dispatch ni provider egress.
+
 ## Dashboard
 
 `apps/web` contiene un dashboard operacional skeleton solo lectura para observar mock runtime, mock

@@ -7,7 +7,7 @@
 - UI TypeScript/HTML/CSS sin framework nuevo.
 - Dashboard solo lectura para CEDCO D02.
 - Summary cards, mock call flows, provider events, eval summary, policy gates, runtime safety,
-  audit, metricas y controles futuros deshabilitados.
+  audit, metricas, readiness del dialer y controles futuros deshabilitados.
 - Cliente API inyectable que solo acepta rutas internas relativas.
 
 ## Seguridad

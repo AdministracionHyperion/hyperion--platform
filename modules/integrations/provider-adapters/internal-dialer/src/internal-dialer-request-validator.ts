@@ -24,6 +24,9 @@ export function validateInternalDialerRequest(input: {
     status: blockedReasons.length > 0 ? "blocked" : "dry_run_accepted",
     idempotencyKey: input.request.externalRequestId,
     blockedReasons: blockedReasons as readonly DialerBlockedReason[],
-    metadata: sanitization.metadata,
+    metadata:
+      blockedReasons.length > 0
+        ? { source: "internal_dialer_contract_blocked", blocked: true }
+        : sanitization.metadata,
   };
 }
