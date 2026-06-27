@@ -1,6 +1,6 @@
 # CEDCO D03 Fixed Assets
 
-Estado: contratos de dominio habilitados.
+Estado: domain contracts iniciales habilitados.
 
 Este modulo define contratos iniciales de dominio para CEDCO D03 activos fijos. No implementa
 runtime, DB, API, dashboard, workers ni import/export real.
@@ -22,4 +22,4 @@ runtime, DB, API, dashboard, workers ni import/export real.
 
 ## Proximo Paso
 
-Revisar estos contratos y planear el loop futuro de persistencia/API con migraciones coordinadas.
+Expandir dominio y tests. Persistencia/API deben planearse despues, con migraciones coordinadas.
