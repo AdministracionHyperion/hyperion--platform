@@ -4,6 +4,7 @@ import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
 import { evaluateCedcoHandoff } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-handoff";
 import { runCedcoD02MockCallFlow } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
+import { buildCedcoD02DashboardSummary } from "../../../../modules/products/cedco/d02-calls/src/application/dashboard";
 import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import {
   ingestProviderEvent,
@@ -406,7 +407,53 @@ export function createFakeApiServices(): ApiServices {
         };
       },
     },
+    operationsDashboard: {
+      async getDashboard(context) {
+        return buildFakeDashboard(context, auditEvents, metrics);
+      },
+      async getMockCallFlows(context) {
+        return buildFakeDashboard(context, auditEvents, metrics).mockCallFlows;
+      },
+      async getProviderEvents(context) {
+        return buildFakeDashboard(context, auditEvents, metrics).providerEvents;
+      },
+      async getEvalSummary(context) {
+        return buildFakeDashboard(context, auditEvents, metrics).evalSummary;
+      },
+    },
   };
+}
+
+function buildFakeDashboard(
+  context: RequestContext,
+  auditEvents: readonly ApiAuditRecord[],
+  metrics: InMemoryMetricsRegistry,
+) {
+  return buildCedcoD02DashboardSummary({
+    tenantId: context.tenantId,
+    correlationId: context.correlationId,
+    generatedAt: context.occurredAt,
+    auditPreview: auditEvents.slice(-8).map((event, index) => ({
+      auditId: `audit-preview-${index + 1}`,
+      action: event.action,
+      severity: event.result === "failure" ? "warn" : "info",
+      occurredAt: event.occurredAt.toISOString(),
+      correlationId: event.correlationId,
+      metadata: sanitizeMetadata(event.metadata),
+    })),
+    metricsSnapshot: [
+      ...metrics.snapshot().counters.map((counter) => ({
+        metricName: counter.name,
+        value: counter.value,
+        labels: counter.labels,
+      })),
+      ...metrics.snapshot().observations.map((observation) => ({
+        metricName: observation.name,
+        value: observation.count,
+        labels: observation.labels,
+      })),
+    ],
+  });
 }
 
 async function assertMockProviderEventPolicy(

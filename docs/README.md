@@ -27,6 +27,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Mock Call Runtime](architecture/MOCK_CALL_RUNTIME.md)
 - [Provider Event Ingestion](architecture/PROVIDER_EVENT_INGESTION.md)
 - [Post-Call Event Pipeline](architecture/POST_CALL_EVENT_PIPELINE.md)
+- [Operational Dashboard](architecture/OPERATIONAL_DASHBOARD.md)
 - [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
 - [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
@@ -46,6 +47,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
 - [CEDCO D02 Mock Runtime API](api/CEDCO_D02_MOCK_RUNTIME_API.md)
 - [Mock Provider Event Ingestion API](api/MOCK_PROVIDER_EVENT_INGESTION_API.md)
+- [Operational Dashboard API](api/OPERATIONAL_DASHBOARD_API.md)
 
 ## Evals
 
@@ -82,6 +84,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Mock Runtime Security Baseline](security/MOCK_RUNTIME_SECURITY_BASELINE.md)
 - [Provider Event Security Baseline](security/PROVIDER_EVENT_SECURITY_BASELINE.md)
 - [Webhook Sanitization Baseline](security/WEBHOOK_SANITIZATION_BASELINE.md)
+- [Operational Dashboard Security Baseline](security/OPERATIONAL_DASHBOARD_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -113,3 +116,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 14 - Mock Call Runtime report](delivery/LOOP_14_MOCK_CALL_RUNTIME_REPORT.md)
 - [Loop 15 - Provider Event Ingestion report](delivery/LOOP_15_PROVIDER_EVENT_INGESTION_REPORT.md)
 - [Loop 16 - CEDCO D02 Eval Suite report](delivery/LOOP_16_CEDCO_D02_EVAL_SUITE_REPORT.md)
+- [Loop 17 - Operational Dashboard report](delivery/LOOP_17_OPERATIONAL_DASHBOARD_REPORT.md)

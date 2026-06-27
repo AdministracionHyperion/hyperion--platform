@@ -1,4 +1,5 @@
 export * from "./application/mock-runtime";
+export * from "./application/dashboard";
 export * from "./application/provider-events";
 export * from "./cedco-agreement";
 export * from "./cedco-agreement-id";

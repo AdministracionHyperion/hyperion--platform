@@ -6,6 +6,7 @@ import { registerCedcoD02MockRuntimeRoutes } from "../routes/cedco-d02-mock-runt
 import { registerCoreRoutes } from "../routes/core.routes";
 import { registerHealthRoutes } from "../routes/health.routes";
 import { registerMockProviderEventRoutes } from "../routes/mock-provider-events.routes";
+import { registerOperationsDashboardRoutes } from "../routes/operations-dashboard.routes";
 import { registerVoiceRoutes } from "../routes/voice.routes";
 
 export interface RouteRegistryDependencies {
@@ -23,4 +24,5 @@ export async function registerApiRoutes(
   await registerMockProviderEventRoutes(app, dependencies);
   await registerCedcoD02Routes(app, dependencies);
   await registerCedcoD02MockRuntimeRoutes(app, dependencies);
+  await registerOperationsDashboardRoutes(app, dependencies);
 }

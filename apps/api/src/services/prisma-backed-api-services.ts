@@ -22,6 +22,14 @@ import {
   runCedcoD02MockCallFlow,
   type CedcoD02MockCallFlowResult,
 } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
+import { buildCedcoD02EvalDashboardSummary } from "../../../../modules/products/cedco/d02-calls/src/application/dashboard";
+import {
+  buildOperationalDashboard,
+  type DashboardAuditPreview,
+  type DashboardMetric,
+  type DashboardMockCallFlow,
+  type DashboardProviderEvent,
+} from "../../../../modules/core/operations-dashboard/src";
 import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import {
   ingestProviderEvent,
@@ -84,6 +92,7 @@ class PrismaBackedApiServices implements ApiServices {
   public readonly agentPlatform: ApiServices["agentPlatform"];
   public readonly voice: ApiServices["voice"];
   public readonly cedcoD02: ApiServices["cedcoD02"];
+  public readonly operationsDashboard: ApiServices["operationsDashboard"];
   private readonly providerReplayProtection = new InMemoryReplayProtectionStore();
   private readonly providerNormalizer = new MockProviderEventNormalizer();
   private readonly providerSignatureVerifier = new MockProviderSignatureVerifier();
@@ -141,6 +150,14 @@ class PrismaBackedApiServices implements ApiServices {
       createEligibilityCheck: (context, input) => this.createCedcoEligibilityCheck(context, input),
       getMetricsSummary: (context) => this.getCedcoMetricsSummary(context),
       runMockCallFlow: (context, input) => this.runCedcoD02MockCallFlow(context, input),
+    };
+    this.operationsDashboard = {
+      getDashboard: (context) => this.getOperationsDashboard(context),
+      getMockCallFlows: async (context) =>
+        (await this.getOperationsDashboard(context)).mockCallFlows,
+      getProviderEvents: async (context) =>
+        (await this.getOperationsDashboard(context)).providerEvents,
+      getEvalSummary: async (context) => (await this.getOperationsDashboard(context)).evalSummary,
     };
   }
 
@@ -782,6 +799,97 @@ class PrismaBackedApiServices implements ApiServices {
       },
     });
   }
+
+  private async getOperationsDashboard(context: RequestContext) {
+    const [sessions, providerEvents, audits, cedcoMetrics] = await Promise.all([
+      this.prisma.callSession.findMany({
+        where: { tenantId: context.tenantId },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      this.prisma.providerCallEvent.findMany({
+        where: { tenantId: context.tenantId, providerName: "mock" },
+        orderBy: { occurredAt: "desc" },
+        take: 10,
+      }),
+      this.prisma.auditLog.findMany({
+        where: { tenantId: context.tenantId },
+        orderBy: { occurredAt: "desc" },
+        take: 8,
+      }),
+      this.prisma.cedcoD02Metric.findMany({
+        where: { tenantId: context.tenantId },
+        orderBy: { occurredAt: "desc" },
+        take: 10,
+      }),
+    ]);
+
+    const metricsSnapshot: DashboardMetric[] = [
+      ...this.observability.metrics.snapshot().counters.map((counter) => ({
+        metricName: counter.name,
+        value: counter.value,
+        labels: counter.labels,
+      })),
+      ...cedcoMetrics.map((metric) => ({
+        metricName: metric.key,
+        value: metric.value,
+        labels: labelsFromJson(metric.dimensions),
+      })),
+    ];
+    const auditPreview: DashboardAuditPreview[] = audits.map((audit) => ({
+      auditId: audit.id,
+      action: audit.action,
+      severity: audit.result === "failure" ? "warn" : "info",
+      occurredAt: audit.occurredAt.toISOString(),
+      correlationId: audit.correlationId,
+      metadata: persistedMetadata(audit.metadata),
+    }));
+    const mockCallFlows: DashboardMockCallFlow[] = sessions
+      .filter((session) => session.metadata && JSON.stringify(session.metadata).includes("mock"))
+      .map((session) => {
+        const metadata = persistedMetadata(session.metadata);
+        return {
+          flowId: safeString(metadata.flowId) ?? `mock-flow-${session.correlationId}`,
+          sessionId: session.id,
+          providerCallRef: toMockCallRef(
+            safeString(metadata.providerCallRef) ?? `mock_call_${session.correlationId}`,
+          ),
+          status: session.status,
+          safeContactRef: "safe-contact-ref-redacted",
+          callPurpose: "orientation",
+          disposition: session.status === "completed" ? "resolved_mock" : "pending_mock",
+          handoffRecommended: false,
+          createdAt: (session.startedAt ?? session.createdAt).toISOString(),
+          completedAt: session.endedAt?.toISOString(),
+        };
+      });
+    const dashboardProviderEvents: DashboardProviderEvent[] = providerEvents.map((event) => ({
+      eventId: event.providerEventId,
+      providerCallRef: toMockCallRef(event.providerCallId ?? `mock_call_${event.providerEventId}`),
+      source: "mock",
+      type: toProviderMockType(event.status ?? "provider.mock.post_call.available"),
+      status: event.status ?? "processed",
+      replayBlocked: event.status === "replay_blocked",
+      processed: event.status !== "replay_blocked",
+      occurredAt: event.occurredAt.toISOString(),
+    }));
+    const failureAudits = audits.filter((audit) => audit.result === "failure");
+
+    return buildOperationalDashboard({
+      tenantId: context.tenantId,
+      correlationId: context.correlationId,
+      generatedAt: context.occurredAt,
+      mockCallFlows,
+      providerEvents: dashboardProviderEvents,
+      evalSummary: buildCedcoD02EvalDashboardSummary(),
+      policyGateSummary: {
+        deniedTotal: failureAudits.length,
+        topDeniedReasons: failureAudits.map((audit) => audit.action).slice(0, 5),
+      },
+      auditPreview,
+      metricsSnapshot,
+    });
+  }
 }
 
 function defaultCedcoConfiguration(context: RequestContext) {
@@ -850,6 +958,29 @@ function mapCallSession(
     metadata: persistedMetadata(row.metadata),
     ...(dispatch ? { dispatch } : {}),
   };
+}
+
+function labelsFromJson(value: unknown): Readonly<Record<string, string>> {
+  const metadata = persistedMetadata(value);
+  return Object.fromEntries(
+    Object.entries(metadata)
+      .filter(([, item]) => typeof item === "string")
+      .map(([key, item]) => [key, String(item)]),
+  );
+}
+
+function safeString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function toMockCallRef(value: string): `mock_call_${string}` {
+  return value.startsWith("mock_call_") ? (value as `mock_call_${string}`) : `mock_call_${value}`;
+}
+
+function toProviderMockType(value: string): `provider.mock.${string}` {
+  return value.startsWith("provider.mock.")
+    ? (value as `provider.mock.${string}`)
+    : "provider.mock.post_call.available";
 }
 
 function throwApiErrorForProviderEvent(message: string, code: string): never {

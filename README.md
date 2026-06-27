@@ -15,7 +15,7 @@ Estructura base:
 
 - `apps/api`: skeleton HTTP contractual con Fastify, sin runtime de llamadas todavia.
 - `apps/evals`: runner local de evals deterministicas, sin LLM ni proveedor real.
-- `apps/web`: boundary de dashboard/web, sin UI real todavia.
+- `apps/web`: skeleton de dashboard operacional solo lectura, sin acciones reales.
 - `apps/workers`: base contractual de workers con cola in-memory, sin daemon real todavia.
 - `packages/*`: paquetes compartidos de plataforma.
 - `modules/*`: bounded contexts de dominio y producto.
@@ -68,6 +68,12 @@ orientation, handoff, payloads inseguros, limites clinicos, runtime mock y mock 
 ingestion. No usa LLM real, provider real, SIP, numeros reales, datos reales, red externa ni DB
 externa.
 
+## Dashboard
+
+`apps/web` contiene un dashboard operacional skeleton solo lectura para observar mock runtime, mock
+provider events, audit, metricas, policy gates, rate limits y evals. No hay dispatch, provider
+egress, botones peligrosos habilitados, rutas reales de webhook, llamadas reales ni datos reales.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -77,8 +83,8 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 ## Estado actual
 
 La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura,
-policy gates, workers foundation in-memory, runtime mock end-to-end, ingestion mock de eventos y
-evals deterministicas, pero sin runtime real de producto. CEDCO R02 / D02 llamadas sigue siendo el
-unico vertical activo. R03/activos fijos queda fuera de alcance. No hay dashboard real, workers
-daemon reales, adapter ElevenLabs, adapter SIP, webhook real de proveedor, llamadas, proveedores
-activos, produccion ni deploy.
+policy gates, workers foundation in-memory, runtime mock end-to-end, ingestion mock de eventos,
+evals deterministicas y dashboard operacional solo lectura, pero sin runtime real de producto. CEDCO
+R02 / D02 llamadas sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance.
+No hay workers daemon reales, adapter ElevenLabs, adapter SIP, webhook real de proveedor, llamadas,
+proveedores activos, produccion ni deploy.

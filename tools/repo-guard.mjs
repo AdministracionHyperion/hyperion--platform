@@ -8,6 +8,7 @@ const defaultRoot = process.cwd();
 const restrictedSourceRoots = [
   "apps/api/",
   "apps/evals/",
+  "apps/web/",
   "apps/workers/",
   "modules/core/",
   "modules/agent-platform/",
@@ -193,6 +194,7 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
     validateSourceBoundaries(filePath, text, issues);
     validateEvalBoundaries(filePath, text, issues);
     validateApiBoundaries(filePath, text, issues);
+    validateWebBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
     validateRuntimeFlags(filePath, text, issues);
@@ -379,6 +381,47 @@ function validateApiBoundaries(filePath, text, issues) {
         issues.push(`${filePath}: forbidden API request field must not be accepted (${field})`);
       }
     }
+  }
+}
+
+function validateWebBoundaries(filePath, text, issues) {
+  if (!filePath.startsWith("apps/web/")) {
+    return;
+  }
+
+  const imports = readImports(text);
+  for (const importTarget of imports) {
+    const lower = importTarget.toLowerCase();
+    if (providerImportPatterns.some((pattern) => lower.includes(pattern))) {
+      issues.push(
+        `${filePath}: web dashboard must not import real provider SDKs (${importTarget})`,
+      );
+    }
+    if (["axios", "got", "node-fetch"].some((pattern) => lower.includes(pattern))) {
+      issues.push(`${filePath}: web dashboard must not import network helper libraries`);
+    }
+  }
+
+  if (!isTestPath(filePath) && /https?:\/\/(?!example\.invalid)[^"'\s)]+/iu.test(text)) {
+    issues.push(`${filePath}: web dashboard must not contain external API URLs`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    /["'`]\/api\/[^"'`]*(?:\/dispatch|\/real-call|\/provider-egress|\/elevenlabs|\/sip)\b/iu.test(
+      text,
+    )
+  ) {
+    issues.push(`${filePath}: web dashboard must not reference real dispatch/provider routes`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    /<button(?![^>]*disabled)[^>]*>[^<]*(?:Real call|Provider egress|Production deploy)/iu.test(
+      text,
+    )
+  ) {
+    issues.push(`${filePath}: dangerous dashboard controls must remain disabled`);
   }
 }
 

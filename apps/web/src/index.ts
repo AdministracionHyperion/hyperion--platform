@@ -1,5 +1,10 @@
 export const webAppBoundary = {
   name: "@hyperion/web",
-  status: "foundation-placeholder",
-  runtime: "not-created",
+  status: "operational-dashboard-skeleton",
+  runtime: "static-read-only",
 } as const;
+
+export * from "./dashboard/operational-dashboard-api-client";
+export * from "./dashboard/operational-dashboard-page";
+export * from "./dashboard/operational-dashboard-types";
+export * from "./dashboard/components/dashboard-shell";

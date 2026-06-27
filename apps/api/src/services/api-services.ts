@@ -71,6 +71,12 @@ export interface ApiServices {
     getMetricsSummary(context: RequestContext): Promise<unknown>;
     runMockCallFlow(context: RequestContext, input: RunCedcoD02MockCallFlowBody): Promise<unknown>;
   };
+  readonly operationsDashboard: {
+    getDashboard(context: RequestContext): Promise<unknown>;
+    getMockCallFlows(context: RequestContext): Promise<unknown>;
+    getProviderEvents(context: RequestContext): Promise<unknown>;
+    getEvalSummary(context: RequestContext): Promise<unknown>;
+  };
 }
 
 export interface ApiRateLimitRuleInput {

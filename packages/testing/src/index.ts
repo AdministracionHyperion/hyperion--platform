@@ -5,6 +5,7 @@ export const testingPackageBoundary = {
 
 export * from "./core";
 export * from "./agent-platform";
+export * from "./dashboard";
 export * from "./evals";
 export * from "./fixtures";
 export * from "./voice";
