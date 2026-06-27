@@ -1,12 +1,15 @@
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@prisma/client";
 import { createPrismaTestHarness } from "../../../../packages/db/src/integration/prisma-test-harness";
+import { InMemoryLogger, InMemoryMetricsRegistry } from "../../../../packages/observability/src";
 import { createApiApp } from "../app";
 import { createPrismaBackedApiServices } from "../services/prisma-backed-api-services";
 
 export interface ApiPrismaTestHarness {
   readonly app: FastifyInstance;
   readonly prisma: PrismaClient;
+  readonly logger: InMemoryLogger;
+  readonly metrics: InMemoryMetricsRegistry;
   readonly migrate: () => Promise<void>;
   readonly cleanup: () => Promise<void>;
   readonly seedBaseContext: () => Promise<void>;
@@ -18,14 +21,18 @@ export async function createApiPrismaTestHarness(
 ): Promise<ApiPrismaTestHarness> {
   const dbHarness = createPrismaTestHarness(databaseUrl);
   await dbHarness.migrate();
+  const logger = new InMemoryLogger();
+  const metrics = new InMemoryMetricsRegistry();
 
   const app = await createApiApp({
-    services: createPrismaBackedApiServices({ prisma: dbHarness.client }),
+    services: createPrismaBackedApiServices({ prisma: dbHarness.client, logger, metrics }),
   });
 
   return {
     app,
     prisma: dbHarness.client,
+    logger,
+    metrics,
     migrate: dbHarness.migrate,
     cleanup: dbHarness.cleanup,
     seedBaseContext: () => seedBaseContext(dbHarness.client),

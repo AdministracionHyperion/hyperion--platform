@@ -19,6 +19,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Core Platform Domain](architecture/CORE_PLATFORM_DOMAIN.md)
 - [Monorepo structure](architecture/MONOREPO_STRUCTURE.md)
 - [Module boundaries](architecture/MODULE_BOUNDARIES.md)
+- [Observability Architecture](architecture/OBSERVABILITY_ARCHITECTURE.md)
 - [Persistence Architecture](architecture/PERSISTENCE_ARCHITECTURE.md)
 - [Prisma Schema Boundaries](architecture/PRISMA_SCHEMA_BOUNDARIES.md)
 - [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
@@ -33,6 +34,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [API Contracts](api/API_CONTRACTS.md)
 - [API Prisma Wiring](api/API_PRISMA_WIRING.md)
 - [API DB Integration Tests](api/API_DB_INTEGRATION_TESTS.md)
+- [API Observability](api/API_OBSERVABILITY.md)
 - [API Security Baseline](api/API_SECURITY_BASELINE.md)
 - [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
 
@@ -56,6 +58,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Agent Platform Security Baseline](security/AGENT_PLATFORM_SECURITY_BASELINE.md)
 - [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
 - [Database Security Baseline](security/DATABASE_SECURITY_BASELINE.md)
+- [Observability Security Baseline](security/OBSERVABILITY_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -81,3 +84,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 8 - DB Integration report](delivery/LOOP_8_DB_INTEGRATION_REPORT.md)
 - [Loop 9 - API HTTP Skeleton report](delivery/LOOP_9_API_HTTP_SKELETON_REPORT.md)
 - [Loop 10 - API Prisma Wiring report](delivery/LOOP_10_API_PRISMA_WIRING_REPORT.md)
+- [Loop 11 - Observability report](delivery/LOOP_11_OBSERVABILITY_REPORT.md)

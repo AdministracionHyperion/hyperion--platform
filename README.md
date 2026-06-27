@@ -31,6 +31,11 @@ Estructura base:
 - `pnpm run repo:guard`: bloquea `_private`, R03/activos fijos, `.env` reales, proveedores reales,
   runtime indebido y columnas Prisma prohibidas.
 
+## Observabilidad
+
+La API tiene logs estructurados, redaccion centralizada, metricas in-memory y audit events para
+rutas protegidas. No hay exporter externo, APM, dashboard ni runtime de llamadas.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -39,7 +44,7 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 
 ## Estado actual
 
-La base tecnica existe con API HTTP contractual, pero sin runtime de producto. CEDCO R02 / D02
-llamadas sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance. No hay
-dashboard real, workers reales, conexion a base de datos real desde API, adapter ElevenLabs, adapter
-SIP, llamadas, proveedores activos, produccion ni deploy.
+La base tecnica existe con API HTTP contractual, wiring Prisma controlado y observabilidad segura,
+pero sin runtime de producto. CEDCO R02 / D02 llamadas sigue siendo el unico vertical activo.
+R03/activos fijos queda fuera de alcance. No hay dashboard real, workers reales, adapter ElevenLabs,
+adapter SIP, llamadas, proveedores activos, produccion ni deploy.

@@ -1,5 +1,12 @@
 import { createOperationContext, sanitizeMetadata } from "../../../../packages/shared/src/core";
-import type { HyperionPrismaClient } from "../../../../packages/db/src";
+import { toPrismaJson, type HyperionPrismaClient } from "../../../../packages/db/src";
+import {
+  InMemoryLogger,
+  InMemoryMetricsRegistry,
+  sanitizeLogMetadata,
+  type LoggerPort,
+  type MetricsRegistryPort,
+} from "../../../../packages/observability/src";
 import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-calls/src/use-cases/classify-cedco-call-intent";
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
@@ -31,23 +38,39 @@ import type {
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
 } from "../contracts";
-import type { ApiServices } from "./api-services";
+import type { ApiAuditRecord, ApiServices } from "./api-services";
 
 export interface PrismaBackedApiServicesInput {
   readonly prisma: HyperionPrismaClient;
+  readonly logger?: LoggerPort;
+  readonly metrics?: MetricsRegistryPort;
 }
 
 export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInput): ApiServices {
-  return new PrismaBackedApiServices(createPrismaApiComposition(input.prisma));
+  return new PrismaBackedApiServices(
+    createPrismaApiComposition(input.prisma),
+    input.logger,
+    input.metrics,
+  );
 }
 
 class PrismaBackedApiServices implements ApiServices {
+  public readonly observability: NonNullable<ApiServices["observability"]>;
   public readonly core: ApiServices["core"];
   public readonly agentPlatform: ApiServices["agentPlatform"];
   public readonly voice: ApiServices["voice"];
   public readonly cedcoD02: ApiServices["cedcoD02"];
 
-  public constructor(private readonly composition: PrismaApiComposition) {
+  public constructor(
+    private readonly composition: PrismaApiComposition,
+    logger: LoggerPort = new InMemoryLogger(),
+    metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
+  ) {
+    this.observability = {
+      logger,
+      metrics,
+      recordAuditEvent: (event) => this.recordAuditEvent(event),
+    };
     this.core = {
       getFeatureFlag: (context, flagKey) => this.getFeatureFlag(context, flagKey),
     };
@@ -77,6 +100,27 @@ class PrismaBackedApiServices implements ApiServices {
 
   private get prisma(): HyperionPrismaClient {
     return this.composition.prisma;
+  }
+
+  private async recordAuditEvent(event: ApiAuditRecord): Promise<void> {
+    if (!event.tenantId) {
+      return;
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        id: `audit-${event.correlationId}-${event.action}-${Date.now()}`,
+        tenantId: event.tenantId,
+        actorId: event.actorId,
+        correlationId: event.correlationId,
+        action: event.action,
+        resourceType: event.resourceType,
+        resourceId: event.resourceId,
+        result: event.result,
+        metadata: toPrismaJson(sanitizeLogMetadata(event.metadata)),
+        occurredAt: event.occurredAt,
+      },
+    });
   }
 
   private async getFeatureFlag(context: RequestContext, flagKey: string) {

@@ -4,6 +4,7 @@ import { fail } from "./http/api-response";
 import { registerApiRoutes } from "./http/route-registry";
 import { registerRequestContextPlugin } from "./http/request-context-plugin";
 import { getHeaderValue } from "./http/request-context";
+import { registerApiObservabilityPlugin } from "./observability";
 import { createFakeApiServices, type ApiServices } from "./services";
 
 export interface CreateApiAppDependencies {
@@ -18,6 +19,7 @@ export async function createApiApp(
   });
   const services = dependencies.services ?? createFakeApiServices();
 
+  await registerApiObservabilityPlugin(app, services);
   await registerRequestContextPlugin(app);
 
   app.setErrorHandler((error, request, reply) => {
@@ -28,6 +30,21 @@ export async function createApiApp(
     const correlationId = getHeaderValue(request, "x-correlation-id") ?? "public";
 
     if (error instanceof ApiError) {
+      const errorLogEntry = {
+        message: "api.request.error",
+        eventName: "api.request.error",
+        correlationId,
+        ...(tenantId ? { tenantId } : {}),
+        method: request.method,
+        route: request.routeOptions.url ?? request.url,
+        statusCode: error.statusCode,
+        metadata: { code: error.code },
+      };
+      if (error.statusCode >= 500) {
+        services.observability?.logger.error(errorLogEntry);
+      } else {
+        services.observability?.logger.warn(errorLogEntry);
+      }
       reply
         .status(error.statusCode)
         .send(
@@ -40,6 +57,17 @@ export async function createApiApp(
         );
       return;
     }
+
+    services.observability?.logger.error({
+      message: "api.request.error",
+      eventName: "api.request.error",
+      correlationId,
+      ...(tenantId ? { tenantId } : {}),
+      method: request.method,
+      route: request.routeOptions.url ?? request.url,
+      statusCode: 500,
+      metadata: { code: "internal_error" },
+    });
 
     reply.status(500).send(
       fail("internal_error", "Unexpected API error.", {

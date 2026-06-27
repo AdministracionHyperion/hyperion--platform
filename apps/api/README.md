@@ -11,9 +11,13 @@
 - Zod para validacion.
 - Servicios fake inyectados en tests.
 - Servicios Prisma inyectados para integration tests con PostgreSQL efimero.
+- Observability hooks para request logging, metricas in-memory y audit events sanitizados.
 
 No hay runtime de llamadas, dashboard, workers, providers reales, deploy ni llamadas reales. La DB
 solo se usa con Prisma inyectado y PostgreSQL efimero en tests de integracion.
+
+Los hooks de observabilidad no registran bodies crudos, headers sensibles ni datos de proveedor. Las
+rutas protegidas generan audit events con `tenantId`, `actorId` y `correlationId`.
 
 ## Tests
 

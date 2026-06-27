@@ -18,6 +18,7 @@ y ejecuciones manuales.
 - Repo guard.
 - Job `db-integration` con PostgreSQL temporal.
 - Job `api-integration` con PostgreSQL temporal y Fastify inject.
+- Tests de observabilidad API dentro de `pnpm check` y del job `api-integration`.
 
 ## DB efimera controlada
 

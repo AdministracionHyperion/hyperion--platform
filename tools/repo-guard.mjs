@@ -12,6 +12,7 @@ const restrictedSourceRoots = [
   "modules/voice/",
   "modules/products/cedco/d02-calls/",
   "packages/db/",
+  "packages/observability/",
 ];
 
 const domainRoots = [
@@ -32,6 +33,12 @@ const providerImportPatterns = [
   "telnyx",
   "plivo",
   "vonage",
+  "sentry",
+  "@sentry",
+  "datadog",
+  "newrelic",
+  "@opentelemetry/exporter",
+  "@opentelemetry/sdk",
 ];
 
 const networkImports = [

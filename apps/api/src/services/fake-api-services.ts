@@ -7,6 +7,11 @@ import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
 import { validationError } from "../http/api-error";
 import type { RequestContext } from "../http/request-context";
+import {
+  InMemoryLogger,
+  InMemoryMetricsRegistry,
+  sanitizeLogMetadata,
+} from "../../../../packages/observability/src";
 import type {
   CedcoConfigurationBody,
   ClassifyCedcoIntentBody,
@@ -21,6 +26,7 @@ import type {
   EvaluateCedcoReadinessBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
+import type { ApiAuditRecord } from "./api-services";
 
 interface StoredCall {
   readonly callId: string;
@@ -66,8 +72,23 @@ export function createFakeApiServices(): ApiServices {
   const agentVersions = new Map<string, unknown[]>();
   const calls = new Map<string, StoredCall>();
   const configurations = new Map<string, CedcoConfigurationBody & { tenantId: string }>();
+  const logger = new InMemoryLogger();
+  const metrics = new InMemoryMetricsRegistry();
+  const auditEvents: ApiAuditRecord[] = [];
 
   return {
+    observability: {
+      logger,
+      metrics,
+      recordAuditEvent: async (event) => {
+        auditEvents.push({
+          ...event,
+          metadata: sanitizeLogMetadata(event.metadata),
+        });
+      },
+      getAuditEvents: () => [...auditEvents],
+      getLogEntries: () => logger.getEntries(),
+    },
     core: {
       async getFeatureFlag(context, flagKey) {
         return {

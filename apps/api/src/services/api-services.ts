@@ -1,5 +1,10 @@
 import type { RequestContext } from "../http/request-context";
 import type {
+  LoggerPort,
+  MetricsRegistryPort,
+  NormalizedStructuredLogEntry,
+} from "../../../../packages/observability/src";
+import type {
   CedcoConfigurationBody,
   ClassifyCedcoIntentBody,
   CreateAgentBody,
@@ -14,6 +19,7 @@ import type {
 } from "../contracts";
 
 export interface ApiServices {
+  readonly observability?: ApiObservabilityServices;
   readonly core: {
     getFeatureFlag(context: RequestContext, flagKey: string): Promise<unknown>;
   };
@@ -54,4 +60,24 @@ export interface ApiServices {
     ): Promise<unknown>;
     getMetricsSummary(context: RequestContext): Promise<unknown>;
   };
+}
+
+export interface ApiAuditRecord {
+  readonly tenantId?: string;
+  readonly actorId?: string;
+  readonly correlationId: string;
+  readonly action: string;
+  readonly resourceType: string;
+  readonly resourceId: string;
+  readonly result: "success" | "failure";
+  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly occurredAt: Date;
+}
+
+export interface ApiObservabilityServices {
+  readonly logger: LoggerPort;
+  readonly metrics: MetricsRegistryPort;
+  readonly recordAuditEvent?: (event: ApiAuditRecord) => Promise<void>;
+  readonly getAuditEvents?: () => readonly ApiAuditRecord[];
+  readonly getLogEntries?: () => readonly NormalizedStructuredLogEntry[];
 }

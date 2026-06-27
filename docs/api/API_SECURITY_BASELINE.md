@@ -12,6 +12,8 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - Payloads con campos prohibidos se rechazan.
 - Metadata se sanitiza antes de responder desde servicios fake.
 - Metadata se sanitiza antes de persistir desde servicios Prisma.
+- Request logging no registra bodies crudos ni headers sensibles.
+- Audit events de rutas protegidas se sanitizan antes de memoria o Prisma.
 - Errores no exponen stack traces.
 
 ## Datos prohibidos

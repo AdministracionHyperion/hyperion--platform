@@ -12,6 +12,7 @@
 - `contracts/`: DTOs Zod para params y bodies.
 - `services/`: contratos, `FakeApiServices` y `PrismaBackedApiServices`.
 - `composition/`: wiring Prisma, repositorios y mappers API.
+- `observability/`: hooks de request logging, metricas y auditoria.
 - `integration/`: harness y tests con PostgreSQL efimero.
 - `routes/`: rutas publicas, Core, Agent Platform, Voice y CEDCO D02.
 
@@ -25,6 +26,12 @@ Las rutas protegidas reciben `tenantId` en path y actor desde headers controlado
 - `x-request-source` opcional
 
 Si falta `x-correlation-id`, el API genera uno y lo devuelve en el envelope.
+
+## Observabilidad
+
+La app registra hooks para logs estructurados, metricas in-memory y audit events en rutas
+protegidas. Los hooks usan los servicios inyectados y no crean clientes, exporters ni conexiones por
+si mismos. Los logs no incluyen bodies crudos ni headers sensibles.
 
 ## Limites
 
