@@ -1,6 +1,7 @@
 import type { OperationalDashboardReadModel } from "../operational-dashboard-types";
 import { renderAuditPreviewPanel } from "./audit-preview-panel";
 import { renderDisabledControlsPanel } from "./disabled-controls-panel";
+import { renderDialerReadinessPanel } from "./dialer-readiness-panel";
 import { renderEvalSummaryPanel } from "./eval-summary-panel";
 import { renderMetricsPanel } from "./metrics-panel";
 import { renderMockCallFlowTable } from "./mock-call-flow-table";
@@ -28,6 +29,7 @@ export function renderDashboardShell(model: OperationalDashboardReadModel): stri
       <section class="summary-grid">${model.summaryCards.map(renderSummaryCard).join("")}</section>
       <section class="dashboard-grid">
         ${renderRuntimeSafetyPanel(model.runtimeSafety)}
+        ${renderDialerReadinessPanel()}
         ${renderEvalSummaryPanel(model.evalSummary)}
         ${renderPolicyGatePanel(model.policyGateSummary)}
         ${renderDisabledControlsPanel()}

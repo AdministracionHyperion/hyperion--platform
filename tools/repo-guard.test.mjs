@@ -198,6 +198,15 @@ describe("repo guard", () => {
     expect(issues.some((issue) => issue.includes("active dialer"))).toBe(true);
   });
 
+  it("allows internal dialer dry-run route", () => {
+    const issues = runWithFiles({
+      "apps/api/src/routes/internal-dialer-readiness.routes.ts":
+        'export const route = "/api/v1/tenants/:tenantId/integrations/internal-dialer/dry-run";',
+    });
+
+    expect(issues).toEqual([]);
+  });
+
   it("detects fetch in internal dialer adapter", () => {
     const issues = runWithFiles({
       "modules/integrations/provider-adapters/internal-dialer/src/client.ts":

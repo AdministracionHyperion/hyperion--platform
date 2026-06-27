@@ -120,10 +120,15 @@ export class BlockedInternalDialerAdapter implements InternalDialerAdapterPort {
   }
 
   private emit(eventName: string, result: DialerDispatchResult, context: OperationContext): void {
-    this.metrics?.increment(metricNames.providerBlockedRequestsTotal, {
-      component: "internal_dialer",
-      status: result.status,
-    });
+    this.metrics?.increment(
+      result.status === "dry_run_accepted"
+        ? metricNames.policyGateEvaluationsTotal
+        : metricNames.providerBlockedRequestsTotal,
+      {
+        component: "internal_dialer",
+        status: result.status,
+      },
+    );
     const entry = {
       message: eventName,
       eventName,

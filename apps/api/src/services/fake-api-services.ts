@@ -13,6 +13,12 @@ import {
   MockProviderSignatureVerifier,
 } from "../../../../modules/voice/provider-events/src";
 import { evaluatePolicyGate } from "../../../../modules/core/policy-gates/src";
+import {
+  BlockedInternalDialerAdapter,
+  buildDialerReadinessReport,
+  defaultDialerHardeningStatus,
+  type DialerDispatchRequest,
+} from "../../../../modules/integrations/provider-adapters/internal-dialer/src";
 import { createActorId } from "../../../../modules/core/identity-access/src";
 import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-calls/src/cedco-call-objective";
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
@@ -44,6 +50,7 @@ import type {
   EvaluateCedcoReadinessBody,
   MockProviderEventBody,
   RunCedcoD02MockCallFlowBody,
+  InternalDialerDryRunBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
 import type { ApiAuditRecord } from "./api-services";
@@ -98,6 +105,11 @@ export function createFakeApiServices(): ApiServices {
   const providerReplayProtection = new InMemoryReplayProtectionStore();
   const providerNormalizer = new MockProviderEventNormalizer();
   const providerSignatureVerifier = new MockProviderSignatureVerifier();
+  const internalDialerAdapter = new BlockedInternalDialerAdapter({
+    hardeningStatus: defaultDialerHardeningStatus,
+    logger,
+    metrics,
+  });
   const auditEvents: ApiAuditRecord[] = [];
   const rateLimitStore = new InMemoryRateLimitStore();
   let testRateLimitRule: RateLimitRule | undefined;
@@ -421,6 +433,23 @@ export function createFakeApiServices(): ApiServices {
         return buildFakeDashboard(context, auditEvents, metrics).evalSummary;
       },
     },
+    internalDialer: {
+      async getReadiness(_context) {
+        return buildDialerReadinessReport(defaultDialerHardeningStatus);
+      },
+      async dryRun(context, input) {
+        const operationContext = toOperationContext(context);
+        const result = await internalDialerAdapter.dryRun(
+          toDialerDispatchRequest(context, input),
+          operationContext,
+        );
+        return {
+          ...result,
+          providerEgressAttempted: false,
+          realCallAttempted: false,
+        };
+      },
+    },
   };
 }
 
@@ -454,6 +483,31 @@ function buildFakeDashboard(
       })),
     ],
   });
+}
+
+function toDialerDispatchRequest(
+  context: RequestContext,
+  input: InternalDialerDryRunBody,
+): DialerDispatchRequest {
+  return {
+    externalRequestId: input.externalRequestId,
+    tenantId: context.tenantId,
+    mode: input.mode,
+    runtimeMode: input.runtimeMode,
+    safeContactRef: input.safeContactRef,
+    agentAlias: input.agentAlias,
+    callerAlias: input.callerAlias,
+    dynamicVars: sanitizeMetadata(input.dynamicVars),
+    consent: { granted: true, consentRef: input.consentRef },
+    callback: {
+      ...(input.callbackAlias ? { callbackAlias: input.callbackAlias } : {}),
+      internalEventTopic: input.internalEventTopic ?? "internal.events.dialer.dry_run",
+    },
+    metadata: sanitizeMetadata({
+      ...input.metadata,
+      source: "api_internal_dialer_dry_run",
+    }),
+  };
 }
 
 async function assertMockProviderEventPolicy(

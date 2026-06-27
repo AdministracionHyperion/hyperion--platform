@@ -16,6 +16,7 @@
 - Ruta CEDCO D02 mock runtime para flujo sintetico end-to-end.
 - Rutas operations dashboard solo lectura para mock runtime, provider events, audit, metricas y
   evals.
+- Rutas Internal Dialer readiness/dry-run, sin dispatch ni cliente HTTP.
 
 No hay runtime de llamadas real, workers daemon, providers reales, deploy ni llamadas reales. La DB
 solo se usa con Prisma inyectado y PostgreSQL efimero en tests de integracion.
@@ -35,6 +36,9 @@ email, documento y secretos.
 
 Las rutas `operations/dashboard` son GET-only. Devuelven read models sanitizados, preservan
 `correlationId` y no disparan jobs, llamadas, provider egress, evals remotos ni acciones de consola.
+
+Las rutas `integrations/internal-dialer/readiness` y `integrations/internal-dialer/dry-run` exponen
+solo estado P0 y validacion sintetica mediante `BlockedInternalDialerAdapter`.
 
 ## Tests
 

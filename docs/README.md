@@ -60,6 +60,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 Mock Runtime API](api/CEDCO_D02_MOCK_RUNTIME_API.md)
 - [Mock Provider Event Ingestion API](api/MOCK_PROVIDER_EVENT_INGESTION_API.md)
 - [Operational Dashboard API](api/OPERATIONAL_DASHBOARD_API.md)
+- [Internal Dialer Readiness API](api/INTERNAL_DIALER_READINESS_API.md)
 
 ## Evals
 
@@ -100,6 +101,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Webhook Sanitization Baseline](security/WEBHOOK_SANITIZATION_BASELINE.md)
 - [Operational Dashboard Security Baseline](security/OPERATIONAL_DASHBOARD_SECURITY_BASELINE.md)
 - [Dialer Integration Security Baseline](security/DIALER_INTEGRATION_SECURITY_BASELINE.md)
+- [Internal Dialer Readiness Security](security/INTERNAL_DIALER_READINESS_SECURITY.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 - [CEDCO D03 Security Baseline](security/CEDCO_D03_SECURITY_BASELINE.md)
@@ -154,5 +156,6 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Pre-Dialer Ready report](delivery/PRE_DIALER_READY_REPORT.md)
 - [Dialer Next Actions](delivery/DIALER_NEXT_ACTIONS.md)
 - [Loop 18 - Dialer Integration Contract report](delivery/LOOP_18_DIALER_INTEGRATION_CONTRACT_REPORT.md)
+- [Loop 19 - Dialer Readiness Surfaces report](delivery/LOOP_19_DIALER_READINESS_SURFACES_REPORT.md)
 - [CEDCO D03 Delivery Roadmap](delivery/CEDCO_D03_DELIVERY_ROADMAP.md)
 - [Foundation To Main PR Body](delivery/FOUNDATION_TO_MAIN_PR_BODY.md)
