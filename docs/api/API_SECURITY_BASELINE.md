@@ -11,6 +11,7 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - Zod valida params y bodies.
 - Payloads con campos prohibidos se rechazan.
 - Metadata se sanitiza antes de responder desde servicios fake.
+- Metadata se sanitiza antes de persistir desde servicios Prisma.
 - Errores no exponen stack traces.
 
 ## Datos prohibidos
@@ -20,5 +21,6 @@ proveedores. CEDCO D02 tampoco acepta historia clinica real ni datos de paciente
 
 ## Limites
 
-No hay auth real, sesiones, cookies, OAuth, rate limit ni mTLS. Esos controles entran despues de que
-la superficie contractual este estable.
+No hay auth real, sesiones, cookies, OAuth, rate limit ni mTLS. Los integration tests usan
+PostgreSQL efimero y no conectan bases externas. Esos controles entran despues de que la superficie
+contractual este estable.

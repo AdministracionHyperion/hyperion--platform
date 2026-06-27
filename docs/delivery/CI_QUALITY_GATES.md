@@ -17,12 +17,13 @@ y ejecuciones manuales.
 - DB schema check.
 - Repo guard.
 - Job `db-integration` con PostgreSQL temporal.
+- Job `api-integration` con PostgreSQL temporal y Fastify inject.
 
 ## DB efimera controlada
 
-El job `verify` no levanta PostgreSQL. El job `db-integration` levanta un service PostgreSQL
-temporal con credenciales sinteticas y aplica migraciones solo contra esa base efimera. No usa una
-DB de cliente ni una DB externa persistente.
+El job `verify` no levanta PostgreSQL. Los jobs `db-integration` y `api-integration` levantan un
+service PostgreSQL temporal con credenciales sinteticas y aplican migraciones solo contra esa base
+efimera. No usan una DB de cliente ni una DB externa persistente.
 
 ## Sin secrets
 
@@ -50,6 +51,7 @@ Con PostgreSQL temporal disponible:
 ```bash
 DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public" pnpm db:migrate:test
 DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public" pnpm test:integration:db
+DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_test?schema=public" pnpm test:integration:api
 ```
 
 ## Que bloquea repo guard
@@ -68,6 +70,5 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 
 ## Falta para produccion
 
-Faltan branch protection activa, integration tests con base efimera, revision de migraciones en
-entorno controlado, observabilidad operativa, manejo de secrets, retencion de datos, runtime y
-deploy separados.
+Faltan branch protection activa, revision de migraciones en entorno controlado, observabilidad
+operativa, manejo de secrets, retencion de datos, runtime y deploy separados.

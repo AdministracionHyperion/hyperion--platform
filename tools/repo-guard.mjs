@@ -272,7 +272,11 @@ function isDbIntegrationPath(filePath) {
 }
 
 function isApiRuntimeConfigPath(filePath) {
-  return filePath === "apps/api/src/config/api-config.ts" || filePath === "apps/api/src/main.ts";
+  return (
+    filePath === "apps/api/src/config/api-config.ts" ||
+    filePath === "apps/api/src/main.ts" ||
+    filePath.startsWith("apps/api/src/integration/")
+  );
 }
 
 function shouldInspectContent(filePath) {

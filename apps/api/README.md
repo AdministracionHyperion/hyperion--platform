@@ -10,10 +10,13 @@
 - Contexto por headers controlados para desarrollo/test.
 - Zod para validacion.
 - Servicios fake inyectados en tests.
+- Servicios Prisma inyectados para integration tests con PostgreSQL efimero.
 
-No hay runtime de llamadas, DB real, dashboard, workers, providers reales, deploy ni llamadas
-reales.
+No hay runtime de llamadas, dashboard, workers, providers reales, deploy ni llamadas reales. La DB
+solo se usa con Prisma inyectado y PostgreSQL efimero en tests de integracion.
 
 ## Tests
 
 Los tests usan `Fastify.inject` y no ejecutan `listen`.
+
+`pnpm test:integration:api` corre contra `DATABASE_URL` si existe; si no existe, se salta en local.

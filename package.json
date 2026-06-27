@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "node -e \"console.log('No integration tests yet.');\"",
+    "test:integration:api": "vitest run apps/api/src/integration/api-prisma-integration.test.ts",
     "test:integration:db": "vitest run packages/db/src/integration/prisma-integration.test.ts",
     "repo:guard": "node tools/repo-guard.mjs",
     "secret:scan": "node tools/secret-scan.mjs",

@@ -19,28 +19,29 @@ Todos los endpoints responden con envelope estandar:
   - Devuelve tenant, actor, roles y correlation id.
 - `GET /api/v1/tenants/:tenantId/features/:flagKey`
   - Permisos: `tenant:read`.
-  - Devuelve flag evaluada por servicio inyectado.
+  - Devuelve flag evaluada por servicio inyectado; con Prisma lee flag tenant-scoped o default
+    false.
 
 ## Agent Platform
 
 - `POST /api/v1/tenants/:tenantId/agents`
   - Permiso: `agent:write`.
-  - Crea agente draft contractual.
+  - Crea agente draft; con Prisma queda persistido.
 - `POST /api/v1/tenants/:tenantId/agents/:agentId/versions`
   - Permiso: `agent:write`.
-  - Crea version draft; no activa automaticamente.
+  - Crea version draft; con Prisma queda persistida y no activa automaticamente.
 
 ## Voice
 
 - `POST /api/v1/tenants/:tenantId/voice/calls`
   - Permiso: `voice:call:write`.
-  - Crea CallSession draft. No hace dispatch.
+  - Crea CallSession draft persistible. No hace dispatch.
 - `POST /api/v1/tenants/:tenantId/voice/calls/:callId/events`
   - Permiso: `voice:call:write`.
-  - Registra evento sanitizado.
+  - Registra evento sanitizado persistible.
 - `GET /api/v1/tenants/:tenantId/voice/calls/:callId`
   - Permiso: `voice:call:read`.
-  - Devuelve sesion si existe en el servicio inyectado.
+  - Devuelve sesion si existe en el servicio inyectado o Prisma.
 
 ## CEDCO D02
 
