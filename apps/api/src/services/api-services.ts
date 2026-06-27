@@ -18,6 +18,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 
 export interface ApiServices {
@@ -62,6 +63,7 @@ export interface ApiServices {
       input: CreateCedcoEligibilityCheckBody,
     ): Promise<unknown>;
     getMetricsSummary(context: RequestContext): Promise<unknown>;
+    runMockCallFlow(context: RequestContext, input: RunCedcoD02MockCallFlowBody): Promise<unknown>;
   };
 }
 

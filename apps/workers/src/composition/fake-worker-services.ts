@@ -2,6 +2,7 @@ import {
   defaultRuntimeSafetyFlags,
   type RuntimeSafetyFlags,
 } from "../../../../modules/core/policy-gates/src";
+import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import { InMemoryLogger, InMemoryMetricsRegistry } from "../../../../packages/observability/src";
 import type { CedcoD02Metric } from "../../../../modules/products/cedco/d02-calls/src";
 import type { WorkerServices } from "./worker-services";
@@ -14,10 +15,12 @@ export function createFakeWorkerServices(input: FakeWorkerServicesInput = {}): W
   const logger = new InMemoryLogger();
   const metrics = new InMemoryMetricsRegistry();
   const cedcoMetrics = new InMemoryCedcoD02WorkerMetrics();
+  const mockCallRuntime = new MockCallRuntimeAdapter();
 
   return {
     logger,
     metrics,
+    mockCallRuntime,
     runtimeSafetyFlags: {
       ...defaultRuntimeSafetyFlags,
       workerRuntimeEnabled: true,

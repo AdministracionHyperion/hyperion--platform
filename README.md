@@ -48,6 +48,12 @@ Redis, BullMQ ni rate limit distribuido todavia.
 Workers tiene contratos de jobs, cola in-memory, retry, dead-letter, idempotencia local y runner
 acotado para tests. No hay daemon real, Redis, BullMQ, provider egress ni llamadas reales.
 
+## Mock Runtime
+
+CEDCO D02 tiene un flujo mock end-to-end para simular intent, readiness, sesion de llamada, eventos
+sinteticos, post-call sanitizado, audit, metricas y persistencia segura. Sigue sin haber llamadas
+reales, provider egress, ElevenLabs, SIP ni numeros reales.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -57,7 +63,7 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 ## Estado actual
 
 La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura,
-policy gates y workers foundation in-memory, pero sin runtime de producto. CEDCO R02 / D02 llamadas
-sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance. No hay dashboard
-real, workers daemon reales, adapter ElevenLabs, adapter SIP, llamadas, proveedores activos,
-produccion ni deploy.
+policy gates, workers foundation in-memory y runtime mock end-to-end, pero sin runtime real de
+producto. CEDCO R02 / D02 llamadas sigue siendo el unico vertical activo. R03/activos fijos queda
+fuera de alcance. No hay dashboard real, workers daemon reales, adapter ElevenLabs, adapter SIP,
+llamadas, proveedores activos, produccion ni deploy.

@@ -97,6 +97,28 @@ export const createCedcoEligibilityCheckBodySchema = z
   })
   .strict();
 
+export const runCedcoD02MockCallFlowBodySchema = z
+  .object({
+    cedcoSiteId: z.string().min(1),
+    serviceId: z.string().min(1),
+    agreementId: z.string().min(1).optional(),
+    safeContactRef: z.string().min(1),
+    patientContextRef: z.string().min(1),
+    consentRef: z.string().min(1),
+    callPurpose: z.enum([
+      "orientation",
+      "scheduling_support",
+      "eligibility_support",
+      "reminder",
+      "follow_up",
+      "human_handoff",
+    ]),
+    objective: cedcoObjectiveSchema,
+    scriptId: z.string().min(1).optional(),
+    metadata: safeMetadataSchema.optional(),
+  })
+  .strict();
+
 export type CedcoConfigurationBody = z.infer<typeof cedcoConfigurationSchema>;
 export type ClassifyCedcoIntentBody = z.infer<typeof classifyCedcoIntentBodySchema>;
 export type EvaluateCedcoReadinessBody = z.infer<typeof evaluateCedcoReadinessBodySchema>;
@@ -106,3 +128,4 @@ export type CreateCedcoSchedulingRequestBody = z.infer<
   typeof createCedcoSchedulingRequestBodySchema
 >;
 export type CreateCedcoEligibilityCheckBody = z.infer<typeof createCedcoEligibilityCheckBodySchema>;
+export type RunCedcoD02MockCallFlowBody = z.infer<typeof runCedcoD02MockCallFlowBodySchema>;

@@ -13,6 +13,7 @@
 - Servicios Prisma inyectados para integration tests con PostgreSQL efimero.
 - Observability hooks para request logging, metricas in-memory y audit events sanitizados.
 - Policy gates, runtime blockers y rate limits in-memory.
+- Ruta CEDCO D02 mock runtime para flujo sintetico end-to-end.
 
 No hay runtime de llamadas, dashboard, workers, providers reales, deploy ni llamadas reales. La DB
 solo se usa con Prisma inyectado y PostgreSQL efimero en tests de integracion.
@@ -22,6 +23,9 @@ rutas protegidas generan audit events con `tenantId`, `actorId` y `correlationId
 
 Los runtime blockers rechazan flags peligrosos y campos sensibles antes de ejecutar logica de ruta.
 No hay dispatch real, provider egress, deploy productivo ni data export.
+
+La ruta `mock-call-flows` es explicita de mock y no dispara llamadas ni proveedor. Devuelve
+referencias `mock_call_*`, eventos sinteticos y resumen seguro.
 
 ## Tests
 

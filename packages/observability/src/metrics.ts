@@ -21,4 +21,12 @@ export const metricNames = {
   workerJobsBlockedTotal: "worker_jobs_blocked_total",
   workerJobDurationMs: "worker_job_duration_ms",
   workerPolicyDeniedTotal: "worker_policy_denied_total",
+  mockCallFlowsStartedTotal: "mock_call_flows_started_total",
+  mockCallFlowsCompletedTotal: "mock_call_flows_completed_total",
+  mockCallFlowsFailedTotal: "mock_call_flows_failed_total",
+  mockCallRuntimeSessionsStartedTotal: "mock_call_runtime_sessions_started_total",
+  mockCallRuntimeSessionsCompletedTotal: "mock_call_runtime_sessions_completed_total",
+  mockCallRuntimeEventsProcessedTotal: "mock_call_runtime_events_processed_total",
+  cedcoD02MockReadinessChecksTotal: "cedco_d02_mock_readiness_checks_total",
+  cedcoD02MockPostCallProcessedTotal: "cedco_d02_mock_post_call_processed_total",
 } as const;

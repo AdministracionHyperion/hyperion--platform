@@ -24,6 +24,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Prisma Schema Boundaries](architecture/PRISMA_SCHEMA_BOUNDARIES.md)
 - [Workers Architecture](architecture/WORKERS_ARCHITECTURE.md)
 - [Job Contracts](architecture/JOB_CONTRACTS.md)
+- [Mock Call Runtime](architecture/MOCK_CALL_RUNTIME.md)
 - [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
 - [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
@@ -41,6 +42,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [API Rate Limits](api/API_RATE_LIMITS.md)
 - [API Security Baseline](api/API_SECURITY_BASELINE.md)
 - [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
+- [CEDCO D02 Mock Runtime API](api/CEDCO_D02_MOCK_RUNTIME_API.md)
 
 ## Producto
 
@@ -67,6 +69,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Rate Limit Security Baseline](security/RATE_LIMIT_SECURITY_BASELINE.md)
 - [Runtime Blockers](security/RUNTIME_BLOCKERS.md)
 - [Worker Security Baseline](security/WORKER_SECURITY_BASELINE.md)
+- [Mock Runtime Security Baseline](security/MOCK_RUNTIME_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -95,3 +98,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 11 - Observability report](delivery/LOOP_11_OBSERVABILITY_REPORT.md)
 - [Loop 12 - Policy Gates report](delivery/LOOP_12_POLICY_GATES_REPORT.md)
 - [Loop 13 - Workers foundation report](delivery/LOOP_13_WORKERS_FOUNDATION_REPORT.md)
+- [Loop 14 - Mock Call Runtime report](delivery/LOOP_14_MOCK_CALL_RUNTIME_REPORT.md)

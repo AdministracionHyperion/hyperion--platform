@@ -175,7 +175,10 @@ export function runBoundaryCheck() {
           issues.push(`${filePath}: fetch is not allowed in voice domain`);
         }
 
-        if (/adapter/iu.test(path.basename(filePath))) {
+        if (
+          /adapter/iu.test(path.basename(filePath)) &&
+          !filePath.endsWith("modules/voice/call-runtime/src/mock-call-runtime-adapter.ts")
+        ) {
           issues.push(`${filePath}: real adapters are not allowed in voice domain`);
         }
 

@@ -21,6 +21,7 @@ y ejecuciones manuales.
 - Tests de observabilidad API dentro de `pnpm check` y del job `api-integration`.
 - Tests de policy gates, runtime blockers y rate limits dentro de `pnpm check` y `api-integration`.
 - Tests de workers foundation dentro de `pnpm check`.
+- Tests de runtime mock CEDCO D02 dentro de `pnpm check` y `api-integration`.
 
 ## DB efimera controlada
 

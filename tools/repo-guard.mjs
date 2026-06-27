@@ -43,6 +43,9 @@ const providerImportPatterns = [
   "redis",
   "ioredis",
   "bullmq",
+  "axios",
+  "got",
+  "node-fetch",
 ];
 
 const dangerousRuntimeFlags = [
@@ -294,8 +297,32 @@ function validateApiBoundaries(filePath, text, issues) {
     issues.push(`${filePath}: API skeleton must not expose real call dispatch/provider fields`);
   }
 
+  if (
+    !isTestPath(filePath) &&
+    /["'`]\/api\/[^"'`]*(?:\/dispatch|\/real-call|\/provider-egress|\/elevenlabs|\/sip)\b/iu.test(
+      text,
+    )
+  ) {
+    issues.push(`${filePath}: API must not expose real dispatch or provider routes`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
+    /https?:\/\/[^"'\s]*(?:elevenlabs|twilio|telnyx|plivo|vonage|sip)[^"'\s]*/iu.test(text)
+  ) {
+    issues.push(`${filePath}: real provider URLs are not allowed`);
+  }
+
   if (filePath.startsWith("apps/api/src/contracts/")) {
-    for (const field of ["phoneNumber", "to_number", "rawTranscript", "audioUrl", "recordingUrl"]) {
+    for (const field of [
+      "phoneNumber",
+      "to_number",
+      "from_number",
+      "rawTranscript",
+      "transcript",
+      "audioUrl",
+      "recordingUrl",
+    ]) {
       const acceptedFieldPattern = new RegExp(`${escapeRegExp(field)}\\s*:`, "u");
       if (acceptedFieldPattern.test(text)) {
         issues.push(`${filePath}: forbidden API request field must not be accepted (${field})`);

@@ -110,6 +110,9 @@ function inferAuditAction(method: string, route: string, statusCode: number): st
   if (/\/metrics\/summary$/u.test(normalizedRoute)) {
     return "cedco.d02.metrics.read";
   }
+  if (/\/mock-call-flows$/u.test(normalizedRoute)) {
+    return "cedco.d02.mock_flow.run";
+  }
 
   return "api.request";
 }

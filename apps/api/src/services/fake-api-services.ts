@@ -3,6 +3,8 @@ import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
 import { evaluateCedcoHandoff } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-handoff";
+import { runCedcoD02MockCallFlow } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
+import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-calls/src/cedco-call-objective";
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
 import { validationError } from "../http/api-error";
@@ -31,6 +33,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
 import type { ApiAuditRecord } from "./api-services";
@@ -81,6 +84,7 @@ export function createFakeApiServices(): ApiServices {
   const configurations = new Map<string, CedcoConfigurationBody & { tenantId: string }>();
   const logger = new InMemoryLogger();
   const metrics = new InMemoryMetricsRegistry();
+  const mockRuntime = new MockCallRuntimeAdapter();
   const auditEvents: ApiAuditRecord[] = [];
   const rateLimitStore = new InMemoryRateLimitStore();
   let testRateLimitRule: RateLimitRule | undefined;
@@ -292,6 +296,53 @@ export function createFakeApiServices(): ApiServices {
           total: 0,
           dimensions: {},
           source: "empty-fake-summary",
+        };
+      },
+      async runMockCallFlow(context, input: RunCedcoD02MockCallFlowBody) {
+        const result = await runCedcoD02MockCallFlow({
+          intent: {
+            tenantId: context.tenantId,
+            actorId: context.actorId,
+            correlationId: context.correlationId,
+            cedcoSiteId: input.cedcoSiteId,
+            serviceId: input.serviceId,
+            ...(input.agreementId ? { agreementId: input.agreementId } : {}),
+            safeContactRef: input.safeContactRef,
+            patientContextRef: input.patientContextRef,
+            consentRef: input.consentRef,
+            callPurpose: input.callPurpose,
+            objective: input.objective,
+            ...(input.scriptId ? { scriptId: input.scriptId } : {}),
+            metadata: input.metadata,
+          },
+          runtime: mockRuntime,
+          logger,
+          metrics,
+          audit: {
+            record: async (event) => {
+              auditEvents.push({
+                ...event,
+                metadata: sanitizeLogMetadata(event.metadata),
+              });
+            },
+          },
+        });
+        if (!result.ok) {
+          throw validationError(result.error.message);
+        }
+
+        return {
+          flowId: result.value.flowId,
+          sessionId: result.value.session.sessionId,
+          status: result.value.status,
+          providerCallRef: result.value.providerCallRef,
+          eventsCount: result.value.events.length,
+          safeSummary: result.value.safeSummary,
+          disposition: result.value.disposition,
+          handoffRecommended: result.value.handoffRecommended,
+          auditRefs: result.value.auditRefs,
+          metrics: result.value.metrics,
+          metricsSnapshot: metrics.snapshot(),
         };
       },
     },

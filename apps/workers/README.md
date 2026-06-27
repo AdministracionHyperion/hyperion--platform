@@ -10,6 +10,7 @@
 - RetryPolicy e IdempotencyPolicy.
 - JobRegistry y WorkerRunner no-daemon.
 - Jobs seguros para outbox, Voice y CEDCO D02.
+- Jobs mock para sesion de llamada sintetica y flujo CEDCO D02 mock.
 - Observability con logs y metricas in-memory.
 - Policy gates antes de ejecutar payloads peligrosos.
 

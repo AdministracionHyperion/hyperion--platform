@@ -90,14 +90,21 @@ describe("worker job handlers", () => {
     await app.queue.enqueue(jobFixture("job-all-types-002", "voice.call.prepare"));
     await app.queue.enqueue(jobFixture("job-all-types-003", "voice.call.event.process"));
     await app.queue.enqueue(jobFixture("job-all-types-004", "voice.post_call.process"));
-    await app.queue.enqueue(jobFixture("job-all-types-005", "cedco_d02.readiness.evaluate"));
-    await app.queue.enqueue(jobFixture("job-all-types-006", "cedco_d02.compliance.evaluate"));
-    await app.queue.enqueue(jobFixture("job-all-types-007", "cedco_d02.metric.record"));
+    await app.queue.enqueue(jobFixture("job-all-types-005", "voice.call.mock_session.run"));
+    await app.queue.enqueue(
+      jobFixture("job-all-types-006", "voice.call.mock_session.finalize", {
+        sessionId: "mock-session-corr-worker-jobs-001",
+      }),
+    );
+    await app.queue.enqueue(jobFixture("job-all-types-007", "cedco_d02.readiness.evaluate"));
+    await app.queue.enqueue(jobFixture("job-all-types-008", "cedco_d02.compliance.evaluate"));
+    await app.queue.enqueue(jobFixture("job-all-types-009", "cedco_d02.metric.record"));
+    await app.queue.enqueue(jobFixture("job-all-types-010", "cedco_d02.mock_flow.run"));
 
-    const results = await app.runner.processAll(10);
+    const results = await app.runner.processAll(12);
 
     expect(results.every((result) => result.success)).toBe(true);
-    expect(await app.queue.listByStatus("succeeded")).toHaveLength(7);
+    expect(await app.queue.listByStatus("succeeded")).toHaveLength(10);
   });
 });
 

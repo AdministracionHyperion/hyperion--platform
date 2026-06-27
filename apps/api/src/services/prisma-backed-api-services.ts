@@ -18,6 +18,11 @@ import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
 import { evaluateCedcoHandoff } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-handoff";
+import {
+  runCedcoD02MockCallFlow,
+  type CedcoD02MockCallFlowResult,
+} from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
+import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
 import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-calls/src/cedco-call-objective";
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
 import {
@@ -44,6 +49,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 import type { ApiAuditRecord, ApiServices } from "./api-services";
 
@@ -119,6 +125,7 @@ class PrismaBackedApiServices implements ApiServices {
         this.createCedcoSchedulingRequest(context, input),
       createEligibilityCheck: (context, input) => this.createCedcoEligibilityCheck(context, input),
       getMetricsSummary: (context) => this.getCedcoMetricsSummary(context),
+      runMockCallFlow: (context, input) => this.runCedcoD02MockCallFlow(context, input),
     };
   }
 
@@ -486,6 +493,145 @@ class PrismaBackedApiServices implements ApiServices {
       dimensions: {},
       source: metrics.length > 0 ? "prisma" : "empty-prisma-summary",
     };
+  }
+
+  private async runCedcoD02MockCallFlow(
+    context: RequestContext,
+    input: RunCedcoD02MockCallFlowBody,
+  ) {
+    const result = await runCedcoD02MockCallFlow({
+      intent: {
+        tenantId: context.tenantId,
+        actorId: context.actorId,
+        correlationId: context.correlationId,
+        cedcoSiteId: input.cedcoSiteId,
+        serviceId: input.serviceId,
+        ...(input.agreementId ? { agreementId: input.agreementId } : {}),
+        safeContactRef: input.safeContactRef,
+        patientContextRef: input.patientContextRef,
+        consentRef: input.consentRef,
+        callPurpose: input.callPurpose,
+        objective: input.objective,
+        ...(input.scriptId ? { scriptId: input.scriptId } : {}),
+        metadata: input.metadata,
+      },
+      runtime: new MockCallRuntimeAdapter(),
+      logger: this.observability.logger,
+      metrics: this.observability.metrics,
+      audit: {
+        record: (event) => this.recordAuditEvent(event),
+      },
+    });
+    if (!result.ok) {
+      throw validationError(result.error.message);
+    }
+
+    await this.persistMockCallFlow(context, result.value);
+
+    return {
+      flowId: result.value.flowId,
+      sessionId: result.value.session.sessionId,
+      status: result.value.status,
+      providerCallRef: result.value.providerCallRef,
+      eventsCount: result.value.events.length,
+      safeSummary: result.value.safeSummary,
+      disposition: result.value.disposition,
+      handoffRecommended: result.value.handoffRecommended,
+      auditRefs: result.value.auditRefs,
+      metrics: result.value.metrics,
+      metricsSnapshot: this.observability.metrics.snapshot(),
+    };
+  }
+
+  private async persistMockCallFlow(
+    context: RequestContext,
+    flow: CedcoD02MockCallFlowResult,
+  ): Promise<void> {
+    await this.prisma.callSession.upsert({
+      where: { id: flow.session.sessionId },
+      create: {
+        id: flow.session.sessionId,
+        tenantId: context.tenantId,
+        direction: "outbound",
+        status: flow.session.status,
+        correlationId: context.correlationId,
+        metadata: toPrismaJson(
+          sanitizeMetadata({
+            runtimeMode: "mock",
+            providerCallRef: flow.providerCallRef,
+            flowId: flow.flowId,
+          }),
+        ),
+        startedAt: flow.session.startedAt,
+        endedAt: flow.session.completedAt,
+      },
+      update: {
+        status: flow.session.status,
+        metadata: toPrismaJson(
+          sanitizeMetadata({
+            runtimeMode: "mock",
+            providerCallRef: flow.providerCallRef,
+            flowId: flow.flowId,
+          }),
+        ),
+        endedAt: flow.session.completedAt,
+      },
+    });
+
+    for (const event of flow.events) {
+      await this.prisma.callEvent.create({
+        data: {
+          id: event.eventId,
+          tenantId: context.tenantId,
+          callId: flow.session.sessionId,
+          actorId: context.actorId,
+          correlationId: context.correlationId,
+          type: event.type,
+          status: event.type === "call.mock.completed" ? "completed" : "running",
+          metadata: toPrismaJson(event.payload),
+          occurredAt: event.occurredAt,
+        },
+      });
+
+      await this.prisma.providerCallEvent.create({
+        data: {
+          id: `provider-${event.eventId}`,
+          tenantId: context.tenantId,
+          callId: flow.session.sessionId,
+          providerName: "mock",
+          providerEventId: event.providerEventRef,
+          providerCallId: flow.providerCallRef,
+          status: event.type,
+          metadata: toPrismaJson(event.payload),
+          occurredAt: event.occurredAt,
+        },
+      });
+    }
+
+    await this.prisma.postCallResult.create({
+      data: {
+        id: `${flow.session.sessionId}-post-call`,
+        tenantId: context.tenantId,
+        callId: flow.session.sessionId,
+        status: "completed",
+        redactedSummary: flow.safeSummary,
+        outcome: flow.disposition,
+        handoffRecommended: flow.handoffRecommended,
+        metadata: toPrismaJson(flow.metrics),
+        occurredAt: flow.session.completedAt ?? context.occurredAt,
+      },
+    });
+
+    await this.prisma.cedcoD02Metric.create({
+      data: {
+        id: `metric-${flow.flowId}`,
+        tenantId: context.tenantId,
+        key: "cedco_d02.mock_flow.completed",
+        value: flow.events.length,
+        dimensions: toPrismaJson(flow.metrics),
+        occurredAt: flow.session.completedAt ?? context.occurredAt,
+      },
+    });
   }
 }
 
