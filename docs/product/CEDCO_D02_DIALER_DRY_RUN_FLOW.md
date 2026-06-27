@@ -1,5 +1,9 @@
 # CEDCO D02 Dialer Dry-Run Flow
 
+See also `docs/enterprise-architecture/HYPERION_ENTERPRISE_ARCHITECTURE.md` and
+`docs/enterprise-architecture/DIALER_SERVICE_EVOLUTION.md` for the control-plane/execution-plane
+model.
+
 ## Purpose
 
 This flow proves that CEDCO D02 can prepare a safe outbound-call intent and validate it against the

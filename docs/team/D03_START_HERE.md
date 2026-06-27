@@ -6,7 +6,8 @@
 2. Leer `docs/product/CEDCO_D03_DOMAIN_CONTRACTS.md`.
 3. Leer `docs/architecture/CEDCO_D03_VERTICAL_BOUNDARIES.md`.
 4. Leer `docs/product/CEDCO_D03_DEVELOPER_HANDOFF.md`.
-5. Partir desde `main`, no desde la rama foundation D02.
+5. Leer `docs/enterprise-architecture/D03_PARALLEL_WORK_MODEL.md`.
+6. Partir desde `main`, no desde la rama foundation D02.
 
 Rama recomendada:
 

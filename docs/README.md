@@ -8,6 +8,23 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 
 ## Arquitectura
 
+- [Enterprise Architecture](enterprise-architecture/README.md)
+- [Hyperion Enterprise Architecture](enterprise-architecture/HYPERION_ENTERPRISE_ARCHITECTURE.md)
+- [Repository Operating Model](enterprise-architecture/REPOSITORY_OPERATING_MODEL.md)
+- [Service Operating Model](enterprise-architecture/SERVICE_OPERATING_MODEL.md)
+- [Control, Execution and Deployment Planes](enterprise-architecture/CONTROL_EXECUTION_DEPLOYMENT_PLANES.md)
+- [Microservices Evolution Strategy](enterprise-architecture/MICROSERVICES_EVOLUTION_STRATEGY.md)
+- [Contract Versioning Policy](enterprise-architecture/CONTRACT_VERSIONING_POLICY.md)
+- [Environment Strategy](enterprise-architecture/ENVIRONMENT_STRATEGY.md)
+- [CI/CD Governance](enterprise-architecture/CI_CD_GOVERNANCE.md)
+- [Security and Secret Management](enterprise-architecture/SECURITY_AND_SECRET_MANAGEMENT.md)
+- [Observability and Operability](enterprise-architecture/OBSERVABILITY_AND_OPERABILITY.md)
+- [Data Ownership and Boundaries](enterprise-architecture/DATA_OWNERSHIP_AND_BOUNDARIES.md)
+- [Product Verticals Model](enterprise-architecture/PRODUCT_VERTICALS_MODEL.md)
+- [Dialer Service Evolution](enterprise-architecture/DIALER_SERVICE_EVOLUTION.md)
+- [D03 Parallel Work Model](enterprise-architecture/D03_PARALLEL_WORK_MODEL.md)
+- [Architecture Decision Register](enterprise-architecture/ARCHITECTURE_DECISION_REGISTER.md)
+- [Roadmap 2026](enterprise-architecture/ROADMAP_2026.md)
 - [ADR-0001 - Hyperion como control plane](architecture/ADR-0001-hyperion-control-plane.md)
 - [ADR-0002 - CEDCO D02 SIP trunk first](architecture/ADR-0002-cedco-d02-sip-trunk-first.md)
 - [ADR-0003 - ElevenLabs como managed voice runtime](architecture/ADR-0003-elevenlabs-managed-voice-runtime.md)
@@ -133,6 +150,11 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 
 ## Team
 
+- [Architecture Start Here](team/ARCHITECTURE_START_HERE.md)
+- [Service Split Guide](team/SERVICE_SPLIT_GUIDE.md)
+- [New Product Vertical Guide](team/NEW_PRODUCT_VERTICAL_GUIDE.md)
+- [New Service Guide](team/NEW_SERVICE_GUIDE.md)
+- [Admin Exception Policy](team/ADMIN_EXCEPTION_POLICY.md)
 - [D03 Start Here](team/D03_START_HERE.md)
 - [D03 First Loop Prompt](team/D03_FIRST_LOOP_PROMPT.md)
 - [D02 Dialer Handoff](team/D02_DIALER_HANDOFF.md)
@@ -177,5 +199,6 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 - [API Runtime Composition Report](delivery/API_RUNTIME_COMPOSITION_REPORT.md)
 - [Auth Real Roadmap](delivery/AUTH_REAL_ROADMAP.md)
 - [Team Ready Hardening Report](delivery/TEAM_READY_HARDENING_REPORT.md)
+- [ARCH-ORG-1 Enterprise Architecture Report](delivery/ARCH_ORG_1_ENTERPRISE_ARCHITECTURE_REPORT.md)
 - [CEDCO D03 Delivery Roadmap](delivery/CEDCO_D03_DELIVERY_ROADMAP.md)
 - [Foundation To Main PR Body](delivery/FOUNDATION_TO_MAIN_PR_BODY.md)

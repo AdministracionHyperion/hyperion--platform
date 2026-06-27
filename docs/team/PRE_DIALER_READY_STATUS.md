@@ -15,6 +15,13 @@ hay DB, API, dashboard, workers ni import/export.
 Docs de checkpoint, PR readiness, branch protection requerida, contributor workflow y workstreams
 paralelos creados.
 
+## Enterprise Architecture
+
+Modelo empresarial definido en `docs/enterprise-architecture/`: `hyperion--platform` como control
+plane, futuros servicios especializados como execution plane y futuro `hyperion-infra` como
+deployment plane. El modelo documenta repos, servicios, ambientes, CI/CD, seguridad, contratos,
+observabilidad, ownership de datos y roadmap.
+
 ## Dialer Audit Intake
 
 Docs de auditoria read-only, sanitizacion, prompt VM, export policy y decision template creados. La
@@ -28,5 +35,5 @@ Nadie debe llamar directamente el dialer desde D02 fuera de `InternalDialerAdapt
 
 ## Proxima Accion Recomendada
 
-Abrir PR foundation -> `main` con CI verde y branch protection recomendada. En paralelo, iniciar D03
-domain contracts en rama separada y auditar dialer read-only fuera del repo.
+Continuar con D03-2 domain expansion o Dialer H4 segun prioridad. Mantener todo desde `main`, con
+branch protection, CI verde, no direct push, no provider egress y sin tocar VM.
