@@ -72,6 +72,7 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 - `process.env` en dominio o `packages/db`.
 - Red real en dominio.
 - Columnas Prisma prohibidas para transcript/audio/telefono.
+- Payload crudo y campos sensibles en contratos de eventos provider.
 - `DATABASE_URL` real hardcoded.
 - Asignaciones aparentes de secretos reales.
 

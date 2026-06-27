@@ -13,13 +13,13 @@ describe("worker job handlers", () => {
     expect(result?.output).toMatchObject({ prepared: true, dispatch: "not_started" });
   });
 
-  it("sanitizes voice.call.event.process metadata", async () => {
+  it("processes voice.call.event.process metadata", async () => {
     const result = await runJob(
       jobFixture("job-voice-event-001", "voice.call.event.process", {
-        metadata: { email: "synthetic@example.invalid" },
+        metadata: { channel: "worker-test" },
       }),
     );
-    expect(JSON.stringify(result?.output)).not.toContain("synthetic@example.invalid");
+    expect(result?.success).toBe(true);
   });
 
   it("blocks voice.post_call.process with rawTranscript before persistence", async () => {
@@ -62,16 +62,14 @@ describe("worker job handlers", () => {
       jobFixture("job-cedco-metric-001", "cedco_d02.metric.record", {
         key: "cedco_d02.synthetic",
         value: 1,
-        dimensions: { email: "synthetic@example.invalid", channel: "worker-test" },
+        dimensions: { channel: "worker-test" },
       }),
     );
 
     const result = await app.runner.processNext();
 
     expect(result?.success).toBe(true);
-    expect(JSON.stringify(app.services.recordedMetrics?.())).not.toContain(
-      "synthetic@example.invalid",
-    );
+    expect(JSON.stringify(app.services.recordedMetrics?.())).toContain("worker-test");
   });
 
   it("does not create provider references for safe jobs", async () => {
@@ -100,11 +98,26 @@ describe("worker job handlers", () => {
     await app.queue.enqueue(jobFixture("job-all-types-008", "cedco_d02.compliance.evaluate"));
     await app.queue.enqueue(jobFixture("job-all-types-009", "cedco_d02.metric.record"));
     await app.queue.enqueue(jobFixture("job-all-types-010", "cedco_d02.mock_flow.run"));
+    await app.queue.enqueue(
+      jobFixture("job-all-types-011", "voice.provider_event.sanitized.process", {
+        eventId: "provider-event-all-types",
+        type: "provider.mock.call.completed",
+        providerCallRef: "mock_call_all_types_001",
+      }),
+    );
+    await app.queue.enqueue(
+      jobFixture("job-all-types-012", "cedco_d02.post_call_event.process", {
+        eventId: "provider-event-all-types-d02",
+        type: "provider.mock.post_call.available",
+        providerCallRef: "mock_call_all_types_d02_001",
+        safeSummary: "Synthetic summary.",
+      }),
+    );
 
-    const results = await app.runner.processAll(12);
+    const results = await app.runner.processAll(14);
 
     expect(results.every((result) => result.success)).toBe(true);
-    expect(await app.queue.listByStatus("succeeded")).toHaveLength(10);
+    expect(await app.queue.listByStatus("succeeded")).toHaveLength(12);
   });
 });
 

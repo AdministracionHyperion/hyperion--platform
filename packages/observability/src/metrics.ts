@@ -29,4 +29,13 @@ export const metricNames = {
   mockCallRuntimeEventsProcessedTotal: "mock_call_runtime_events_processed_total",
   cedcoD02MockReadinessChecksTotal: "cedco_d02_mock_readiness_checks_total",
   cedcoD02MockPostCallProcessedTotal: "cedco_d02_mock_post_call_processed_total",
+  providerEventsReceivedTotal: "provider_events_received_total",
+  providerEventsVerifiedTotal: "provider_events_verified_total",
+  providerEventsRejectedTotal: "provider_events_rejected_total",
+  providerEventsReplayBlockedTotal: "provider_events_replay_blocked_total",
+  providerEventsSanitizedTotal: "provider_events_sanitized_total",
+  providerEventsProcessedTotal: "provider_events_processed_total",
+  providerEventProcessingDurationMs: "provider_event_processing_duration_ms",
+  cedcoD02PostCallEventsProcessedTotal: "cedco_d02_post_call_events_processed_total",
+  postCallEventsRejectedTotal: "post_call_events_rejected_total",
 } as const;

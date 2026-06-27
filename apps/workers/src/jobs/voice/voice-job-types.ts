@@ -6,6 +6,7 @@ export const voiceJobTypes = [
   "voice.post_call.process",
   "voice.call.mock_session.run",
   "voice.call.mock_session.finalize",
+  "voice.provider_event.sanitized.process",
 ] as const satisfies readonly JobType[];
 
 export type VoiceJobType = (typeof voiceJobTypes)[number];

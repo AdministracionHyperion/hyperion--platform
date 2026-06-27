@@ -54,6 +54,15 @@ export function getRuntimeActionRequirements(action: PolicyGateAction): RuntimeA
         requiredRefs: ["secretManagerRef"],
         disabledReasonByFlag: { webhookIngestionEnabled: "webhook_ingestion_disabled" },
       };
+    case "provider.mock_event.ingest":
+    case "voice.provider_event.process":
+    case "cedco.d02.post_call.process":
+      return {
+        requiredFlags: [],
+        requiredPermissions: ["voice:call:write"],
+        requiredRefs: [],
+        disabledReasonByFlag: {},
+      };
     case "production.deploy":
     case "cedco.d02.production.ready":
       return {

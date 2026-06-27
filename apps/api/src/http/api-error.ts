@@ -5,6 +5,7 @@ export type ApiErrorCode =
   | "not_found"
   | "policy_blocked"
   | "rate_limit_exceeded"
+  | "conflict"
   | "runtime_action_blocked"
   | "internal_error";
 
@@ -50,6 +51,10 @@ export function rateLimitExceededError(
   details?: unknown,
 ): ApiError {
   return new ApiError(429, "rate_limit_exceeded", message, details);
+}
+
+export function conflictError(message = "Resource conflict.", details?: unknown): ApiError {
+  return new ApiError(409, "conflict", message, details);
 }
 
 export function runtimeActionBlockedError(

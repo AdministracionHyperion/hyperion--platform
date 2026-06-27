@@ -5,9 +5,17 @@ import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-
 import { evaluateCedcoHandoff } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-handoff";
 import { runCedcoD02MockCallFlow } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
 import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
+import {
+  ingestProviderEvent,
+  InMemoryReplayProtectionStore,
+  MockProviderEventNormalizer,
+  MockProviderSignatureVerifier,
+} from "../../../../modules/voice/provider-events/src";
+import { evaluatePolicyGate } from "../../../../modules/core/policy-gates/src";
+import { createActorId } from "../../../../modules/core/identity-access/src";
 import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-calls/src/cedco-call-objective";
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
-import { validationError } from "../http/api-error";
+import { conflictError, policyBlockedError, validationError } from "../http/api-error";
 import type { RequestContext } from "../http/request-context";
 import {
   InMemoryLogger,
@@ -33,6 +41,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  MockProviderEventBody,
   RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
@@ -85,6 +94,9 @@ export function createFakeApiServices(): ApiServices {
   const logger = new InMemoryLogger();
   const metrics = new InMemoryMetricsRegistry();
   const mockRuntime = new MockCallRuntimeAdapter();
+  const providerReplayProtection = new InMemoryReplayProtectionStore();
+  const providerNormalizer = new MockProviderEventNormalizer();
+  const providerSignatureVerifier = new MockProviderSignatureVerifier();
   const auditEvents: ApiAuditRecord[] = [];
   const rateLimitStore = new InMemoryRateLimitStore();
   let testRateLimitRule: RateLimitRule | undefined;
@@ -192,6 +204,54 @@ export function createFakeApiServices(): ApiServices {
       },
       async getCall(context, callId) {
         return calls.get(`${context.tenantId}:${callId}`);
+      },
+      async ingestMockProviderEvent(context, input, headers) {
+        await assertMockProviderEventPolicy(context, input, logger, metrics);
+        const operationContext = toOperationContext(context);
+        const payload = {
+          safeSummary: input.safeSummary,
+          safeIntent: input.safeIntent,
+          disposition: input.disposition,
+          handoffRecommended: input.handoffRecommended,
+          ...input.metadata,
+        };
+        const result = await ingestProviderEvent({
+          context: operationContext,
+          source: input.source,
+          type: input.type,
+          eventId: input.eventId,
+          providerCallRef: input.providerCallRef,
+          occurredAt: new Date(input.occurredAt),
+          headers,
+          payload,
+          metadata: input.metadata,
+          normalizer: providerNormalizer,
+          signatureVerifier: providerSignatureVerifier,
+          replayProtection: providerReplayProtection,
+          logger,
+          metrics,
+          audit: {
+            record: async (event) => {
+              auditEvents.push({
+                ...event,
+                metadata: sanitizeLogMetadata(event.metadata),
+              });
+            },
+          },
+        });
+        if (!result.ok) {
+          throwApiErrorForProviderEvent(result.error.message, result.error.code);
+        }
+        return {
+          eventId: result.value.eventId,
+          status: result.value.status,
+          replayDetected: result.value.replayDetected,
+          normalizedType: result.value.normalizedType,
+          processed: result.value.processed,
+          safeSummary: result.value.safeSummary,
+          auditRefs: result.value.auditRefs,
+          metricsSnapshot: metrics.snapshot(),
+        };
       },
     },
     cedcoD02: {
@@ -347,4 +407,48 @@ export function createFakeApiServices(): ApiServices {
       },
     },
   };
+}
+
+async function assertMockProviderEventPolicy(
+  context: RequestContext,
+  input: MockProviderEventBody,
+  logger: InMemoryLogger,
+  metrics: InMemoryMetricsRegistry,
+): Promise<void> {
+  const operationContext = toOperationContext(context);
+  const actorId = createActorId(context.actorId);
+  if (!actorId.ok) {
+    throw validationError(actorId.error.message);
+  }
+  const result = await evaluatePolicyGate({
+    context: operationContext,
+    actor: {
+      actorId: actorId.value,
+      tenantId: context.tenantId,
+      roles: context.roles,
+    },
+    action: "provider.mock_event.ingest",
+    metadata: {
+      eventId: input.eventId,
+      source: input.source,
+      type: input.type,
+    },
+    logger,
+    metrics,
+  });
+  if (!result.allowed) {
+    throw policyBlockedError("Mock provider event ingestion blocked.", {
+      reasons: result.reasons,
+    });
+  }
+}
+
+function throwApiErrorForProviderEvent(message: string, code: string): never {
+  if (code === "conflict") {
+    throw conflictError(message);
+  }
+  if (message.toLowerCase().includes("signature")) {
+    throw policyBlockedError(message);
+  }
+  throw validationError(message);
 }

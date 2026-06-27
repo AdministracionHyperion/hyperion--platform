@@ -27,6 +27,10 @@ No hay dispatch real, provider egress, deploy productivo ni data export.
 La ruta `mock-call-flows` es explicita de mock y no dispara llamadas ni proveedor. Devuelve
 referencias `mock_call_*`, eventos sinteticos y resumen seguro.
 
+La ruta `mock-provider-events` exige firma sintetica `x-hyperion-mock-signature`, bloquea replay,
+normaliza solo eventos `provider.mock.*` y rechaza payload crudo, transcript, audio, telefono,
+email, documento y secretos.
+
 ## Tests
 
 Los tests usan `Fastify.inject` y no ejecutan `listen`.

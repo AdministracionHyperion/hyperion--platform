@@ -11,6 +11,7 @@
 - JobRegistry y WorkerRunner no-daemon.
 - Jobs seguros para outbox, Voice y CEDCO D02.
 - Jobs mock para sesion de llamada sintetica y flujo CEDCO D02 mock.
+- Jobs seguros para eventos de proveedor ya sanitizados y post-call CEDCO D02.
 - Observability con logs y metricas in-memory.
 - Policy gates antes de ejecutar payloads peligrosos.
 
@@ -24,3 +25,4 @@ pnpm test:workers
 ```
 
 Los tests no abren puertos, no ejecutan `server.listen`, no hacen red y no usan proveedores reales.
+Los jobs de provider event no aceptan payload crudo ni datos sensibles.

@@ -113,6 +113,9 @@ function inferAuditAction(method: string, route: string, statusCode: number): st
   if (/\/mock-call-flows$/u.test(normalizedRoute)) {
     return "cedco.d02.mock_flow.run";
   }
+  if (/\/mock-provider-events$/u.test(normalizedRoute)) {
+    return "provider.mock_event.ingest";
+  }
 
   return "api.request";
 }
@@ -123,6 +126,9 @@ function inferResourceType(route: string): string {
   }
   if (route.includes("/voice/calls")) {
     return "voice_call";
+  }
+  if (route.includes("/mock-provider-events")) {
+    return "provider_event";
   }
   if (route.includes("/products/cedco/d02")) {
     return "cedco_d02";

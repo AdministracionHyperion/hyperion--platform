@@ -18,6 +18,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  MockProviderEventBody,
   RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 
@@ -43,6 +44,11 @@ export interface ApiServices {
       input: CreateVoiceCallEventBody,
     ): Promise<unknown>;
     getCall(context: RequestContext, callId: string): Promise<unknown | undefined>;
+    ingestMockProviderEvent(
+      context: RequestContext,
+      input: MockProviderEventBody,
+      headers: Readonly<Record<string, unknown>>,
+    ): Promise<unknown>;
   };
   readonly cedcoD02: {
     getConfiguration(context: RequestContext): Promise<unknown>;

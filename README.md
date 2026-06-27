@@ -54,6 +54,10 @@ CEDCO D02 tiene un flujo mock end-to-end para simular intent, readiness, sesion 
 sinteticos, post-call sanitizado, audit, metricas y persistencia segura. Sigue sin haber llamadas
 reales, provider egress, ElevenLabs, SIP ni numeros reales.
 
+La ingestion mock de eventos de proveedor normaliza eventos post-call sinteticos con firma de test,
+replay protection in-memory, sanitizacion estricta y persistencia segura reutilizando tablas
+existentes. No hay webhook real ni payload crudo persistido.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -66,4 +70,4 @@ La base tecnica existe con API HTTP contractual, wiring Prisma controlado, obser
 policy gates, workers foundation in-memory y runtime mock end-to-end, pero sin runtime real de
 producto. CEDCO R02 / D02 llamadas sigue siendo el unico vertical activo. R03/activos fijos queda
 fuera de alcance. No hay dashboard real, workers daemon reales, adapter ElevenLabs, adapter SIP,
-llamadas, proveedores activos, produccion ni deploy.
+webhook real de proveedor, llamadas, proveedores activos, produccion ni deploy.

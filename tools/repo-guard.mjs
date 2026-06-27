@@ -68,7 +68,16 @@ const networkImports = [
   "ws",
 ];
 
-const forbiddenPrismaColumns = ["rawTranscript", "audioUrl", "recordingUrl", "phoneNumber"];
+const forbiddenPrismaColumns = [
+  "rawPayload",
+  "rawTranscript",
+  "transcript",
+  "audioUrl",
+  "recordingUrl",
+  "phoneNumber",
+  "email",
+  "documentNumber",
+];
 const sensitiveAssignmentNames = ["secret", "token", "password", "apiKey"];
 const placeholderValues = new Set([
   "",
@@ -308,6 +317,13 @@ function validateApiBoundaries(filePath, text, issues) {
 
   if (
     !isTestPath(filePath) &&
+    /["'`]\/api\/[^"'`]*(?:\/elevenlabs\/webhook|\/twilio\/webhook|\/sip\/webhook)\b/iu.test(text)
+  ) {
+    issues.push(`${filePath}: real provider webhook routes are not allowed`);
+  }
+
+  if (
+    !isTestPath(filePath) &&
     /https?:\/\/[^"'\s]*(?:elevenlabs|twilio|telnyx|plivo|vonage|sip)[^"'\s]*/iu.test(text)
   ) {
     issues.push(`${filePath}: real provider URLs are not allowed`);
@@ -318,6 +334,10 @@ function validateApiBoundaries(filePath, text, issues) {
       "phoneNumber",
       "to_number",
       "from_number",
+      "phone",
+      "email",
+      "documentNumber",
+      "rawPayload",
       "rawTranscript",
       "transcript",
       "audioUrl",

@@ -23,6 +23,15 @@ import {
   type CedcoD02MockCallFlowResult,
 } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
 import { MockCallRuntimeAdapter } from "../../../../modules/voice/call-runtime/src";
+import {
+  ingestProviderEvent,
+  InMemoryReplayProtectionStore,
+  MockProviderEventNormalizer,
+  MockProviderSignatureVerifier,
+  type SanitizedProviderEvent,
+} from "../../../../modules/voice/provider-events/src";
+import { createActorId } from "../../../../modules/core/identity-access/src";
+import { evaluatePolicyGate } from "../../../../modules/core/policy-gates/src";
 import type { CedcoCallObjective } from "../../../../modules/products/cedco/d02-calls/src/cedco-call-objective";
 import type { CedcoD02Configuration } from "../../../../modules/products/cedco/d02-calls/src/cedco-d02-configuration";
 import {
@@ -35,7 +44,7 @@ import {
   persistedJsonArray,
   persistedMetadata,
 } from "../composition/api-prisma-mappers";
-import { validationError } from "../http/api-error";
+import { conflictError, policyBlockedError, validationError } from "../http/api-error";
 import type { RequestContext } from "../http/request-context";
 import type {
   CedcoConfigurationBody,
@@ -49,6 +58,7 @@ import type {
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  MockProviderEventBody,
   RunCedcoD02MockCallFlowBody,
 } from "../contracts";
 import type { ApiAuditRecord, ApiServices } from "./api-services";
@@ -74,6 +84,9 @@ class PrismaBackedApiServices implements ApiServices {
   public readonly agentPlatform: ApiServices["agentPlatform"];
   public readonly voice: ApiServices["voice"];
   public readonly cedcoD02: ApiServices["cedcoD02"];
+  private readonly providerReplayProtection = new InMemoryReplayProtectionStore();
+  private readonly providerNormalizer = new MockProviderEventNormalizer();
+  private readonly providerSignatureVerifier = new MockProviderSignatureVerifier();
 
   public constructor(
     private readonly composition: PrismaApiComposition,
@@ -113,6 +126,8 @@ class PrismaBackedApiServices implements ApiServices {
       createCall: (context, input) => this.createCall(context, input),
       registerCallEvent: (context, callId, input) => this.registerCallEvent(context, callId, input),
       getCall: (context, callId) => this.getCall(context, callId),
+      ingestMockProviderEvent: (context, input, headers) =>
+        this.ingestMockProviderEvent(context, input, headers),
     };
     this.cedcoD02 = {
       getConfiguration: (context) => this.getCedcoConfiguration(context),
@@ -302,6 +317,140 @@ class PrismaBackedApiServices implements ApiServices {
       where: { tenantId: context.tenantId, id: callId },
     });
     return session ? mapCallSession(session) : undefined;
+  }
+
+  private async ingestMockProviderEvent(
+    context: RequestContext,
+    input: MockProviderEventBody,
+    headers: Readonly<Record<string, unknown>>,
+  ) {
+    await this.assertMockProviderEventPolicy(context, input);
+    const operationContext = createOperationContext({
+      tenantId: context.tenantId,
+      actorId: context.actorId,
+      correlationId: context.correlationId,
+      occurredAt: context.occurredAt,
+      source: context.source,
+    });
+    if (!operationContext.ok) {
+      throw validationError(operationContext.error.message);
+    }
+
+    const result = await ingestProviderEvent({
+      context: operationContext.value,
+      source: input.source,
+      type: input.type,
+      eventId: input.eventId,
+      providerCallRef: input.providerCallRef,
+      occurredAt: new Date(input.occurredAt),
+      headers,
+      payload: {
+        safeSummary: input.safeSummary,
+        safeIntent: input.safeIntent,
+        disposition: input.disposition,
+        handoffRecommended: input.handoffRecommended,
+        ...input.metadata,
+      },
+      metadata: input.metadata,
+      normalizer: this.providerNormalizer,
+      signatureVerifier: this.providerSignatureVerifier,
+      replayProtection: this.providerReplayProtection,
+      logger: this.observability.logger,
+      metrics: this.observability.metrics,
+      audit: {
+        record: (event) => this.recordAuditEvent(event),
+      },
+    });
+    if (!result.ok) {
+      throwApiErrorForProviderEvent(result.error.message, result.error.code);
+    }
+    if (result.value.event) {
+      await this.persistSanitizedProviderEvent(result.value.event);
+    }
+
+    return {
+      eventId: result.value.eventId,
+      status: result.value.status,
+      replayDetected: result.value.replayDetected,
+      normalizedType: result.value.normalizedType,
+      processed: result.value.processed,
+      safeSummary: result.value.safeSummary,
+      auditRefs: result.value.auditRefs,
+      metricsSnapshot: this.observability.metrics.snapshot(),
+    };
+  }
+
+  private async assertMockProviderEventPolicy(
+    context: RequestContext,
+    input: MockProviderEventBody,
+  ): Promise<void> {
+    const operationContext = createOperationContext({
+      tenantId: context.tenantId,
+      actorId: context.actorId,
+      correlationId: context.correlationId,
+      occurredAt: context.occurredAt,
+      source: context.source,
+    });
+    if (!operationContext.ok) {
+      throw validationError(operationContext.error.message);
+    }
+    const actorId = createActorId(context.actorId);
+    if (!actorId.ok) {
+      throw validationError(actorId.error.message);
+    }
+    const result = await evaluatePolicyGate({
+      context: operationContext.value,
+      actor: {
+        actorId: actorId.value,
+        tenantId: context.tenantId,
+        roles: context.roles,
+      },
+      action: "provider.mock_event.ingest",
+      metadata: {
+        eventId: input.eventId,
+        source: input.source,
+        type: input.type,
+      },
+      logger: this.observability.logger,
+      metrics: this.observability.metrics,
+    });
+    if (!result.allowed) {
+      throw policyBlockedError("Mock provider event ingestion blocked.", {
+        reasons: result.reasons,
+      });
+    }
+  }
+
+  private async persistSanitizedProviderEvent(event: SanitizedProviderEvent): Promise<void> {
+    await this.prisma.providerCallEvent.create({
+      data: {
+        id: `provider-event-${event.eventId}`,
+        tenantId: event.tenantId,
+        callId: event.safeCallSessionRef,
+        providerName: "mock",
+        providerEventId: event.eventId,
+        providerCallId: event.providerCallRef,
+        status: event.normalizedStatus,
+        metadata: toPrismaJson(event.metadata),
+        occurredAt: new Date(),
+      },
+    });
+
+    if (event.postCallAvailable) {
+      await this.prisma.postCallResult.create({
+        data: {
+          id: `post-call-${event.eventId}`,
+          tenantId: event.tenantId,
+          callId: event.safeCallSessionRef,
+          status: event.normalizedStatus === "failed" ? "failed" : "completed",
+          redactedSummary: event.safeSummary,
+          outcome: event.safeOutcome ?? event.normalizedStatus,
+          handoffRecommended: event.handoffRecommended,
+          metadata: toPrismaJson(event.metadata),
+          occurredAt: new Date(),
+        },
+      });
+    }
   }
 
   private async getCedcoConfiguration(context: RequestContext) {
@@ -701,4 +850,14 @@ function mapCallSession(
     metadata: persistedMetadata(row.metadata),
     ...(dispatch ? { dispatch } : {}),
   };
+}
+
+function throwApiErrorForProviderEvent(message: string, code: string): never {
+  if (code === "conflict") {
+    throw conflictError(message);
+  }
+  if (message.toLowerCase().includes("signature")) {
+    throw policyBlockedError(message);
+  }
+  throw validationError(message);
 }
