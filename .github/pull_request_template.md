@@ -8,7 +8,10 @@
 - [ ] No R03/activos fijos.
 - [ ] No proveedores reales.
 - [ ] No llamadas reales.
+- [ ] No provider egress.
+- [ ] No DB externa real.
 - [ ] No API/runtime si el PR no corresponde.
+- [ ] D03 no toca D02/voice/providers si el PR es de activos fijos.
 - [ ] `pnpm check` pasa localmente.
 - [ ] `CI / Verify` pasa en GitHub.
 - [ ] Se documentan riesgos y limites.

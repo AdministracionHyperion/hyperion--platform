@@ -33,6 +33,16 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
 - [Voice Provider Contracts](architecture/VOICE_PROVIDER_CONTRACTS.md)
 - [CEDCO D02 Vertical Boundaries](architecture/CEDCO_D02_VERTICAL_BOUNDARIES.md)
+- [CEDCO D03 Vertical Boundaries](architecture/CEDCO_D03_VERTICAL_BOUNDARIES.md)
+- [CEDCO D03 Domain Roadmap](architecture/CEDCO_D03_DOMAIN_ROADMAP.md)
+
+## Governance
+
+- [Foundation Governance Checkpoint](governance/FOUNDATION_GOVERNANCE_CHECKPOINT.md)
+- [Main PR Readiness](governance/MAIN_PR_READINESS.md)
+- [Branch Protection Required](governance/BRANCH_PROTECTION_REQUIRED.md)
+- [Contributor Workflow](governance/CONTRIBUTOR_WORKFLOW.md)
+- [Parallel Workstreams](governance/PARALLEL_WORKSTREAMS.md)
 
 ## API
 
@@ -68,6 +78,8 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 - Sites, services and agreements](product/CEDCO_D02_SITE_SERVICE_AGREEMENTS.md)
 - [CEDCO D02 - Handoff and compliance](product/CEDCO_D02_HANDOFF_AND_COMPLIANCE.md)
 - [CEDCO D02 - Eval scenarios](product/CEDCO_D02_EVAL_SCENARIOS.md)
+- [CEDCO D03 - Product Scope](product/CEDCO_D03_PRODUCT_SCOPE.md)
+- [CEDCO D03 - Developer Handoff](product/CEDCO_D03_DEVELOPER_HANDOFF.md)
 
 ## Seguridad
 
@@ -87,6 +99,22 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Operational Dashboard Security Baseline](security/OPERATIONAL_DASHBOARD_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
+- [CEDCO D03 Security Baseline](security/CEDCO_D03_SECURITY_BASELINE.md)
+
+## Dialer
+
+- [Dialer Audit Intake](dialer/DIALER_AUDIT_INTAKE.md)
+- [Dialer Sanitization Requirements](dialer/DIALER_SANITIZATION_REQUIREMENTS.md)
+- [Dialer VM Read-Only Audit Prompt](dialer/DIALER_VM_READONLY_AUDIT_PROMPT.md)
+- [Dialer Repo Export Policy](dialer/DIALER_REPO_EXPORT_POLICY.md)
+- [Dialer Hyperion Integration Decision Template](dialer/DIALER_HYPERION_INTEGRATION_DECISION_TEMPLATE.md)
+
+## Team
+
+- [D03 Start Here](team/D03_START_HERE.md)
+- [D03 First Loop Prompt](team/D03_FIRST_LOOP_PROMPT.md)
+- [Dialer Audit Start Here](team/DIALER_AUDIT_START_HERE.md)
+- [Pre-Dialer Ready Status](team/PRE_DIALER_READY_STATUS.md)
 
 ## Runbooks
 
@@ -117,3 +145,6 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 15 - Provider Event Ingestion report](delivery/LOOP_15_PROVIDER_EVENT_INGESTION_REPORT.md)
 - [Loop 16 - CEDCO D02 Eval Suite report](delivery/LOOP_16_CEDCO_D02_EVAL_SUITE_REPORT.md)
 - [Loop 17 - Operational Dashboard report](delivery/LOOP_17_OPERATIONAL_DASHBOARD_REPORT.md)
+- [Pre-Dialer Ready report](delivery/PRE_DIALER_READY_REPORT.md)
+- [CEDCO D03 Delivery Roadmap](delivery/CEDCO_D03_DELIVERY_ROADMAP.md)
+- [Foundation To Main PR Body](delivery/FOUNDATION_TO_MAIN_PR_BODY.md)

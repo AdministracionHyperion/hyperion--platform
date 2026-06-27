@@ -14,6 +14,7 @@ const restrictedSourceRoots = [
   "modules/agent-platform/",
   "modules/voice/",
   "modules/products/cedco/d02-calls/",
+  "modules/products/cedco/d03-fixed-assets/",
   "packages/db/",
   "packages/observability/",
 ];
@@ -23,6 +24,7 @@ const domainRoots = [
   "modules/agent-platform/",
   "modules/voice/",
   "modules/products/cedco/d02-calls/",
+  "modules/products/cedco/d03-fixed-assets/",
 ];
 
 const providerImportPatterns = [
@@ -79,6 +81,18 @@ const forbiddenPrismaColumns = [
   "phoneNumber",
   "email",
   "documentNumber",
+];
+const d03ForbiddenFileExtensions = [
+  ".xlsx",
+  ".xls",
+  ".csv",
+  ".pdf",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".heic",
 ];
 const sensitiveAssignmentNames = ["secret", "token", "password", "apiKey"];
 const placeholderValues = new Set([
@@ -138,6 +152,14 @@ function validateTrackedFileList(trackedFiles, issues) {
       issues.push(`${filePath}: CEDCO activos-fijos scope is out of scope`);
     }
 
+    if (lower.startsWith("modules/products/cedco/d03-fixed-assets/")) {
+      for (const extension of d03ForbiddenFileExtensions) {
+        if (lower.endsWith(extension)) {
+          issues.push(`${filePath}: D03 real asset/import files must not be tracked`);
+        }
+      }
+    }
+
     if (baseName === ".env" || baseName === ".env.local" || baseName === ".env.production") {
       issues.push(`${filePath}: real environment files must not be tracked`);
     }
@@ -193,11 +215,47 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
 
     validateSourceBoundaries(filePath, text, issues);
     validateEvalBoundaries(filePath, text, issues);
+    validateD03Boundaries(filePath, text, issues);
     validateApiBoundaries(filePath, text, issues);
     validateWebBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
     validateRuntimeFlags(filePath, text, issues);
+  }
+}
+
+function validateD03Boundaries(filePath, text, issues) {
+  if (!filePath.startsWith("modules/products/cedco/d03-fixed-assets/")) {
+    return;
+  }
+
+  const imports = readImports(text);
+  for (const importTarget of imports) {
+    const lower = importTarget.toLowerCase();
+    if (lower.includes("d02-calls")) {
+      issues.push(`${filePath}: D03 must not import D02 (${importTarget})`);
+    }
+    if (lower.includes("modules/voice") || lower.includes("/voice") || lower.endsWith("voice")) {
+      issues.push(`${filePath}: D03 must not import voice modules (${importTarget})`);
+    }
+    if (lower.includes("provider-adapters")) {
+      issues.push(`${filePath}: D03 must not import provider adapters (${importTarget})`);
+    }
+    if (lower.includes("sip")) {
+      issues.push(`${filePath}: D03 must not import SIP libraries (${importTarget})`);
+    }
+  }
+
+  if (text.includes("_private")) {
+    issues.push(`${filePath}: D03 must not read or reference _private`);
+  }
+
+  if (
+    /\b(?:invoice|factura|assetImport|asset_export|assetExport|serialNumber)\b\s*[:=]\s*["'][^"']{6,}/iu.test(
+      text,
+    )
+  ) {
+    issues.push(`${filePath}: D03 must not include real-looking asset import fixtures`);
   }
 }
 

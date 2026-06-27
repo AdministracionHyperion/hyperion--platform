@@ -28,6 +28,31 @@ describe("repo guard", () => {
     expect(issues.some((issue) => issue.includes("R03"))).toBe(true);
   });
 
+  it("allows the CEDCO D03 fixed assets lane", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/index.ts":
+        'export const lane = "d03-fixed-assets";',
+    });
+
+    expect(issues).toEqual([]);
+  });
+
+  it("detects CEDCO assets paths", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/assets/index.ts": "export const outOfScope = true;",
+    });
+
+    expect(issues.some((issue) => issue.includes("fixed-assets scope"))).toBe(true);
+  });
+
+  it("detects CEDCO activos-fijos paths", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/activos-fijos/index.ts": "export const outOfScope = true;",
+    });
+
+    expect(issues.some((issue) => issue.includes("activos-fijos"))).toBe(true);
+  });
+
   it("detects real env files", () => {
     const issues = runWithFiles({
       ".env.local": "EXAMPLE=value",
@@ -59,6 +84,68 @@ describe("repo guard", () => {
     });
 
     expect(issues.some((issue) => issue.includes("process.env"))).toBe(true);
+  });
+
+  it("detects D03 importing D02", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/cross.ts":
+        'import { something } from "../d02-calls";\nexport { something };',
+    });
+
+    expect(issues.some((issue) => issue.includes("D03 must not import D02"))).toBe(true);
+  });
+
+  it("detects D03 importing voice", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/voice.ts":
+        'import { something } from "modules/voice";\nexport { something };',
+    });
+
+    expect(issues.some((issue) => issue.includes("D03 must not import voice"))).toBe(true);
+  });
+
+  it("detects D03 importing providers", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/provider.ts":
+        'import client from "twilio";\nexport { client };',
+    });
+
+    expect(issues.some((issue) => issue.includes("real provider import"))).toBe(true);
+  });
+
+  it("detects process.env in D03", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/env.ts": "export const v = process.env.TEST;",
+    });
+
+    expect(issues.some((issue) => issue.includes("process.env"))).toBe(true);
+  });
+
+  it("detects _private references in D03", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/src/private.ts":
+        'export const path = "_private/source-docs";',
+    });
+
+    expect(issues.some((issue) => issue.includes("_private"))).toBe(true);
+  });
+
+  it("detects D03 real file upload fixtures", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/fixtures/inventory.xlsx": "binary",
+    });
+
+    expect(issues.some((issue) => issue.includes("D03 real asset/import files"))).toBe(true);
+  });
+
+  it("allows D03 README and docs", () => {
+    const issues = runWithFiles({
+      "modules/products/cedco/d03-fixed-assets/README.md":
+        "D03 fixed assets lane docs mention imports and exports conceptually.",
+      "docs/product/CEDCO_D03_PRODUCT_SCOPE.md": "D03 docs may mention assets and fixed assets.",
+    });
+
+    expect(issues).toEqual([]);
   });
 
   it("detects hardcoded database URLs", () => {

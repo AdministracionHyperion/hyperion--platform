@@ -79,6 +79,8 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 - Payload crudo y campos sensibles en contratos de eventos provider.
 - Acciones peligrosas habilitadas en dashboard web.
 - URLs externas o SDKs de proveedor en `apps/web`.
+- D03 fixed assets importando D02, voice, providers, red real o `process.env`.
+- Paths `modules/products/cedco/r03`, `assets` o `activos-fijos`.
 - `DATABASE_URL` real hardcoded.
 - Asignaciones aparentes de secretos reales.
 
