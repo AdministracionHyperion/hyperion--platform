@@ -8,6 +8,7 @@ import {
   evaluateCedcoComplianceBodySchema,
   evaluateCedcoHandoffBodySchema,
   evaluateCedcoReadinessBodySchema,
+  runCedcoD02DialerDryRunBodySchema,
 } from "../contracts";
 import { ok } from "../http/api-response";
 import { getRequiredRequestContext } from "../http/request-context";
@@ -65,6 +66,19 @@ export async function registerCedcoD02Routes(
     return ok(handoff, context);
   });
 
+  app.post("/api/v1/tenants/:tenantId/products/cedco/d02/dialer/dry-run", async (request) => {
+    validateWithSchema(cedcoD02ParamsSchema, request.params);
+    const body = validateWithSchema(runCedcoD02DialerDryRunBodySchema, request.body);
+    const context = getRequiredRequestContext(request, ["voice:call:write", "agent:read"]);
+    const idempotencyKey =
+      body.idempotency_key ?? getSingleHeader(request.headers["idempotency-key"]);
+    const result = await dependencies.services.cedcoD02.runDialerDryRun(context, {
+      ...body,
+      ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
+    });
+    return ok(result, context);
+  });
+
   app.post(
     "/api/v1/tenants/:tenantId/products/cedco/d02/scheduling/requests",
     async (request, reply) => {
@@ -101,4 +115,11 @@ export async function registerCedcoD02Routes(
     const summary = await dependencies.services.cedcoD02.getMetricsSummary(context);
     return ok(summary, context);
   });
+}
+
+function getSingleHeader(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : undefined;
+  }
+  return typeof value === "string" ? value : undefined;
 }

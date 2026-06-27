@@ -19,6 +19,7 @@ import type {
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
   MockProviderEventBody,
+  RunCedcoD02DialerDryRunBody,
   RunCedcoD02MockCallFlowBody,
   InternalDialerDryRunBody,
 } from "../contracts";
@@ -70,6 +71,7 @@ export interface ApiServices {
       input: CreateCedcoEligibilityCheckBody,
     ): Promise<unknown>;
     getMetricsSummary(context: RequestContext): Promise<unknown>;
+    runDialerDryRun(context: RequestContext, input: RunCedcoD02DialerDryRunBody): Promise<unknown>;
     runMockCallFlow(context: RequestContext, input: RunCedcoD02MockCallFlowBody): Promise<unknown>;
   };
   readonly operationsDashboard: {
