@@ -7,6 +7,7 @@ const defaultRoot = process.cwd();
 
 const restrictedSourceRoots = [
   "apps/api/",
+  "apps/workers/",
   "modules/core/",
   "modules/agent-platform/",
   "modules/voice/",
@@ -218,6 +219,8 @@ function validateSourceBoundaries(filePath, text, issues) {
     }
   }
 
+  validateWorkerBoundaries(filePath, text, imports, issues);
+
   if (filePath === "packages/db/prisma/schema.prisma" || filePath.endsWith("/migration.sql")) {
     for (const column of forbiddenPrismaColumns) {
       const schemaPattern = new RegExp(`^\\s*${escapeRegExp(column)}\\s+`, "mu");
@@ -226,6 +229,52 @@ function validateSourceBoundaries(filePath, text, issues) {
         issues.push(`${filePath}: forbidden Prisma column detected (${column})`);
       }
     }
+  }
+}
+
+function validateWorkerBoundaries(filePath, text, imports, issues) {
+  if (!filePath.startsWith("apps/workers/")) {
+    return;
+  }
+
+  if (text.includes("DATABASE_URL")) {
+    issues.push(`${filePath}: workers must not read DATABASE_URL directly`);
+  }
+
+  if (text.includes(["process", "env"].join("."))) {
+    issues.push(`${filePath}: process.env is not allowed in worker contracts`);
+  }
+
+  if (/\bsetInterval\s*\(/u.test(text)) {
+    issues.push(`${filePath}: worker foundation must not create daemon intervals`);
+  }
+
+  if (/\bwhile\s*\(\s*true\s*\)/u.test(text) || /\bfor\s*\(\s*;\s*;\s*\)/u.test(text)) {
+    issues.push(`${filePath}: worker foundation must not create infinite loops`);
+  }
+
+  if (/\.listen\s*\(/u.test(text)) {
+    issues.push(`${filePath}: workers must not start listeners`);
+  }
+
+  if (/\bfetch\s*\(/u.test(text)) {
+    issues.push(`${filePath}: workers must not perform network fetches`);
+  }
+
+  for (const importTarget of imports) {
+    const lower = importTarget.toLowerCase();
+    if (networkImports.includes(lower)) {
+      issues.push(`${filePath}: workers must not import real network modules (${importTarget})`);
+    }
+  }
+
+  if (
+    /\b(call\.dispatch\.real|provider\.egress\.real|elevenlabs\.call|sip\.dispatch)\b/iu.test(
+      text,
+    ) &&
+    !isTestPath(filePath)
+  ) {
+    issues.push(`${filePath}: worker job contracts must not define real provider dispatch jobs`);
   }
 }
 

@@ -13,4 +13,12 @@ export const metricNames = {
   rateLimitChecksTotal: "rate_limit_checks_total",
   rateLimitDeniedTotal: "rate_limit_denied_total",
   runtimeBlockedRequestsTotal: "runtime_blocked_requests_total",
+  workerJobsEnqueuedTotal: "worker_jobs_enqueued_total",
+  workerJobsStartedTotal: "worker_jobs_started_total",
+  workerJobsSucceededTotal: "worker_jobs_succeeded_total",
+  workerJobsFailedTotal: "worker_jobs_failed_total",
+  workerJobsDeadLetteredTotal: "worker_jobs_dead_lettered_total",
+  workerJobsBlockedTotal: "worker_jobs_blocked_total",
+  workerJobDurationMs: "worker_job_duration_ms",
+  workerPolicyDeniedTotal: "worker_policy_denied_total",
 } as const;

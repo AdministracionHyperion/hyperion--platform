@@ -15,7 +15,7 @@ Estructura base:
 
 - `apps/api`: skeleton HTTP contractual con Fastify, sin runtime de llamadas todavia.
 - `apps/web`: boundary de dashboard/web, sin UI real todavia.
-- `apps/workers`: boundary de workers, sin jobs reales todavia.
+- `apps/workers`: base contractual de workers con cola in-memory, sin daemon real todavia.
 - `packages/*`: paquetes compartidos de plataforma.
 - `modules/*`: bounded contexts de dominio y producto.
 - `tools/`: herramientas locales de validacion.
@@ -27,6 +27,7 @@ Estructura base:
 - `pnpm lint`: ejecuta ESLint.
 - `pnpm typecheck`: ejecuta TypeScript sin emitir archivos.
 - `pnpm test`: ejecuta Vitest.
+- `pnpm test:workers`: ejecuta los tests unitarios de workers foundation.
 - `pnpm secret:scan`: revisa patrones obvios de secretos en archivos trackeables.
 - `pnpm run repo:guard`: bloquea `_private`, R03/activos fijos, `.env` reales, proveedores reales,
   runtime indebido y columnas Prisma prohibidas.
@@ -42,6 +43,11 @@ La API aplica rate limits in-memory, policy gates y runtime blockers. Los defaul
 reales, egress de proveedor, production deploy, raw transcript, raw recording y data export. No hay
 Redis, BullMQ ni rate limit distribuido todavia.
 
+## Workers
+
+Workers tiene contratos de jobs, cola in-memory, retry, dead-letter, idempotencia local y runner
+acotado para tests. No hay daemon real, Redis, BullMQ, provider egress ni llamadas reales.
+
 ## CI
 
 GitHub Actions ejecuta `CI / Verify` en pushes a `main`, pushes a `foundation/**`, pull requests
@@ -50,7 +56,8 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 
 ## Estado actual
 
-La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura y
-policy gates, pero sin runtime de producto. CEDCO R02 / D02 llamadas sigue siendo el unico vertical
-activo. R03/activos fijos queda fuera de alcance. No hay dashboard real, workers reales, adapter
-ElevenLabs, adapter SIP, llamadas, proveedores activos, produccion ni deploy.
+La base tecnica existe con API HTTP contractual, wiring Prisma controlado, observabilidad segura,
+policy gates y workers foundation in-memory, pero sin runtime de producto. CEDCO R02 / D02 llamadas
+sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance. No hay dashboard
+real, workers daemon reales, adapter ElevenLabs, adapter SIP, llamadas, proveedores activos,
+produccion ni deploy.

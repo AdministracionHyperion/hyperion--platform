@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run",
+    "test:workers": "vitest run apps/workers/src/tests",
     "test:integration": "node -e \"console.log('No integration tests yet.');\"",
     "test:integration:api": "vitest run apps/api/src/integration --maxWorkers=1",
     "test:integration:db": "vitest run packages/db/src/integration/prisma-integration.test.ts",

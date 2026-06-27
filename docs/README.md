@@ -22,6 +22,8 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Observability Architecture](architecture/OBSERVABILITY_ARCHITECTURE.md)
 - [Persistence Architecture](architecture/PERSISTENCE_ARCHITECTURE.md)
 - [Prisma Schema Boundaries](architecture/PRISMA_SCHEMA_BOUNDARIES.md)
+- [Workers Architecture](architecture/WORKERS_ARCHITECTURE.md)
+- [Job Contracts](architecture/JOB_CONTRACTS.md)
 - [Voice Platform Domain](architecture/VOICE_PLATFORM_DOMAIN.md)
 - [Voice Platform Boundaries](architecture/VOICE_PLATFORM_BOUNDARIES.md)
 - [Voice Call Lifecycle](architecture/VOICE_CALL_LIFECYCLE.md)
@@ -64,6 +66,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Policy Gates Security Baseline](security/POLICY_GATES_SECURITY_BASELINE.md)
 - [Rate Limit Security Baseline](security/RATE_LIMIT_SECURITY_BASELINE.md)
 - [Runtime Blockers](security/RUNTIME_BLOCKERS.md)
+- [Worker Security Baseline](security/WORKER_SECURITY_BASELINE.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -91,3 +94,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 10 - API Prisma Wiring report](delivery/LOOP_10_API_PRISMA_WIRING_REPORT.md)
 - [Loop 11 - Observability report](delivery/LOOP_11_OBSERVABILITY_REPORT.md)
 - [Loop 12 - Policy Gates report](delivery/LOOP_12_POLICY_GATES_REPORT.md)
+- [Loop 13 - Workers foundation report](delivery/LOOP_13_WORKERS_FOUNDATION_REPORT.md)
