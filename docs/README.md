@@ -83,6 +83,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [CEDCO D02 - Eval scenarios](product/CEDCO_D02_EVAL_SCENARIOS.md)
 - [CEDCO D03 - Product Scope](product/CEDCO_D03_PRODUCT_SCOPE.md)
 - [CEDCO D03 - Developer Handoff](product/CEDCO_D03_DEVELOPER_HANDOFF.md)
+- [CEDCO D03 - Domain Contracts](product/CEDCO_D03_DOMAIN_CONTRACTS.md)
 
 ## Seguridad
 
@@ -105,6 +106,7 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 - [CEDCO D03 Security Baseline](security/CEDCO_D03_SECURITY_BASELINE.md)
+- [CEDCO D03 Data Policy](security/CEDCO_D03_DATA_POLICY.md)
 
 ## Dialer
 

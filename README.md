@@ -72,8 +72,8 @@ externa.
 
 La foundation tiene docs de governance para PR hacia `main`, branch protection requerida,
 contributor workflow y workstreams paralelos. CEDCO D03 fixed assets tiene un carril minimo
-habilitado en `modules/products/cedco/d03-fixed-assets`, sin dominio funcional, DB, API, dashboard
-ni datos reales.
+habilitado en `modules/products/cedco/d03-fixed-assets`, con contratos de dominio iniciales y sin
+DB, API, dashboard, workers, migraciones ni datos reales.
 
 El intake de dialer queda documentado como auditoria read-only fuera de este repo. No se debe copiar
 snapshot crudo, `.env`, logs, audios, transcripts, dumps, certificados ni backups.
