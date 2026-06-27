@@ -2,7 +2,7 @@
 
 ## Permitido
 
-- `packages/shared` cuando exista.
+- `packages/shared`.
 - `modules/core`.
 - `packages/testing`.
 - `packages/db` solo en loops futuros coordinados.
@@ -21,12 +21,15 @@
 - Anthropic.
 - Dialer.
 - PBX.
-- Workers D02.
 - Routes D02.
+- Workers D02.
 - Evals D02.
 - Dashboard D02.
 
 ## Estado
 
-El carril `modules/products/cedco/d03-fixed-assets` existe solo para handoff. No contiene entidades,
-use cases, DB, API ni dashboard funcional.
+El carril `modules/products/cedco/d03-fixed-assets` ya contiene domain contracts iniciales: value
+objects, entidades, policies, ports, use cases y testing utilities.
+
+Siguen pendientes DB, migraciones Prisma, API, dashboard, workers, import/export real y cualquier
+integracion productiva.
