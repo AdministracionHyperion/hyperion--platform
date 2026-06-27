@@ -88,6 +88,16 @@ Las primeras superficies del dialer son solo readiness y dry-run. El contrato es
 dialer sanitized main: exige idempotency key, `safe_contact_ref` y consentimiento, devuelve
 `would_call_provider=false` y `provider_egress=false`, y mantiene dispatch live bloqueado.
 
+## Enterprise Architecture
+
+`docs/enterprise-architecture/` define el modelo empresarial oficial: `hyperion--platform` como
+control plane, servicios especializados como execution plane, futuro `hyperion-infra` como
+deployment plane, estrategia multi-repo, reglas de split a servicios, ambientes, CI/CD, seguridad,
+secret management, observabilidad, ownership de datos y roadmap 2026.
+
+Esta documentacion no habilita deploy, llamadas reales, provider egress, repos nuevos ni
+infraestructura real.
+
 ## Dashboard
 
 `apps/web` contiene un dashboard operacional skeleton solo lectura para observar mock runtime, mock

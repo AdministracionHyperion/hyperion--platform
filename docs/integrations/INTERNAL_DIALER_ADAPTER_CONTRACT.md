@@ -1,5 +1,8 @@
 # Internal Dialer Adapter Contract
 
+See also `docs/enterprise-architecture/DIALER_SERVICE_EVOLUTION.md` for the enterprise service
+roadmap and ownership model.
+
 ## Source
 
 The platform contract is aligned with the sanitized dialer `main` documentation:
