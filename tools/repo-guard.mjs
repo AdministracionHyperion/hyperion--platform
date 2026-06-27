@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const defaultRoot = process.cwd();
 
 const restrictedSourceRoots = [
+  "apps/api/",
   "modules/core/",
   "modules/agent-platform/",
   "modules/voice/",
@@ -158,6 +159,7 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
     }
 
     validateSourceBoundaries(filePath, text, issues);
+    validateApiBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
   }
@@ -176,7 +178,11 @@ function validateSourceBoundaries(filePath, text, issues) {
     }
   }
 
-  if (text.includes(["process", "env"].join(".")) && !isDbIntegrationPath(filePath)) {
+  if (
+    text.includes(["process", "env"].join(".")) &&
+    !isDbIntegrationPath(filePath) &&
+    !isApiRuntimeConfigPath(filePath)
+  ) {
     issues.push(`${filePath}: process.env is not allowed in domain or packages/db`);
   }
 
@@ -199,6 +205,32 @@ function validateSourceBoundaries(filePath, text, issues) {
       const sqlPattern = new RegExp(`"(${escapeRegExp(column)})"\\s+`, "u");
       if (schemaPattern.test(text) || sqlPattern.test(text)) {
         issues.push(`${filePath}: forbidden Prisma column detected (${column})`);
+      }
+    }
+  }
+}
+
+function validateApiBoundaries(filePath, text, issues) {
+  if (!filePath.startsWith("apps/api/")) {
+    return;
+  }
+
+  if (filePath.startsWith("apps/api/src/tests/") && /\.listen\s*\(/u.test(text)) {
+    issues.push(`${filePath}: API tests must use injection and must not start listeners`);
+  }
+
+  if (
+    !filePath.startsWith("apps/api/src/tests/") &&
+    /\b(?:dispatchOutboundCall|outbound-call|sip_call_id|conversation_id)\b/iu.test(text)
+  ) {
+    issues.push(`${filePath}: API skeleton must not expose real call dispatch/provider fields`);
+  }
+
+  if (filePath.startsWith("apps/api/src/contracts/")) {
+    for (const field of ["phoneNumber", "to_number", "rawTranscript", "audioUrl", "recordingUrl"]) {
+      const acceptedFieldPattern = new RegExp(`${escapeRegExp(field)}\\s*:`, "u");
+      if (acceptedFieldPattern.test(text)) {
+        issues.push(`${filePath}: forbidden API request field must not be accepted (${field})`);
       }
     }
   }
@@ -237,6 +269,10 @@ function isTestPath(filePath) {
 
 function isDbIntegrationPath(filePath) {
   return filePath.startsWith("packages/db/src/integration/");
+}
+
+function isApiRuntimeConfigPath(filePath) {
+  return filePath === "apps/api/src/config/api-config.ts" || filePath === "apps/api/src/main.ts";
 }
 
 function shouldInspectContent(filePath) {

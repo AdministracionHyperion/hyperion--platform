@@ -13,7 +13,7 @@ Este repositorio usa pnpm workspaces, TypeScript, Vitest, ESLint y Prettier.
 
 Estructura base:
 
-- `apps/api`: boundary de API, sin servidor real todavia.
+- `apps/api`: skeleton HTTP contractual con Fastify, sin runtime de llamadas todavia.
 - `apps/web`: boundary de dashboard/web, sin UI real todavia.
 - `apps/workers`: boundary de workers, sin jobs reales todavia.
 - `packages/*`: paquetes compartidos de plataforma.
@@ -39,7 +39,7 @@ gates locales, sin secrets, sin DB real, sin deploy y sin llamadas reales.
 
 ## Estado actual
 
-La base tecnica existe sin runtime de producto. CEDCO R02 / D02 llamadas sigue siendo el unico
-vertical activo. R03/activos fijos queda fuera de alcance. No hay API real, dashboard real, workers
-reales, conexion a base de datos real, adapter ElevenLabs, adapter SIP, llamadas, proveedores
-activos, produccion ni deploy.
+La base tecnica existe con API HTTP contractual, pero sin runtime de producto. CEDCO R02 / D02
+llamadas sigue siendo el unico vertical activo. R03/activos fijos queda fuera de alcance. No hay
+dashboard real, workers reales, conexion a base de datos real desde API, adapter ElevenLabs, adapter
+SIP, llamadas, proveedores activos, produccion ni deploy.

@@ -1,15 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
-// @ts-expect-error Node typings are intentionally not added for the repo; this file is integration-only.
 import { execFileSync } from "node:child_process";
 
 import { createPrismaClient } from "../prisma/prisma-client";
-
-interface NodeProcessLike {
-  readonly env: Readonly<Record<string, string | undefined>>;
-  readonly platform: string;
-}
-
-declare const process: NodeProcessLike;
 
 export interface PrismaTestHarness {
   readonly client: PrismaClient;

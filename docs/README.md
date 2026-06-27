@@ -27,6 +27,13 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Voice Provider Contracts](architecture/VOICE_PROVIDER_CONTRACTS.md)
 - [CEDCO D02 Vertical Boundaries](architecture/CEDCO_D02_VERTICAL_BOUNDARIES.md)
 
+## API
+
+- [API Architecture](api/API_ARCHITECTURE.md)
+- [API Contracts](api/API_CONTRACTS.md)
+- [API Security Baseline](api/API_SECURITY_BASELINE.md)
+- [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
+
 ## Producto
 
 - [CEDCO D02 - Alcance de producto](product/CEDCO_D02_PRODUCT_SCOPE.md)
@@ -70,3 +77,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 6 - Persistence report](delivery/LOOP_6_PERSISTENCE_REPORT.md)
 - [Loop 7 - CI Quality Gates report](delivery/LOOP_7_CI_QUALITY_GATES_REPORT.md)
 - [Loop 8 - DB Integration report](delivery/LOOP_8_DB_INTEGRATION_REPORT.md)
+- [Loop 9 - API HTTP Skeleton report](delivery/LOOP_9_API_HTTP_SKELETON_REPORT.md)
