@@ -7,6 +7,13 @@ import {
   type LoggerPort,
   type MetricsRegistryPort,
 } from "../../../../packages/observability/src";
+import {
+  createRateLimitRule,
+  defaultApiRateLimitRule,
+  InMemoryRateLimitStore,
+  type RateLimitRule,
+} from "../../../../modules/core/rate-limits/src";
+import { defaultRuntimeSafetyFlags } from "../../../../modules/core/policy-gates/src";
 import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-calls/src/use-cases/classify-cedco-call-intent";
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
@@ -56,6 +63,7 @@ export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInpu
 
 class PrismaBackedApiServices implements ApiServices {
   public readonly observability: NonNullable<ApiServices["observability"]>;
+  public readonly security: NonNullable<ApiServices["security"]>;
   public readonly core: ApiServices["core"];
   public readonly agentPlatform: ApiServices["agentPlatform"];
   public readonly voice: ApiServices["voice"];
@@ -66,10 +74,26 @@ class PrismaBackedApiServices implements ApiServices {
     logger: LoggerPort = new InMemoryLogger(),
     metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
   ) {
+    const rateLimitStore = new InMemoryRateLimitStore();
+    let testRateLimitRule: RateLimitRule | undefined;
     this.observability = {
       logger,
       metrics,
       recordAuditEvent: (event) => this.recordAuditEvent(event),
+    };
+    this.security = {
+      rateLimitStore,
+      runtimeSafetyFlags: defaultRuntimeSafetyFlags,
+      getRateLimitRule: (input) =>
+        testRateLimitRule ??
+        defaultApiRateLimitRule({
+          method: input.method,
+          route: input.route,
+        }),
+      setRateLimitRuleForTests: (rule) => {
+        testRateLimitRule = createRateLimitRule(rule);
+        rateLimitStore.clear();
+      },
     };
     this.core = {
       getFeatureFlag: (context, flagKey) => this.getFeatureFlag(context, flagKey),

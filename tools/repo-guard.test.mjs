@@ -78,6 +78,22 @@ describe("repo guard", () => {
 
     expect(issues.some((issue) => issue.includes("forbidden Prisma column"))).toBe(true);
   });
+
+  it("detects Redis or BullMQ imports before worker loop", () => {
+    const issues = runWithFiles({
+      "apps/api/src/cache.ts": 'import Redis from "ioredis";\nexport { Redis };',
+    });
+
+    expect(issues.some((issue) => issue.includes("real provider import"))).toBe(true);
+  });
+
+  it("detects dangerous runtime flags hardcoded true", () => {
+    const issues = runWithFiles({
+      "apps/api/src/configuration.ts": "export const config = { realCallsEnabled: true };",
+    });
+
+    expect(issues.some((issue) => issue.includes("realCallsEnabled=true"))).toBe(true);
+  });
 });
 
 function runWithFiles(extraFiles) {

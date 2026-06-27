@@ -30,7 +30,12 @@ The in-memory metrics registry records:
 - `forbidden_requests_total`;
 - `cedco_d02_requests_total`;
 - `voice_call_contract_requests_total`;
-- `provider_blocked_requests_total`.
+- `provider_blocked_requests_total`;
+- `policy_gate_evaluations_total`;
+- `policy_gate_denied_total`;
+- `rate_limit_checks_total`;
+- `rate_limit_denied_total`;
+- `runtime_blocked_requests_total`.
 
 There is no public metrics endpoint and no external exporter in this loop.
 
@@ -38,6 +43,7 @@ There is no public metrics endpoint and no external exporter in this loop.
 
 Protected routes emit sanitized audit events. The Prisma-backed service persists them to `AuditLog`;
 fake services keep them in memory. Public health and version routes are intentionally excluded.
+Policy gate denials also create audit failures for protected routes.
 
 ## Errors
 

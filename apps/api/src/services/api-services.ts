@@ -4,6 +4,8 @@ import type {
   MetricsRegistryPort,
   NormalizedStructuredLogEntry,
 } from "../../../../packages/observability/src";
+import type { RateLimitRule, RateLimitStorePort } from "../../../../modules/core/rate-limits/src";
+import type { RuntimeSafetyFlags } from "../../../../modules/core/policy-gates/src";
 import type {
   CedcoConfigurationBody,
   ClassifyCedcoIntentBody,
@@ -20,6 +22,7 @@ import type {
 
 export interface ApiServices {
   readonly observability?: ApiObservabilityServices;
+  readonly security?: ApiSecurityServices;
   readonly core: {
     getFeatureFlag(context: RequestContext, flagKey: string): Promise<unknown>;
   };
@@ -60,6 +63,18 @@ export interface ApiServices {
     ): Promise<unknown>;
     getMetricsSummary(context: RequestContext): Promise<unknown>;
   };
+}
+
+export interface ApiRateLimitRuleInput {
+  readonly method: string;
+  readonly route: string;
+}
+
+export interface ApiSecurityServices {
+  readonly rateLimitStore: RateLimitStorePort;
+  readonly runtimeSafetyFlags: RuntimeSafetyFlags;
+  getRateLimitRule(input: ApiRateLimitRuleInput): RateLimitRule;
+  setRateLimitRuleForTests?: (rule: RateLimitRule) => void;
 }
 
 export interface ApiAuditRecord {

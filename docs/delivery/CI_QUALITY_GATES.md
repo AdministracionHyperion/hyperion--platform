@@ -19,6 +19,7 @@ y ejecuciones manuales.
 - Job `db-integration` con PostgreSQL temporal.
 - Job `api-integration` con PostgreSQL temporal y Fastify inject.
 - Tests de observabilidad API dentro de `pnpm check` y del job `api-integration`.
+- Tests de policy gates, runtime blockers y rate limits dentro de `pnpm check` y `api-integration`.
 
 ## DB efimera controlada
 
@@ -63,6 +64,8 @@ DATABASE_URL="postgresql://hyperion_test:hyperion_test@localhost:5432/hyperion_t
 - `node_modules`, `dist`, `build` o `coverage` trackeados.
 - Word, zip o PDF trackeados sin autorizacion futura.
 - Imports de proveedores reales en dominio o `packages/db`.
+- Redis/BullMQ antes del loop de workers.
+- Flags runtime peligrosos hardcodeados en `true` fuera de tests/docs/bloqueadores.
 - `process.env` en dominio o `packages/db`.
 - Red real en dominio.
 - Columnas Prisma prohibidas para transcript/audio/telefono.

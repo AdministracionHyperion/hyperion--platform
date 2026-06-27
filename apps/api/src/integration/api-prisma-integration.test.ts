@@ -269,7 +269,7 @@ runWhenDatabaseExists("API Prisma integration", () => {
 
   it("rejects CEDCO D02 configuration with real calls enabled", async () => {
     const response = await putCedcoConfiguration(true);
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(403);
   });
 
   it("classifies scheduling intent", async () => {

@@ -35,6 +35,8 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [API Prisma Wiring](api/API_PRISMA_WIRING.md)
 - [API DB Integration Tests](api/API_DB_INTEGRATION_TESTS.md)
 - [API Observability](api/API_OBSERVABILITY.md)
+- [API Policy Gates](api/API_POLICY_GATES.md)
+- [API Rate Limits](api/API_RATE_LIMITS.md)
 - [API Security Baseline](api/API_SECURITY_BASELINE.md)
 - [CEDCO D02 API Contracts](api/CEDCO_D02_API_CONTRACTS.md)
 
@@ -59,6 +61,9 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Core Security Baseline](security/CORE_SECURITY_BASELINE.md)
 - [Database Security Baseline](security/DATABASE_SECURITY_BASELINE.md)
 - [Observability Security Baseline](security/OBSERVABILITY_SECURITY_BASELINE.md)
+- [Policy Gates Security Baseline](security/POLICY_GATES_SECURITY_BASELINE.md)
+- [Rate Limit Security Baseline](security/RATE_LIMIT_SECURITY_BASELINE.md)
+- [Runtime Blockers](security/RUNTIME_BLOCKERS.md)
 - [Voice Security Baseline](security/VOICE_SECURITY_BASELINE.md)
 - [CEDCO D02 Domain Security Baseline](security/CEDCO_D02_DOMAIN_SECURITY_BASELINE.md)
 
@@ -85,3 +90,4 @@ como referencia local; R03 y los demas R01-R11 quedan fuera del alcance de este 
 - [Loop 9 - API HTTP Skeleton report](delivery/LOOP_9_API_HTTP_SKELETON_REPORT.md)
 - [Loop 10 - API Prisma Wiring report](delivery/LOOP_10_API_PRISMA_WIRING_REPORT.md)
 - [Loop 11 - Observability report](delivery/LOOP_11_OBSERVABILITY_REPORT.md)
+- [Loop 12 - Policy Gates report](delivery/LOOP_12_POLICY_GATES_REPORT.md)

@@ -14,6 +14,8 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - Metadata se sanitiza antes de persistir desde servicios Prisma.
 - Request logging no registra bodies crudos ni headers sensibles.
 - Audit events de rutas protegidas se sanitizan antes de memoria o Prisma.
+- Policy gates bloquean acciones runtime peligrosas por defecto.
+- Rate limits in-memory protegen rutas publicas y protegidas.
 - Errores no exponen stack traces.
 
 ## Datos prohibidos

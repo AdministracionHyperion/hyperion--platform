@@ -12,6 +12,13 @@ import {
   InMemoryMetricsRegistry,
   sanitizeLogMetadata,
 } from "../../../../packages/observability/src";
+import {
+  createRateLimitRule,
+  defaultApiRateLimitRule,
+  InMemoryRateLimitStore,
+  type RateLimitRule,
+} from "../../../../modules/core/rate-limits/src";
+import { defaultRuntimeSafetyFlags } from "../../../../modules/core/policy-gates/src";
 import type {
   CedcoConfigurationBody,
   ClassifyCedcoIntentBody,
@@ -75,6 +82,8 @@ export function createFakeApiServices(): ApiServices {
   const logger = new InMemoryLogger();
   const metrics = new InMemoryMetricsRegistry();
   const auditEvents: ApiAuditRecord[] = [];
+  const rateLimitStore = new InMemoryRateLimitStore();
+  let testRateLimitRule: RateLimitRule | undefined;
 
   return {
     observability: {
@@ -88,6 +97,20 @@ export function createFakeApiServices(): ApiServices {
       },
       getAuditEvents: () => [...auditEvents],
       getLogEntries: () => logger.getEntries(),
+    },
+    security: {
+      rateLimitStore,
+      runtimeSafetyFlags: defaultRuntimeSafetyFlags,
+      getRateLimitRule: (input) =>
+        testRateLimitRule ??
+        defaultApiRateLimitRule({
+          method: input.method,
+          route: input.route,
+        }),
+      setRateLimitRuleForTests: (rule) => {
+        testRateLimitRule = createRateLimitRule(rule);
+        rateLimitStore.clear();
+      },
     },
     core: {
       async getFeatureFlag(context, flagKey) {

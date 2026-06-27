@@ -61,8 +61,8 @@ describe("CEDCO D02 API contracts", () => {
     });
     const body = response.json<Envelope>();
 
-    expect(response.statusCode).toBe(400);
-    expect(body.error?.code).toBe("validation_error");
+    expect(response.statusCode).toBe(403);
+    expect(body.error?.code).toBe("policy_blocked");
   });
 
   it("classifies scheduling intent deterministically", async () => {

@@ -8,4 +8,9 @@ export const metricNames = {
   cedcoD02RequestsTotal: "cedco_d02_requests_total",
   voiceCallContractRequestsTotal: "voice_call_contract_requests_total",
   providerBlockedRequestsTotal: "provider_blocked_requests_total",
+  policyGateEvaluationsTotal: "policy_gate_evaluations_total",
+  policyGateDeniedTotal: "policy_gate_denied_total",
+  rateLimitChecksTotal: "rate_limit_checks_total",
+  rateLimitDeniedTotal: "rate_limit_denied_total",
+  runtimeBlockedRequestsTotal: "runtime_blocked_requests_total",
 } as const;

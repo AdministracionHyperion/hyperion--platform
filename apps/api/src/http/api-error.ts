@@ -3,6 +3,9 @@ export type ApiErrorCode =
   | "missing_actor"
   | "forbidden"
   | "not_found"
+  | "policy_blocked"
+  | "rate_limit_exceeded"
+  | "runtime_action_blocked"
   | "internal_error";
 
 export class ApiError extends Error {
@@ -33,4 +36,25 @@ export function forbiddenError(message = "Actor is not allowed to perform this a
 
 export function notFoundError(message = "Resource was not found."): ApiError {
   return new ApiError(404, "not_found", message);
+}
+
+export function policyBlockedError(
+  message = "Action is blocked by policy gate.",
+  details?: unknown,
+): ApiError {
+  return new ApiError(403, "policy_blocked", message, details);
+}
+
+export function rateLimitExceededError(
+  message = "Rate limit exceeded.",
+  details?: unknown,
+): ApiError {
+  return new ApiError(429, "rate_limit_exceeded", message, details);
+}
+
+export function runtimeActionBlockedError(
+  message = "Runtime action is blocked.",
+  details?: unknown,
+): ApiError {
+  return new ApiError(403, "runtime_action_blocked", message, details);
 }

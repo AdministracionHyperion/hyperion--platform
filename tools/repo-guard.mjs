@@ -39,6 +39,17 @@ const providerImportPatterns = [
   "newrelic",
   "@opentelemetry/exporter",
   "@opentelemetry/sdk",
+  "redis",
+  "ioredis",
+  "bullmq",
+];
+
+const dangerousRuntimeFlags = [
+  "realCallsEnabled",
+  "providerEgressEnabled",
+  "productionDeployEnabled",
+  "rawTranscriptEnabled",
+  "rawRecordingEnabled",
 ];
 
 const networkImports = [
@@ -169,6 +180,7 @@ function validateTrackedFileContents(trackedFiles, readText, issues) {
     validateApiBoundaries(filePath, text, issues);
     validateDatabaseUrls(filePath, text, issues);
     validateSensitiveAssignments(filePath, text, issues);
+    validateRuntimeFlags(filePath, text, issues);
   }
 }
 
@@ -270,6 +282,19 @@ function validateSensitiveAssignments(filePath, text, issues) {
   }
 }
 
+function validateRuntimeFlags(filePath, text, issues) {
+  if (isConceptOnlyPath(filePath) || isTestPath(filePath) || isPolicyGateDefinitionPath(filePath)) {
+    return;
+  }
+
+  for (const flag of dangerousRuntimeFlags) {
+    const enabledPattern = new RegExp(`\\b${escapeRegExp(flag)}\\s*[:=]\\s*true\\b`, "u");
+    if (enabledPattern.test(text)) {
+      issues.push(`${filePath}: ${flag}=true is not allowed outside tests or policy blockers`);
+    }
+  }
+}
+
 function isTestPath(filePath) {
   return /\.test\.[cm]?[jt]s$/u.test(filePath);
 }
@@ -283,6 +308,14 @@ function isApiRuntimeConfigPath(filePath) {
     filePath === "apps/api/src/config/api-config.ts" ||
     filePath === "apps/api/src/main.ts" ||
     filePath.startsWith("apps/api/src/integration/")
+  );
+}
+
+function isPolicyGateDefinitionPath(filePath) {
+  return (
+    filePath.startsWith("modules/core/policy-gates/") ||
+    filePath.startsWith("modules/core/rate-limits/") ||
+    filePath.startsWith("apps/api/src/security/")
   );
 }
 
