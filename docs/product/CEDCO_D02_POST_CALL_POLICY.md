@@ -15,6 +15,7 @@ the product boundary for post-call handling after validation.
 | Recording                     | Not enabled                              |
 | Transcript access             | Not approved                             |
 | Audio access                  | Not approved                             |
+| Synthetic webhook rehearsal   | Passed in dialer; public webhook blocked |
 
 ## Metadata-Only Default
 
@@ -27,6 +28,7 @@ Platform post-call views and events may use only sanitized metadata:
 - provider status class;
 - call attempted/completed flags;
 - answered/unknown flag.
+- sanitized error class.
 
 Platform artifacts, dashboards, audit exports and docs must not include:
 
@@ -56,3 +58,9 @@ Audio capture or review is blocked by default. It requires a future explicit app
 
 Audio must never be committed to GitHub. If future compliance approval allows audio, raw files must
 remain in private storage only with a separate retention decision.
+
+## Synthetic Webhook Rehearsal
+
+D02-AUTO-16 validates signature, replay, idempotency and metadata-only sanitization with synthetic
+fixtures in the dialer repo. This does not approve public webhook exposure or real provider payload
+processing in platform.
