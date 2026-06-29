@@ -19,6 +19,7 @@ numbers. Customer campaigns, batch calling and automated retries remain blocked.
 - No transcript QA unless the transcript gate is approved.
 - No audio access unless the audio gate is approved.
 - No public webhook until webhook auth and sanitizer gates are approved.
+- Private synthetic webhook staging before any public route.
 - Metadata-only evidence in repositories.
 - Private runtime references only in `.local` or equivalent private storage.
 
@@ -35,3 +36,6 @@ Initial rate limits:
 
 The future pilot gate must use a new exact approval phrase and define the window, operator, test
 numbers, maximum call count, rollback owner and evidence destination before any call is attempted.
+
+The synthetic webhook rehearsal does not approve pilot calls. It only reduces one blocker for future
+private webhook staging.
