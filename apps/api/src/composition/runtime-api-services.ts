@@ -5,6 +5,7 @@ import {
   createPrismaBackedApiServices,
   type ApiServices,
 } from "../services";
+import { StagingInternalDialerHttpClient } from "../services/staging-internal-dialer-http-client";
 
 export interface RuntimeApiServices {
   readonly mode: ApiConfig["servicesMode"];
@@ -30,7 +31,10 @@ export function createRuntimePrismaServices(config: ApiConfig): RuntimeApiServic
   return {
     mode: "prisma",
     prisma,
-    services: createPrismaBackedApiServices({ prisma }),
+    services: createPrismaBackedApiServices({
+      prisma,
+      dialerDryRun: createConfiguredDialerDryRun(config),
+    }),
     close: async () => {
       await prisma.$disconnect();
     },
@@ -44,7 +48,13 @@ export function createRuntimeFakeServices(config: ApiConfig): RuntimeApiServices
 
   return {
     mode: "fake",
-    services: createFakeApiServices(),
+    services: createFakeApiServices({ dialerDryRun: createConfiguredDialerDryRun(config) }),
     close: async () => undefined,
   };
+}
+
+function createConfiguredDialerDryRun(config: ApiConfig) {
+  return config.internalDialerBaseUrl
+    ? new StagingInternalDialerHttpClient({ baseUrl: config.internalDialerBaseUrl })
+    : undefined;
 }
