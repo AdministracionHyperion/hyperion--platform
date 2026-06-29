@@ -9,6 +9,7 @@ enabled by this document.
 | Control                    | State                 |
 | -------------------------- | --------------------- |
 | Private synthetic endpoint | Implemented in dialer |
+| VM loopback validation     | Passed                |
 | Public provider webhook    | Not exposed           |
 | Real provider webhook      | Not connected         |
 | Provider egress            | Disabled              |
@@ -22,9 +23,10 @@ Platform may rely on sanitized metadata-only post-call status in a future approv
 must not store or render raw provider payloads, transcript text, audio references, phone numbers,
 DDI values, provider IDs, API keys, SIP credentials, or webhook signing material.
 
-The private endpoint accepts only synthetic signed payloads and is limited to staging/test mode. It
-does not authorize a public route, provider callback configuration, transcript QA, audio capture, or
-pilot traffic.
+The private endpoint accepts only synthetic signed payloads and is limited to staging/test mode.
+D02-AUTO-18B validated it on the Contabo staging VM through loopback/internal access. It does not
+authorize a public route, provider callback configuration, transcript QA, audio capture, or pilot
+traffic.
 
 ## Required Future Gates
 
@@ -32,9 +34,9 @@ Public staging exposure requires:
 
 `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`
 
-Real metadata-only provider webhook processing requires:
+Private metadata-only provider webhook staging requires:
 
-`APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`
+`APPROVE_PRIVATE_METADATA_ONLY_PROVIDER_WEBHOOK_STAGING`
 
 Pilot calls require a separate pilot window approval with allowed numbers, rate limits, operator,
 stop owner, and rollback owner.
