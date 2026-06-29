@@ -13,6 +13,7 @@ const apiConfigSchema = z.object({
   AUTH_JWKS_URL: z.string().min(1).optional(),
   AUTH_JWT_PUBLIC_KEY_REF: z.string().min(1).optional(),
   AUTH_PROVIDER_REF: z.string().min(1).optional(),
+  INTERNAL_DIALER_BASE_URL: z.string().min(1).optional(),
 });
 
 export interface ApiConfig {
@@ -27,6 +28,7 @@ export interface ApiConfig {
     readonly jwtPublicKeyRef?: string;
     readonly providerRef?: string;
   };
+  readonly internalDialerBaseUrl?: string;
 }
 
 export function loadApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
@@ -68,6 +70,9 @@ export function loadApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
             ...(parsed.AUTH_PROVIDER_REF ? { providerRef: parsed.AUTH_PROVIDER_REF } : {}),
           },
         }
+      : {}),
+    ...(parsed.INTERNAL_DIALER_BASE_URL
+      ? { internalDialerBaseUrl: parsed.INTERNAL_DIALER_BASE_URL }
       : {}),
   };
 }

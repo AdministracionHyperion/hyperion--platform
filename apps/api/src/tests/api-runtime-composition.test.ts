@@ -56,6 +56,18 @@ describe("API runtime composition", () => {
     expect(runtime.mode).toBe("fake");
   });
 
+  it("loads staging internal dialer base URL without provider keys", () => {
+    const config = loadApiConfig({
+      NODE_ENV: "staging",
+      API_SERVICES_MODE: "fake",
+      INTERNAL_DIALER_BASE_URL: "http://hyperion-staging-dialer-api:8080",
+    } as NodeJS.ProcessEnv);
+    const runtime = createApiServicesFromConfig(config);
+
+    expect(config.internalDialerBaseUrl).toBe("http://hyperion-staging-dialer-api:8080");
+    expect(runtime.mode).toBe("fake");
+  });
+
   it("rejects missing API_SERVICES_MODE in production", () => {
     expect(() =>
       loadApiConfig({

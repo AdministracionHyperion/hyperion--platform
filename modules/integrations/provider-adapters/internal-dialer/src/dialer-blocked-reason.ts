@@ -18,6 +18,7 @@ export const dialerBlockedReasons = [
   "missing_provider_config_ref",
   "missing_secret_manager_ref",
   "dialer_p0_hardening_incomplete",
+  "idempotency_conflict",
 ] as const;
 
 export type DialerBlockedReason = (typeof dialerBlockedReasons)[number];

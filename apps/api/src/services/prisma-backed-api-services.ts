@@ -22,6 +22,7 @@ import {
   runCedcoD02InternalDialerDryRun,
   type CedcoD02DialerDryRunInput,
   type CedcoD02DialerDryRunResult,
+  type CedcoD02InternalDialerDryRunPort,
   type CedcoD02InternalDialerDryRunRequest,
 } from "../../../../modules/products/cedco/d02-calls/src/application/dialer-dry-run";
 import {
@@ -90,6 +91,7 @@ export interface PrismaBackedApiServicesInput {
   readonly prisma: HyperionPrismaClient;
   readonly logger?: LoggerPort;
   readonly metrics?: MetricsRegistryPort;
+  readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort;
 }
 
 export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInput): ApiServices {
@@ -97,6 +99,7 @@ export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInpu
     createPrismaApiComposition(input.prisma),
     input.logger,
     input.metrics,
+    input.dialerDryRun,
   );
 }
 
@@ -118,6 +121,7 @@ class PrismaBackedApiServices implements ApiServices {
     private readonly composition: PrismaApiComposition,
     logger: LoggerPort = new InMemoryLogger(),
     metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
+    private readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort,
   ) {
     this.internalDialerAdapter = new BlockedInternalDialerAdapter({
       hardeningStatus: defaultDialerHardeningStatus,
@@ -258,12 +262,14 @@ class PrismaBackedApiServices implements ApiServices {
       },
       dialer: {
         dryRun: async (request) =>
-          toInternalDialerDryRunResponse(
-            await this.internalDialerAdapter.dryRun(
-              toDialerDispatchRequest(context, request),
-              operationContext.value,
-            ),
-          ),
+          this.dialerDryRun
+            ? this.dialerDryRun.dryRun(request)
+            : toInternalDialerDryRunResponse(
+                await this.internalDialerAdapter.dryRun(
+                  toDialerDispatchRequest(context, request),
+                  operationContext.value,
+                ),
+              ),
       },
     });
     if (!result.ok) {

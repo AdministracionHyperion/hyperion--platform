@@ -7,6 +7,7 @@ import {
   runCedcoD02InternalDialerDryRun,
   type CedcoD02DialerDryRunInput,
   type CedcoD02DialerDryRunResult,
+  type CedcoD02InternalDialerDryRunPort,
   type CedcoD02InternalDialerDryRunRequest,
 } from "../../../../modules/products/cedco/d02-calls/src/application/dialer-dry-run";
 import { runCedcoD02MockCallFlow } from "../../../../modules/products/cedco/d02-calls/src/application/mock-runtime";
@@ -63,6 +64,10 @@ import type {
 import type { ApiServices } from "./api-services";
 import type { ApiAuditRecord } from "./api-services";
 
+export interface FakeApiServicesInput {
+  readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort;
+}
+
 interface StoredCall {
   readonly callId: string;
   readonly tenantId: string;
@@ -102,7 +107,7 @@ function defaultCedcoConfiguration(
   };
 }
 
-export function createFakeApiServices(): ApiServices {
+export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiServices {
   const agents = new Map<string, unknown>();
   const agentVersions = new Map<string, unknown[]>();
   const calls = new Map<string, StoredCall>();
@@ -395,12 +400,14 @@ export function createFakeApiServices(): ApiServices {
           },
           dialer: {
             dryRun: async (request) =>
-              toInternalDialerDryRunResponse(
-                await internalDialerAdapter.dryRun(
-                  toDialerDispatchRequest(context, request),
-                  operationContext,
-                ),
-              ),
+              options.dialerDryRun
+                ? options.dialerDryRun.dryRun(request)
+                : toInternalDialerDryRunResponse(
+                    await internalDialerAdapter.dryRun(
+                      toDialerDispatchRequest(context, request),
+                      operationContext,
+                    ),
+                  ),
           },
         });
         if (!result.ok) {
