@@ -10,12 +10,10 @@ R02 operational persistence state:
 - Local staging auth is Prisma-backed through users, memberships and sessions.
 - External providers remain disabled for calls.
 - The ElevenLabs CEDCO R02 agent configuration is complete.
-- The exact Twilio Colombia phone number is not yet imported/bound in ElevenLabs.
+- The exact Twilio Colombia phone number is imported and bound in ElevenLabs.
 
 Future gates:
 
-- `APPROVE_R02_ELEVENLABS_IMPORT_EXISTING_TWILIO_NUMBER`
-- `APPROVE_R02_ELEVENLABS_TWILIO_IMPORT_SCHEMA_RETRY`
 - `APPROVE_TWILIO_INBOUND_NUMBER_CONNECTION`
 - `APPROVE_SINGLE_CONTROLLED_R02_INBOUND_TEST_CALL`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
