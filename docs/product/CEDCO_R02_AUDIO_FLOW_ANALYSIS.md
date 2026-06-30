@@ -12,6 +12,14 @@ Audio handling status:
 - Transcription attempted: NO, no approved local transcription tool was used in this loop.
 - Manual transcription required: YES.
 
+R02-CEDCO-AUTO-2 recheck:
+
+- Audio files found: 7.
+- Private copies remain under `.local/r02-audio-demo`.
+- `ffprobe` unavailable.
+- Local transcription tool unavailable.
+- Manual transcription required remains: YES.
+
 Private audio metadata summary:
 
 | Format | Count | Duration/sample rate |

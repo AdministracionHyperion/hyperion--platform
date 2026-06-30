@@ -3,6 +3,7 @@ import type { ApiServices } from "../services";
 import { registerAgentPlatformRoutes } from "../routes/agent-platform.routes";
 import { registerCedcoD02Routes } from "../routes/cedco-d02.routes";
 import { registerCedcoD02MockRuntimeRoutes } from "../routes/cedco-d02-mock-runtime.routes";
+import { registerCedcoR02Routes } from "../routes/cedco-r02.routes";
 import { registerCoreRoutes } from "../routes/core.routes";
 import { registerHealthRoutes } from "../routes/health.routes";
 import { registerInternalDialerReadinessRoutes } from "../routes/internal-dialer-readiness.routes";
@@ -26,5 +27,6 @@ export async function registerApiRoutes(
   await registerMockProviderEventRoutes(app, dependencies);
   await registerCedcoD02Routes(app, dependencies);
   await registerCedcoD02MockRuntimeRoutes(app, dependencies);
+  await registerCedcoR02Routes(app, dependencies);
   await registerOperationsDashboardRoutes(app, dependencies);
 }

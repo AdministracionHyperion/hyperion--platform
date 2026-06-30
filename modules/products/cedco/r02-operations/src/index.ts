@@ -807,3 +807,515 @@ function safeReference(value: string, prefix: string): string {
     .replace(/-+/gu, "-");
   return normalized.length > 0 ? normalized : `${prefix}-ref`;
 }
+
+export interface R02ServiceType {
+  readonly serviceTypeId: string;
+  readonly tenantId: string;
+  readonly displayName: string;
+  readonly durationMinutes: number;
+}
+
+export interface R02HandoffTarget {
+  readonly targetId: string;
+  readonly tenantId: string;
+  readonly targetType: InboundHandoffTarget;
+  readonly displayName: string;
+  readonly enabled: boolean;
+  readonly refKind: "human_queue" | "pbx_route" | "external_inbound";
+}
+
+export interface R02OperationalAuditEvent {
+  readonly auditId: string;
+  readonly tenantId: string;
+  readonly action: string;
+  readonly resourceType: string;
+  readonly resourceId: string;
+  readonly actorId: string;
+  readonly occurredAt: Date;
+  readonly metadata: SafeMetadata;
+}
+
+export interface R02AgentFlowSimulation {
+  readonly simulationId: string;
+  readonly tenantId: string;
+  readonly intent: "schedule" | "knowledge" | "handoff";
+  readonly responseText: string;
+  readonly appointmentCreated: boolean;
+  readonly handoffCreated: boolean;
+  readonly googleSyncStatus: CalendarSyncStatus;
+  readonly knowledgeSources: readonly KnowledgeRetrievalResult[];
+  readonly auditEventId: string;
+  readonly externalProvidersUsed: false;
+  readonly transcriptAudioAccessed: false;
+}
+
+export class R02OperationalWorkspace {
+  private readonly calendar = new InMemoryR02CalendarRepository();
+  private readonly knowledge = new InMemoryR02KnowledgeBase();
+  private readonly agents = new InMemoryR02AgentRepository();
+  private readonly serviceTypes = new Map<string, R02ServiceType>();
+  private readonly handoffTargets = new Map<string, R02HandoffTarget>();
+  private readonly documents = new Map<string, KnowledgeDocument>();
+  private readonly agentVersions = new Map<string, VoiceAgentVersion>();
+  private readonly audit: R02OperationalAuditEvent[] = [];
+
+  seedDemo(context: OperationContext): void {
+    this.upsertResource({
+      resourceId: "cedco-r02-recepcion",
+      tenantId: context.tenantId,
+      siteId: "cedco-main-site",
+      serviceTypeId: "consulta-general",
+      displayName: "CEDCO R02 Agenda general",
+      metadata: {},
+    });
+    this.upsertServiceType({
+      serviceTypeId: "consulta-general",
+      tenantId: context.tenantId,
+      displayName: "Consulta general",
+      durationMinutes: 30,
+    });
+    this.upsertHandoffTarget({
+      targetId: "handoff-human-queue",
+      tenantId: context.tenantId,
+      targetType: "human",
+      displayName: "Recepcion humana CEDCO",
+      enabled: true,
+      refKind: "human_queue",
+    });
+    const agent = this.agents.createInitialAgent(context);
+    if (agent.ok) {
+      this.agentVersions.set(agent.value.versionId, agent.value);
+    }
+  }
+
+  upsertResource(resource: CalendarResource): CalendarResource {
+    this.calendar.upsertResource(resource);
+    this.recordAudit({
+      tenantId: resource.tenantId,
+      actorId: "system",
+      action: "calendar_resource_upserted",
+      resourceType: "calendar_resource",
+      resourceId: resource.resourceId,
+      metadata: resource.metadata,
+    });
+    return resource;
+  }
+
+  upsertServiceType(serviceType: R02ServiceType): R02ServiceType {
+    this.serviceTypes.set(`${serviceType.tenantId}:${serviceType.serviceTypeId}`, serviceType);
+    return serviceType;
+  }
+
+  upsertHandoffTarget(target: R02HandoffTarget): R02HandoffTarget {
+    this.handoffTargets.set(`${target.tenantId}:${target.targetId}`, target);
+    return target;
+  }
+
+  createAvailability(input: {
+    readonly context: OperationContext;
+    readonly slotId: string;
+    readonly resourceId: string;
+    readonly siteId: string;
+    readonly serviceTypeId: string;
+    readonly startsAt: Date;
+    readonly endsAt: Date;
+    readonly capacity?: number;
+    readonly metadata?: Readonly<Record<string, unknown>>;
+  }): Result<AvailabilitySlot, DomainError> {
+    const slot = createAvailabilitySlot(input);
+    if (!slot.ok) return slot;
+    const added = this.calendar.addAvailability(slot.value);
+    if (added.ok) {
+      this.recordFromContext(
+        input.context,
+        "availability_created",
+        "availability_slot",
+        slot.value.slotId,
+      );
+    }
+    return added;
+  }
+
+  queryAvailability(input: {
+    readonly tenantId: string;
+    readonly siteId?: string;
+    readonly serviceTypeId?: string;
+    readonly from?: Date;
+    readonly to?: Date;
+  }): readonly AvailabilitySlot[] {
+    return this.calendar.queryAvailability(input);
+  }
+
+  listAppointments(tenantId: string): readonly Appointment[] {
+    return this.calendar.listAppointments(tenantId);
+  }
+
+  createAppointment(input: {
+    readonly context: OperationContext;
+    readonly appointmentId: string;
+    readonly slotId: string;
+    readonly patientRef: string;
+    readonly metadata?: Readonly<Record<string, unknown>>;
+  }): Result<Appointment, DomainError> {
+    const appointment = this.calendar.createAppointment(input);
+    if (appointment.ok) {
+      this.recordFromContext(
+        input.context,
+        "appointment_created",
+        "appointment",
+        appointment.value.appointmentId,
+      );
+    }
+    return appointment;
+  }
+
+  rescheduleAppointment(input: {
+    readonly context: OperationContext;
+    readonly appointmentId: string;
+    readonly newSlotId: string;
+  }): Result<Appointment, DomainError> {
+    const appointment = this.calendar.rescheduleAppointment(input);
+    if (appointment.ok) {
+      this.recordFromContext(
+        input.context,
+        "appointment_rescheduled",
+        "appointment",
+        input.appointmentId,
+      );
+    }
+    return appointment;
+  }
+
+  cancelAppointment(input: {
+    readonly context: OperationContext;
+    readonly appointmentId: string;
+  }): Result<Appointment, DomainError> {
+    const appointment = this.calendar.cancelAppointment(input);
+    if (appointment.ok) {
+      this.recordFromContext(
+        input.context,
+        "appointment_cancelled",
+        "appointment",
+        input.appointmentId,
+      );
+    }
+    return appointment;
+  }
+
+  async syncAppointmentTest(input: {
+    readonly context: OperationContext;
+    readonly appointmentId: string;
+  }): Promise<Result<GoogleCalendarSyncAudit, DomainError>> {
+    const appointment = this.calendar
+      .listAppointments(input.context.tenantId)
+      .find((item) => item.appointmentId === input.appointmentId);
+    if (!appointment) {
+      return fail(domainError("not_found", "appointment not found"));
+    }
+    const result = await runGoogleCalendarSyncJob({
+      appointment,
+      adapter: new DisabledGoogleCalendarAdapter(),
+      operation: "create",
+    });
+    if (result.ok) {
+      this.recordFromContext(
+        input.context,
+        "calendar_sync_test_disabled",
+        "appointment",
+        input.appointmentId,
+      );
+    }
+    return result;
+  }
+
+  createKnowledgeBase(
+    context: OperationContext,
+    input: { readonly knowledgeBaseId: string; readonly name: string },
+  ) {
+    const metadata = createSafeMetadata({
+      knowledgeBaseId: input.knowledgeBaseId,
+      name: input.name,
+    });
+    if (!metadata.ok) return metadata;
+    this.recordFromContext(
+      context,
+      "knowledge_base_created",
+      "knowledge_base",
+      input.knowledgeBaseId,
+    );
+    return ok({
+      knowledgeBaseId: safeReference(input.knowledgeBaseId, "knowledge-base"),
+      tenantId: context.tenantId,
+      name: input.name,
+      status: "draft" as const,
+      metadata: metadata.value,
+    });
+  }
+
+  uploadKnowledgeDocument(input: {
+    readonly context: OperationContext;
+    readonly documentId: string;
+    readonly sourceName: string;
+    readonly contentText: string;
+    readonly sizeBytes: number;
+    readonly metadata?: Readonly<Record<string, unknown>>;
+  }): Result<KnowledgeDocument, DomainError> {
+    const document = this.knowledge.uploadDocument(input);
+    if (document.ok) {
+      this.documents.set(document.value.documentId, document.value);
+      this.recordFromContext(
+        input.context,
+        "knowledge_document_uploaded",
+        "knowledge_document",
+        document.value.documentId,
+      );
+    }
+    return document;
+  }
+
+  processKnowledgeDocument(
+    context: OperationContext,
+    documentId: string,
+  ): Result<KnowledgeDocument, DomainError> {
+    const document = this.documents.get(documentId);
+    if (!document || document.tenantId !== context.tenantId) {
+      return fail(domainError("not_found", "knowledge document not found"));
+    }
+    this.recordFromContext(
+      context,
+      "knowledge_document_processed",
+      "knowledge_document",
+      documentId,
+    );
+    return ok(document);
+  }
+
+  approveKnowledgeDocument(
+    context: OperationContext,
+    documentId: string,
+  ): Result<KnowledgeDocument, DomainError> {
+    const approved = this.knowledge.approveDocument(context, documentId);
+    if (approved.ok) this.documents.set(documentId, approved.value);
+    return approved;
+  }
+
+  activateKnowledgeDocument(
+    context: OperationContext,
+    documentId: string,
+  ): Result<KnowledgeDocument, DomainError> {
+    const active = this.knowledge.activateDocument(context, documentId);
+    if (active.ok) this.documents.set(documentId, active.value);
+    return active;
+  }
+
+  searchKnowledge(input: {
+    readonly tenantId: string;
+    readonly query: string;
+    readonly limit?: number;
+  }) {
+    return this.knowledge.retrieve(input);
+  }
+
+  createAgent(context: OperationContext): Result<VoiceAgentVersion, DomainError> {
+    const version = this.agents.createInitialAgent(context);
+    if (version.ok) {
+      this.agentVersions.set(version.value.versionId, version.value);
+      this.recordFromContext(context, "agent_created", "voice_agent", version.value.agentId);
+    }
+    return version;
+  }
+
+  createAgentVersion(input: {
+    readonly context: OperationContext;
+    readonly agentId: string;
+    readonly versionId: string;
+    readonly greeting: string;
+    readonly prompt: string;
+    readonly allowedTools?: readonly R02AgentTool[];
+  }): Result<VoiceAgentVersion, DomainError> {
+    const metadata = createSafeMetadata({ source: "r02-operational-api" });
+    if (!metadata.ok) return fail(metadata.error);
+    const version: VoiceAgentVersion = {
+      versionId: safeReference(input.versionId, "agent-version"),
+      agentId: safeReference(input.agentId, "agent"),
+      status: "draft",
+      greeting: input.greeting,
+      prompt: input.prompt,
+      allowedTools: input.allowedTools ?? [
+        "answer_from_knowledge",
+        "check_availability",
+        "create_appointment",
+        "transfer_to_human",
+        "create_followup_task",
+      ],
+      prohibitedTools: [
+        "request_sensitive_data",
+        "promise_availability_without_calendar",
+        "access_transcript_audio_without_approval",
+      ],
+      knowledgeBindingRequired: true,
+      calendarBindingRequired: true,
+      providerMutationAllowed: false,
+      metadata: metadata.value,
+    };
+    const policy = validateAgentToolPolicy(version);
+    if (!policy.ok) return policy;
+    this.agentVersions.set(version.versionId, version);
+    this.recordFromContext(
+      input.context,
+      "agent_version_created",
+      "voice_agent_version",
+      version.versionId,
+    );
+    return ok(version);
+  }
+
+  approveAgentVersion(
+    context: OperationContext,
+    versionId: string,
+  ): Result<VoiceAgentVersion, DomainError> {
+    return this.transitionTrackedAgentVersion(context, versionId, "approved");
+  }
+
+  activateAgentVersion(
+    context: OperationContext,
+    versionId: string,
+  ): Result<VoiceAgentVersion, DomainError> {
+    return this.transitionTrackedAgentVersion(context, versionId, "active");
+  }
+
+  simulateAgentFlow(input: {
+    readonly context: OperationContext;
+    readonly simulationId: string;
+    readonly intent: "schedule" | "knowledge" | "handoff";
+    readonly queryText: string;
+    readonly slotId?: string;
+    readonly appointmentId?: string;
+    readonly patientRef?: string;
+  }): Result<R02AgentFlowSimulation, DomainError> {
+    const sources = this.knowledge.retrieve({
+      tenantId: input.context.tenantId,
+      query: input.queryText,
+      limit: 3,
+    });
+    let appointmentCreated = false;
+    let handoffCreated = false;
+    if (input.intent === "schedule" && input.slotId && input.appointmentId && input.patientRef) {
+      const appointment = this.createAppointment({
+        context: input.context,
+        appointmentId: input.appointmentId,
+        slotId: input.slotId,
+        patientRef: input.patientRef,
+        metadata: { source: "agent-flow-simulation" },
+      });
+      if (!appointment.ok) return fail(appointment.error);
+      appointmentCreated = true;
+    }
+    if (input.intent === "handoff") {
+      handoffCreated = true;
+    }
+    const auditEventId = this.recordFromContext(
+      input.context,
+      "agent_flow_simulated",
+      "agent_flow",
+      input.simulationId,
+    );
+    return ok({
+      simulationId: safeReference(input.simulationId, "simulation"),
+      tenantId: input.context.tenantId,
+      intent: input.intent,
+      responseText: buildSimulationResponse(
+        input.intent,
+        sources,
+        appointmentCreated,
+        handoffCreated,
+      ),
+      appointmentCreated,
+      handoffCreated,
+      googleSyncStatus: appointmentCreated ? "pending" : "not_required",
+      knowledgeSources: sources,
+      auditEventId,
+      externalProvidersUsed: false,
+      transcriptAudioAccessed: false,
+    });
+  }
+
+  listAudit(tenantId: string): readonly R02OperationalAuditEvent[] {
+    return this.audit.filter((event) => event.tenantId === tenantId);
+  }
+
+  listHandoffTargets(tenantId: string): readonly R02HandoffTarget[] {
+    return [...this.handoffTargets.values()].filter((target) => target.tenantId === tenantId);
+  }
+
+  private transitionTrackedAgentVersion(
+    context: OperationContext,
+    versionId: string,
+    status: AgentReleaseStatus,
+  ): Result<VoiceAgentVersion, DomainError> {
+    const existing = this.agentVersions.get(versionId);
+    if (!existing) return fail(domainError("not_found", "agent version not found"));
+    const updated: VoiceAgentVersion = { ...existing, status };
+    this.agentVersions.set(versionId, updated);
+    this.recordFromContext(context, `agent_version_${status}`, "voice_agent_version", versionId);
+    return ok(updated);
+  }
+
+  private recordFromContext(
+    context: OperationContext,
+    action: string,
+    resourceType: string,
+    resourceId: string,
+  ): string {
+    return this.recordAudit({
+      tenantId: context.tenantId,
+      actorId: context.actorId,
+      action,
+      resourceType,
+      resourceId,
+      metadata: {},
+      occurredAt: context.occurredAt,
+    });
+  }
+
+  private recordAudit(input: {
+    readonly tenantId: string;
+    readonly actorId: string;
+    readonly action: string;
+    readonly resourceType: string;
+    readonly resourceId: string;
+    readonly metadata: SafeMetadata;
+    readonly occurredAt?: Date;
+  }): string {
+    const auditId = `r02-audit-${this.audit.length + 1}`;
+    this.audit.push({
+      auditId,
+      tenantId: input.tenantId,
+      action: input.action,
+      resourceType: input.resourceType,
+      resourceId: safeReference(input.resourceId, "resource"),
+      actorId: input.actorId,
+      occurredAt: input.occurredAt ?? new Date(),
+      metadata: input.metadata,
+    });
+    return auditId;
+  }
+}
+
+function buildSimulationResponse(
+  intent: R02AgentFlowSimulation["intent"],
+  sources: readonly KnowledgeRetrievalResult[],
+  appointmentCreated: boolean,
+  handoffCreated: boolean,
+): string {
+  if (appointmentCreated) {
+    return "La cita interna quedo creada y la sincronizacion externa queda pendiente o deshabilitada.";
+  }
+  if (handoffCreated) {
+    return "Voy a transferir el caso a un asesor humano autorizado.";
+  }
+  if (intent === "knowledge" && sources.length > 0) {
+    return `Encontre informacion aprobada en ${sources[0]!.documentId} version ${sources[0]!.versionId}.`;
+  }
+  return "No tengo suficiente informacion aprobada; genero handoff si el usuario lo solicita.";
+}

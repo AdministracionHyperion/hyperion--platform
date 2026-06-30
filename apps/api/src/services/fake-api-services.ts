@@ -1,4 +1,5 @@
 import { createOperationContext, sanitizeMetadata } from "../../../../packages/shared/src/core";
+import { R02OperationalWorkspace } from "../../../../modules/products/cedco/r02-operations/src";
 import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-calls/src/use-cases/classify-cedco-call-intent";
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
 import { evaluateCedcoCompliance } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-compliance";
@@ -51,15 +52,25 @@ import type {
   CreateAgentVersionBody,
   CreateCedcoEligibilityCheckBody,
   CreateCedcoSchedulingRequestBody,
+  AvailabilityQuery,
+  CreateAgentBodyR02,
+  CreateAgentVersionBodyR02,
+  CreateAppointmentBody,
+  CreateAvailabilityBody,
+  CreateKnowledgeBaseBody,
   CreateVoiceCallBody,
   CreateVoiceCallEventBody,
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
   MockProviderEventBody,
+  RescheduleAppointmentBody,
   RunCedcoD02DialerDryRunBody,
   RunCedcoD02MockCallFlowBody,
+  SearchKnowledgeBody,
+  SimulateAgentFlowBody,
   InternalDialerDryRunBody,
+  UploadKnowledgeDocumentBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
 import type { ApiAuditRecord } from "./api-services";
@@ -125,6 +136,7 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
   });
   const auditEvents: ApiAuditRecord[] = [];
   const rateLimitStore = new InMemoryRateLimitStore();
+  const r02Workspace = new R02OperationalWorkspace();
   let testRateLimitRule: RateLimitRule | undefined;
 
   return {
@@ -464,6 +476,157 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
         };
       },
     },
+    cedcoR02: {
+      async seedDemo(context) {
+        const operationContext = toOperationContext(context);
+        r02Workspace.seedDemo(operationContext);
+        return {
+          tenantId: context.tenantId,
+          seeded: true,
+          externalProvidersUsed: false,
+          transcriptAudioAccessed: false,
+        };
+      },
+      async listAvailability(context, input: AvailabilityQuery) {
+        return r02Workspace.queryAvailability({
+          tenantId: context.tenantId,
+          ...(input.siteId ? { siteId: input.siteId } : {}),
+          ...(input.serviceTypeId ? { serviceTypeId: input.serviceTypeId } : {}),
+          ...(input.from ? { from: new Date(input.from) } : {}),
+          ...(input.to ? { to: new Date(input.to) } : {}),
+        });
+      },
+      async createAvailability(context, input: CreateAvailabilityBody) {
+        const result = r02Workspace.createAvailability({
+          context: toOperationContext(context),
+          slotId: input.slotId,
+          resourceId: input.resourceId,
+          siteId: input.siteId,
+          serviceTypeId: input.serviceTypeId,
+          startsAt: new Date(input.startsAt),
+          endsAt: new Date(input.endsAt),
+          capacity: input.capacity,
+          metadata: input.metadata,
+        });
+        return unwrapDomainResult(result);
+      },
+      async listAppointments(context) {
+        return r02Workspace.listAppointments(context.tenantId);
+      },
+      async createAppointment(context, input: CreateAppointmentBody) {
+        const result = r02Workspace.createAppointment({
+          context: toOperationContext(context),
+          appointmentId: input.appointmentId,
+          slotId: input.slotId,
+          patientRef: input.patientRef,
+          metadata: input.metadata,
+        });
+        return unwrapDomainResult(result);
+      },
+      async cancelAppointment(context, appointmentId) {
+        const result = r02Workspace.cancelAppointment({
+          context: toOperationContext(context),
+          appointmentId,
+        });
+        return unwrapDomainResult(result);
+      },
+      async rescheduleAppointment(context, appointmentId, input: RescheduleAppointmentBody) {
+        const result = r02Workspace.rescheduleAppointment({
+          context: toOperationContext(context),
+          appointmentId,
+          newSlotId: input.newSlotId,
+        });
+        return unwrapDomainResult(result);
+      },
+      async runCalendarSyncTest(context, appointmentId) {
+        const result = await r02Workspace.syncAppointmentTest({
+          context: toOperationContext(context),
+          appointmentId,
+        });
+        return unwrapDomainResult(result);
+      },
+      async createKnowledgeBase(context, input: CreateKnowledgeBaseBody) {
+        const result = r02Workspace.createKnowledgeBase(toOperationContext(context), input);
+        return unwrapDomainResult(result);
+      },
+      async uploadKnowledgeDocument(context, input: UploadKnowledgeDocumentBody) {
+        const result = r02Workspace.uploadKnowledgeDocument({
+          context: toOperationContext(context),
+          documentId: input.documentId,
+          sourceName: input.sourceName,
+          contentText: input.contentText,
+          sizeBytes: Buffer.byteLength(input.contentText, "utf8"),
+          metadata: input.metadata,
+        });
+        return unwrapDomainResult(result);
+      },
+      async processKnowledgeDocument(context, documentId) {
+        const result = r02Workspace.processKnowledgeDocument(
+          toOperationContext(context),
+          documentId,
+        );
+        return unwrapDomainResult(result);
+      },
+      async approveKnowledgeDocument(context, documentId) {
+        const result = r02Workspace.approveKnowledgeDocument(
+          toOperationContext(context),
+          documentId,
+        );
+        return unwrapDomainResult(result);
+      },
+      async activateKnowledgeDocument(context, documentId) {
+        const result = r02Workspace.activateKnowledgeDocument(
+          toOperationContext(context),
+          documentId,
+        );
+        return unwrapDomainResult(result);
+      },
+      async searchKnowledge(context, input: SearchKnowledgeBody) {
+        return r02Workspace.searchKnowledge({
+          tenantId: context.tenantId,
+          query: input.queryText,
+          limit: input.limit,
+        });
+      },
+      async createAgent(context, _input: CreateAgentBodyR02) {
+        const result = r02Workspace.createAgent(toOperationContext(context));
+        return unwrapDomainResult(result);
+      },
+      async createAgentVersion(context, agentId, input: CreateAgentVersionBodyR02) {
+        const result = r02Workspace.createAgentVersion({
+          context: toOperationContext(context),
+          agentId,
+          versionId: input.versionId,
+          greeting: input.greeting,
+          prompt: input.prompt,
+          ...(input.allowedTools ? { allowedTools: input.allowedTools } : {}),
+        });
+        return unwrapDomainResult(result);
+      },
+      async approveAgent(context, agentId) {
+        const result = r02Workspace.approveAgentVersion(toOperationContext(context), agentId);
+        return unwrapDomainResult(result);
+      },
+      async activateAgent(context, agentId) {
+        const result = r02Workspace.activateAgentVersion(toOperationContext(context), agentId);
+        return unwrapDomainResult(result);
+      },
+      async simulateAgentFlow(context, input: SimulateAgentFlowBody) {
+        const result = r02Workspace.simulateAgentFlow({
+          context: toOperationContext(context),
+          simulationId: input.simulationId,
+          intent: input.intent,
+          queryText: input.queryText,
+          ...(input.slotId ? { slotId: input.slotId } : {}),
+          ...(input.appointmentId ? { appointmentId: input.appointmentId } : {}),
+          ...(input.patientRef ? { patientRef: input.patientRef } : {}),
+        });
+        return unwrapDomainResult(result);
+      },
+      async listAudit(context) {
+        return r02Workspace.listAudit(context.tenantId);
+      },
+    },
     operationsDashboard: {
       async getDashboard(context) {
         return buildFakeDashboard(context, auditEvents, metrics);
@@ -637,4 +800,15 @@ function throwApiErrorForProviderEvent(message: string, code: string): never {
     throw policyBlockedError(message);
   }
   throw validationError(message);
+}
+
+function unwrapDomainResult<T>(
+  result:
+    | { readonly ok: true; readonly value: T }
+    | { readonly ok: false; readonly error: { readonly code: string; readonly message: string } },
+): T {
+  if (result.ok) return result.value;
+  if (result.error.code === "conflict") throw conflictError(result.error.message);
+  if (result.error.code === "forbidden") throw policyBlockedError(result.error.message);
+  throw validationError(result.error.message);
 }

@@ -13,15 +13,25 @@ import type {
   CreateAgentVersionBody,
   CreateCedcoEligibilityCheckBody,
   CreateCedcoSchedulingRequestBody,
+  CreateAgentBodyR02,
+  CreateAgentVersionBodyR02,
+  CreateAppointmentBody,
+  CreateAvailabilityBody,
+  CreateKnowledgeBaseBody,
+  AvailabilityQuery,
   CreateVoiceCallBody,
   CreateVoiceCallEventBody,
   EvaluateCedcoComplianceBody,
   EvaluateCedcoHandoffBody,
   EvaluateCedcoReadinessBody,
+  RescheduleAppointmentBody,
   MockProviderEventBody,
   RunCedcoD02DialerDryRunBody,
   RunCedcoD02MockCallFlowBody,
+  SearchKnowledgeBody,
+  SimulateAgentFlowBody,
   InternalDialerDryRunBody,
+  UploadKnowledgeDocumentBody,
 } from "../contracts";
 
 export interface ApiServices {
@@ -73,6 +83,39 @@ export interface ApiServices {
     getMetricsSummary(context: RequestContext): Promise<unknown>;
     runDialerDryRun(context: RequestContext, input: RunCedcoD02DialerDryRunBody): Promise<unknown>;
     runMockCallFlow(context: RequestContext, input: RunCedcoD02MockCallFlowBody): Promise<unknown>;
+  };
+  readonly cedcoR02: {
+    seedDemo(context: RequestContext): Promise<unknown>;
+    listAvailability(context: RequestContext, input: AvailabilityQuery): Promise<unknown>;
+    createAvailability(context: RequestContext, input: CreateAvailabilityBody): Promise<unknown>;
+    listAppointments(context: RequestContext): Promise<unknown>;
+    createAppointment(context: RequestContext, input: CreateAppointmentBody): Promise<unknown>;
+    cancelAppointment(context: RequestContext, appointmentId: string): Promise<unknown>;
+    rescheduleAppointment(
+      context: RequestContext,
+      appointmentId: string,
+      input: RescheduleAppointmentBody,
+    ): Promise<unknown>;
+    runCalendarSyncTest(context: RequestContext, appointmentId: string): Promise<unknown>;
+    createKnowledgeBase(context: RequestContext, input: CreateKnowledgeBaseBody): Promise<unknown>;
+    uploadKnowledgeDocument(
+      context: RequestContext,
+      input: UploadKnowledgeDocumentBody,
+    ): Promise<unknown>;
+    processKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
+    approveKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
+    activateKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
+    searchKnowledge(context: RequestContext, input: SearchKnowledgeBody): Promise<unknown>;
+    createAgent(context: RequestContext, input: CreateAgentBodyR02): Promise<unknown>;
+    createAgentVersion(
+      context: RequestContext,
+      agentId: string,
+      input: CreateAgentVersionBodyR02,
+    ): Promise<unknown>;
+    approveAgent(context: RequestContext, agentId: string): Promise<unknown>;
+    activateAgent(context: RequestContext, agentId: string): Promise<unknown>;
+    simulateAgentFlow(context: RequestContext, input: SimulateAgentFlowBody): Promise<unknown>;
+    listAudit(context: RequestContext): Promise<unknown>;
   };
   readonly operationsDashboard: {
     getDashboard(context: RequestContext): Promise<unknown>;
