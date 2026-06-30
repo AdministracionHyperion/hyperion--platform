@@ -9,7 +9,7 @@ const nowSuffix = new Date()
 const blockedEvidencePattern =
   /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript|sip_password|\+\d[\d\s().-]{7,}\d/iu;
 
-const adminHeaders = {
+let adminHeaders = {
   "content-type": "application/json",
   "x-actor-id": "r02-demo-admin",
   "x-actor-roles": "tenant-admin",
@@ -17,7 +17,7 @@ const adminHeaders = {
   "x-request-source": "r02-staging-operational-validation",
 };
 
-const viewerHeaders = {
+let viewerHeaders = {
   ...adminHeaders,
   "x-actor-id": "r02-demo-viewer",
   "x-actor-roles": "tenant-viewer",
@@ -52,6 +52,7 @@ const result = {
   handoff_target_simulated: false,
   rbac_viewer_write_denied: false,
   tenant_isolation_passed: false,
+  local_staging_auth_used: false,
   external_providers_used: false,
   transcript_audio_accessed: false,
 };
@@ -65,6 +66,7 @@ const documentId = `doc-r02-staging-${nowSuffix}`;
 const agentVersionId = `cedco-r02-version-${nowSuffix}`;
 
 await expectStatus("GET", "/health", undefined, 200);
+await configureAuthHeaders();
 
 const dashboard = await request("GET", `${basePath}/dashboard`, undefined, 200, adminHeaders);
 result.dashboard_route_loaded =
@@ -302,6 +304,58 @@ async function createAvailability(slotId, startsAt) {
 
 async function expectStatus(method, path, payload, expectedStatus) {
   return request(method, path, payload, expectedStatus);
+}
+
+async function configureAuthHeaders() {
+  const adminSessionToken =
+    process.env.R02_STAGING_ADMIN_SESSION_TOKEN ??
+    (await loginIfConfigured(
+      process.env.R02_STAGING_ADMIN_LOGIN_REF,
+      process.env.R02_STAGING_ADMIN_CREDENTIAL,
+    ));
+  if (adminSessionToken) {
+    adminHeaders = {
+      "content-type": "application/json",
+      authorization: `Bearer ${adminSessionToken}`,
+      "x-correlation-id": `corr-r02-staging-${nowSuffix}`,
+      "x-request-source": "r02-staging-operational-validation",
+    };
+    result.local_staging_auth_used = true;
+  }
+
+  const viewerSessionToken =
+    process.env.R02_STAGING_VIEWER_SESSION_TOKEN ??
+    (await loginIfConfigured(
+      process.env.R02_STAGING_VIEWER_LOGIN_REF,
+      process.env.R02_STAGING_VIEWER_CREDENTIAL,
+    ));
+  if (viewerSessionToken) {
+    viewerHeaders = {
+      "content-type": "application/json",
+      authorization: `Bearer ${viewerSessionToken}`,
+      "x-correlation-id": `corr-r02-staging-viewer-${nowSuffix}`,
+      "x-request-source": "r02-staging-operational-validation",
+    };
+    result.local_staging_auth_used = true;
+  }
+}
+
+async function loginIfConfigured(loginRef, credential) {
+  if (!loginRef || !credential) {
+    return undefined;
+  }
+  const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tenantId, loginRef, credential }),
+  });
+  const text = await response.text();
+  if (response.status !== 200) {
+    throw new Error(`auth login expected 200, got ${response.status}: ${text.slice(0, 120)}`);
+  }
+  assertNoBlockedEvidence(text);
+  const json = JSON.parse(text);
+  return json.data?.sessionToken;
 }
 
 async function request(method, path, payload, expectedStatus, headers = adminHeaders) {

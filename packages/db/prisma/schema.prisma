@@ -49,6 +49,46 @@ model TenantMembership {
   @@index([userId])
 }
 
+model LocalAuthCredential {
+  id             String    @id
+  tenantId       String
+  userId         String
+  loginRef       String
+  credentialHash String
+  credentialSalt String
+  kdf            String
+  status         String
+  resetRequired  Boolean   @default(true)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  lastVerifiedAt DateTime?
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([tenantId, loginRef])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+}
+
+model LocalAuthSession {
+  id            String    @id
+  tenantId      String
+  userId        String
+  sessionHash   String    @unique
+  status        String
+  userAgentHash String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([tenantId, userId, status])
+  @@index([expiresAt])
+}
+
 model AuditLog {
   id            String   @id
   tenantId      String

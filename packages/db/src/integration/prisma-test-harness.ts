@@ -59,6 +59,8 @@ async function cleanupDatabase(client: PrismaClient): Promise<void> {
     client.cedcoR02ServiceType.deleteMany(),
     client.cedcoR02HandoffTarget.deleteMany(),
     client.cedcoR02AuditEvent.deleteMany(),
+    client.localAuthSession.deleteMany(),
+    client.localAuthCredential.deleteMany(),
     client.tenantMembership.deleteMany(),
     client.auditLog.deleteMany(),
     client.featureFlag.deleteMany(),

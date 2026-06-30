@@ -8,7 +8,14 @@ import { forbiddenError, missingActorError, validationError } from "./api-error"
 
 const allowedRoles: ReadonlySet<Role> = new Set<Role>([
   "super-admin",
+  "super_admin_hyperion",
   "tenant-admin",
+  "cedco_admin",
+  "r02_operator",
+  "compliance_auditor",
+  "reports_viewer",
+  "integration_admin",
+  "human_handoff_agent",
   "voice-manager",
   "voice-operator",
   "tenant-viewer",

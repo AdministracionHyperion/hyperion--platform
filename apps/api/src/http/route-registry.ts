@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ApiServices } from "../services";
+import { registerAuthRoutes } from "../routes/auth.routes";
 import { registerAgentPlatformRoutes } from "../routes/agent-platform.routes";
 import { registerCedcoD02Routes } from "../routes/cedco-d02.routes";
 import { registerCedcoD02MockRuntimeRoutes } from "../routes/cedco-d02-mock-runtime.routes";
@@ -20,6 +21,7 @@ export async function registerApiRoutes(
   dependencies: RouteRegistryDependencies,
 ): Promise<void> {
   await registerHealthRoutes(app);
+  await registerAuthRoutes(app, dependencies);
   await registerCoreRoutes(app, dependencies);
   await registerInternalDialerReadinessRoutes(app, dependencies);
   await registerAgentPlatformRoutes(app, dependencies);
