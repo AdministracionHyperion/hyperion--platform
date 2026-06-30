@@ -42,6 +42,13 @@ export interface R02OperationalPanelModel {
     readonly providerEgressEnabled: false;
     readonly transcriptAudioEnabled: false;
   };
+  readonly readinessItems: readonly {
+    readonly label: string;
+    readonly status: "done" | "pending" | "blocked";
+    readonly detail: string;
+  }[];
+  readonly finalOperatorInputs: readonly string[];
+  readonly futureGates: readonly string[];
   readonly auditCount: number;
 }
 
@@ -98,6 +105,54 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
       providerEgressEnabled: false,
       transcriptAudioEnabled: false,
     },
+    readinessItems: [
+      {
+        label: "Dashboard R02",
+        status: "done",
+        detail: "Calendario, RAG, agentes, handoff interno y auditoria operativos.",
+      },
+      {
+        label: "Numero inbound CEDCO",
+        status: "done",
+        detail: "Twilio Colombia importado y bindeado en ElevenLabs para validaciones controladas.",
+      },
+      {
+        label: "Google Calendar",
+        status: "pending",
+        detail: "Faltan credenciales y mapeo de calendarios de staging.",
+      },
+      {
+        label: "Handoff persistente",
+        status: "pending",
+        detail: "Falta decidir si queda activo y aportar destino aprobado por canal privado.",
+      },
+      {
+        label: "PBX real",
+        status: "blocked",
+        detail: "Requiere loop separado de refactor y runtime; hoy solo existe baseline sintetica.",
+      },
+      {
+        label: "Transcript/audio",
+        status: "blocked",
+        detail: "Sigue bloqueado salvo aprobacion puntual de QA o audio.",
+      },
+    ],
+    finalOperatorInputs: [
+      "Credenciales Twilio/ElevenLabs solo por terminal privada cuando toque verificar providers.",
+      "Credenciales y mapeo Google Calendar para staging.",
+      "Documentos CEDCO sanitizados para cargar RAG desde este dashboard.",
+      "Destino humano aprobado si se habilita handoff persistente.",
+      "Ventana y numero llamante autorizado para piloto inbound.",
+      "Decision PBX: mantener fuera o abrir refactor staging.",
+    ],
+    futureGates: [
+      "APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT",
+      "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
+      "APPROVE_PROVIDER_HANDOFF_TARGET_PERSISTENT_ENABLEMENT",
+      "APPROVE_PBX_STAGING_RUNTIME_REFACTOR",
+      "APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT",
+      "APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT",
+    ],
     auditCount: 4,
   };
 }
@@ -135,6 +190,7 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
         </section>
         <section class="dashboard-grid">
           ${renderOperatorActions(model)}
+          ${renderReadiness(model)}
           ${renderAppointments(model)}
           ${renderAvailability(model)}
           ${renderKnowledge(model)}
@@ -320,6 +376,38 @@ function renderHandoff(model: R02OperationalPanelModel): string {
         )
         .join("")}</tbody>
     </table>
+  </section>`;
+}
+
+function renderReadiness(model: R02OperationalPanelModel): string {
+  return `<section class="panel panel--wide">
+    <h2>Inputs y gates finales</h2>
+    <div class="readiness-layout">
+      <div>
+        <h3>Estado operativo</h3>
+        <ul class="readiness-list">
+          ${model.readinessItems
+            .map(
+              (item) => `<li>
+                <span class="status-pill status-pill--${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>
+                <strong>${escapeHtml(item.label)}</strong>
+                <small>${escapeHtml(item.detail)}</small>
+              </li>`,
+            )
+            .join("")}
+        </ul>
+      </div>
+      <div>
+        <h3>Lo que debe aportar el operador</h3>
+        <ul class="compact-list">
+          ${model.finalOperatorInputs.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        </ul>
+        <h3>Gates separados</h3>
+        <ul class="gate-list">
+          ${model.futureGates.map((item) => `<li><code>${escapeHtml(item)}</code></li>`).join("")}
+        </ul>
+      </div>
+    </div>
   </section>`;
 }
 

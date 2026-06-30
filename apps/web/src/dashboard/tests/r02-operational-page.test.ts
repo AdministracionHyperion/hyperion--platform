@@ -12,6 +12,9 @@ describe("CEDCO R02 operational page", () => {
     expect(html).toContain("Agentes");
     expect(html).toContain("Handoff");
     expect(html).toContain("Integraciones");
+    expect(html).toContain("Inputs y gates finales");
+    expect(html).toContain("APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING");
+    expect(html).toContain("Documentos CEDCO sanitizados");
     expect(html).toContain("disabled");
   });
 
