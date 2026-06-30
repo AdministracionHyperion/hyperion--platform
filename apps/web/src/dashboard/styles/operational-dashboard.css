@@ -143,6 +143,19 @@ h3 {
   font-size: 0.82rem;
 }
 
+.logout-button {
+  background: #ffffff;
+  border: 1px solid #c6d2df;
+  color: #214e5f;
+  padding: 8px 12px;
+}
+
+.logout-button:hover,
+.logout-button:focus {
+  background: #f2f7fa;
+  color: #183c4a;
+}
+
 .summary-grid {
   display: grid;
   gap: 12px;

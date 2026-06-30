@@ -203,6 +203,7 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
             <span class="status-pill status-pill--${escapeHtml(model.overallStatus)}">${escapeHtml(
               renderStatusLabel(model.overallStatus),
             )}</span>
+            <button class="logout-button" type="button" data-r02-logout>Cerrar sesion</button>
           </div>
         </header>
         <section class="summary-grid">
@@ -664,6 +665,14 @@ function renderR02DashboardScript(): string {
   const isoPlusMinutes = (value, minutes) => new Date(new Date(value).getTime() + minutes * 60000).toISOString();
   const textSourceNamePattern = /\\.(txt|md|csv|json)$/i;
   const maxKnowledgeTextBytes = 20000;
+
+  document.querySelector("[data-r02-logout]")?.addEventListener("click", async () => {
+    try {
+      await fetch("/api/v1/auth/logout", { method: "POST", credentials: "same-origin" });
+    } finally {
+      window.location.assign("/api/v1/auth/login");
+    }
+  });
 
   document.querySelectorAll("[data-r02-local-text-file]").forEach((input) => {
     input.addEventListener("change", async () => {

@@ -45,6 +45,9 @@ describe("CEDCO R02 operational API", () => {
     expect(response.body).toContain('href="?modulo=conocimiento"');
     expect(response.body).toContain('href="?modulo=asistente"');
     expect(response.body).toContain('href="?modulo=derivaciones"');
+    expect(response.body).toContain("Cerrar sesion");
+    expect(response.body).toContain("data-r02-logout");
+    expect(response.body).toContain("/api/v1/auth/logout");
     expect(response.body).toContain("Aun no hay citas registradas.");
     expect(response.body).not.toContain("Cargar documento");
     expect(response.body).not.toContain('data-r02-action="handoff-target"');
