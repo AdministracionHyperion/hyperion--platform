@@ -41,14 +41,45 @@ describe("CEDCO R02 operational API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toContain("text/html");
     expect(response.body).toContain("Centro operativo CEDCO");
-    expect(response.body).toContain("Cargar documento");
-    expect(response.body).toContain('data-r02-action="handoff-target"');
+    expect(response.body).toContain('href="?modulo=agenda"');
+    expect(response.body).toContain('href="?modulo=conocimiento"');
+    expect(response.body).toContain('href="?modulo=asistente"');
+    expect(response.body).toContain('href="?modulo=derivaciones"');
     expect(response.body).toContain("Aun no hay citas registradas.");
+    expect(response.body).not.toContain("Cargar documento");
+    expect(response.body).not.toContain('data-r02-action="handoff-target"');
+    expect(response.body).not.toMatch(/Auditoria|Auditoría|Preparacion y pendientes/iu);
     expect(response.body).not.toMatch(/demo|Sembrar demo|seed-demo|cedco-demo/iu);
     expect(response.body).not.toMatch(/Google|Twilio|ElevenLabs|11labs|Knowledge base/iu);
     expect(response.body).not.toMatch(
       /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript/iu,
     );
+  });
+
+  it("serves each dashboard module as a dedicated view instead of anchor scrolling", async () => {
+    const knowledge = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/dashboard?modulo=conocimiento`,
+      headers: adminHeaders,
+    });
+    expect(knowledge.statusCode).toBe(200);
+    expect(knowledge.body).toContain('href="?modulo=conocimiento" aria-current="page"');
+    expect(knowledge.body).toContain("Base de conocimiento");
+    expect(knowledge.body).toContain("Cargar documento");
+    expect(knowledge.body).not.toContain("Calendario y citas");
+    expect(knowledge.body).not.toContain('href="#conocimiento"');
+
+    const handoff = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/dashboard?modulo=derivaciones`,
+      headers: adminHeaders,
+    });
+    expect(handoff.statusCode).toBe(200);
+    expect(handoff.body).toContain('href="?modulo=derivaciones" aria-current="page"');
+    expect(handoff.body).toContain("Derivaciones");
+    expect(handoff.body).toContain('data-r02-action="handoff-target"');
+    expect(handoff.body).not.toContain("Base de conocimiento");
+    expect(handoff.body).not.toMatch(/Auditoria|Auditoría|audit/iu);
   });
 
   it("serves the R02 dashboard stylesheet as protected CSS", async () => {
