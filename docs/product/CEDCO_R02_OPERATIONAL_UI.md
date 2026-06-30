@@ -11,6 +11,7 @@ The R02 page renders:
 - Handoff targets.
 - Integration status.
 - Audit count.
+- DB-backed readiness items and remaining gates.
 
 The page also provides same-origin operator actions:
 
@@ -27,6 +28,7 @@ The page also provides same-origin operator actions:
 - Approve and activate an agent version.
 - Simulate schedule, knowledge and handoff flows.
 - Store an internal handoff target reference.
+- Read dynamic R02 readiness from tenant data.
 
 Runtime boundaries:
 
@@ -51,3 +53,5 @@ Staging:
   references.
 - Local RAG file reading is browser-side only for `txt`, `md`, `csv` and `json`; PDF/DOCX binaries
   are not selected by the dashboard reader.
+- `GET /api/v1/tenants/:tenantId/r02/readiness` returns the same readiness boundary as JSON for
+  operator checks and release evidence.
