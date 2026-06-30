@@ -17,6 +17,7 @@ and does not expose a public provider webhook.
 | Synthetic webhook rehearsal | Passed in dialer      |
 | Private synthetic endpoint  | Implemented in dialer |
 | VM private endpoint         | Passed                |
+| Provider capability review  | Completed             |
 
 ## Required Future Controls
 
@@ -32,6 +33,11 @@ A future private webhook staging loop must keep the same controls before any pub
 
 Public webhook exposure requires a separate approval loop. That loop must define route exposure,
 rollback, replay storage, idempotency persistence, rate limits, observability and incident owner.
+
+D02-AUTO-19 keeps real provider webhook staging blocked. Capability discovery did not prove a safe
+private loopback/internal callback path, did not prove agent-level-only scope, and did not prove
+metadata-only delivery without transcript/audio risk. Platform must continue to treat real provider
+callbacks as not connected.
 
 The private endpoint does not authorize real provider callbacks. Private metadata-only provider
 webhook staging requires `APPROVE_PRIVATE_METADATA_ONLY_PROVIDER_WEBHOOK_STAGING`. Public exposure
