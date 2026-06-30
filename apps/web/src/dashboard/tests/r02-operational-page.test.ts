@@ -12,14 +12,14 @@ describe("CEDCO R02 operational page", () => {
     expect(html).toContain('accept=".txt,.md,.csv,.json');
     expect(html).toContain("Cargar documento");
     expect(html).toContain('data-r02-action="external-calendar-sync-dry-run"');
-    expect(html).toContain("Validar calendario externo");
+    expect(html).toContain("Validar sincronizacion");
     expect(html).toContain("Asistente");
     expect(html).toContain("Derivaciones");
     expect(html).toContain("Estado de canales");
     expect(html).toContain("Preparacion y pendientes");
-    expect(html).toContain("Conectar calendario externo de staging");
+    expect(html).toContain("Conectar agenda externa autorizada");
     expect(html).toContain("Documentos CEDCO sanitizados");
-    expect(html).toContain("disabled");
+    expect(html).toContain("desactivado");
     expect(html).not.toMatch(
       /Google|Twilio|ElevenLabs|11labs|Knowledge base|Egress provider|Transcript\/audio/iu,
     );
@@ -57,7 +57,7 @@ describe("CEDCO R02 operational page", () => {
     });
 
     expect(html).not.toMatch(/Google|Twilio|ElevenLabs|11labs/iu);
-    expect(html).toContain("appointment-r02-externo-dry-run");
+    expect(html).toContain("cita-r02-externo-dry-run");
     expect(html).toContain("canal-fallback-demo");
   });
 });

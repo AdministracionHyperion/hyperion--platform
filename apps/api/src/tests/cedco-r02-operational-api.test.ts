@@ -50,6 +50,20 @@ describe("CEDCO R02 operational API", () => {
     );
   });
 
+  it("serves the R02 dashboard stylesheet as protected CSS", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/styles/operational-dashboard.css`,
+      headers: adminHeaders,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/css");
+    expect(response.body).toContain(".dashboard-shell");
+    expect(response.body).toContain(".summary-grid");
+    expect(response.body).not.toMatch(/Google|Twilio|ElevenLabs|11labs/iu);
+  });
+
   it("creates availability, books, reschedules, cancels and audits an appointment", async () => {
     const firstSlot = await createAvailability("slot-r02-api-001", "2026-07-03T14:00:00.000Z");
     const secondSlot = await createAvailability("slot-r02-api-002", "2026-07-03T15:00:00.000Z");

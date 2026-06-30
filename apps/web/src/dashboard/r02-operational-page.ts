@@ -118,9 +118,9 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
           "Numero operativo enlazado al asistente de recepcion para validaciones controladas.",
       },
       {
-        label: "Calendario externo",
+        label: "Sincronizacion de agenda",
         status: "pending",
-        detail: "Faltan credenciales y mapeo de agenda externa de staging.",
+        detail: "Faltan credenciales y mapeo de agenda externa cuando se autorice.",
       },
       {
         label: "Handoff persistente",
@@ -140,17 +140,17 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
     ],
     finalOperatorInputs: [
       "Credenciales del canal de comunicaciones solo por terminal privada cuando toque verificarlo.",
-      "Credenciales y mapeo de calendario externo para staging.",
+      "Credenciales y mapeo de agenda externa cuando se autorice.",
       "Documentos CEDCO sanitizados para cargar la base de conocimiento desde este dashboard.",
       "Destino humano aprobado si se habilita handoff persistente.",
       "Ventana y numero llamante autorizado para piloto inbound.",
-      "Decision sobre enrutador interno: mantener fuera o abrir refactor staging.",
+      "Decision sobre enrutador interno: mantener fuera o abrir refactor separado.",
     ],
     futureGates: [
       "Activar piloto entrante controlado",
-      "Conectar calendario externo de staging",
+      "Conectar agenda externa autorizada",
       "Habilitar destino humano persistente",
-      "Refactor de enrutador interno en staging",
+      "Refactor de enrutador interno",
       "Control de calidad con transcripcion redactada",
       "Captura de audio controlada",
     ],
@@ -231,7 +231,7 @@ function renderAppointments(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="agenda">
     <h2>Calendario y citas</h2>
     <table>
-      <thead><tr><th>Cita</th><th>Estado</th><th>Sync</th><th>Servicio</th><th>Inicio</th></tr></thead>
+      <thead><tr><th>Solicitud</th><th>Estado</th><th>Agenda externa</th><th>Servicio</th><th>Fecha y hora</th></tr></thead>
       <tbody>${model.appointments
         .map(
           (item) => `<tr>
@@ -239,7 +239,7 @@ function renderAppointments(model: R02OperationalPanelModel): string {
             <td>${operatorText(item.status)}</td>
             <td>${operatorText(item.syncStatus)}</td>
             <td>${operatorText(item.serviceTypeId)}</td>
-            <td>${escapeHtml(item.startsAt)}</td>
+            <td>${formatDateTime(item.startsAt)}</td>
           </tr>`,
         )
         .join("")}</tbody>
@@ -251,13 +251,13 @@ function renderAvailability(model: R02OperationalPanelModel): string {
   return `<section class="panel">
     <h2>Disponibilidad</h2>
     <table>
-      <thead><tr><th>Slot</th><th>Servicio</th><th>Inicio</th><th>Cupos</th></tr></thead>
+      <thead><tr><th>Bloque de agenda</th><th>Servicio</th><th>Fecha y hora</th><th>Cupos</th></tr></thead>
       <tbody>${model.availability
         .map(
           (item) => `<tr>
             <td>${operatorText(item.slotId)}</td>
             <td>${operatorText(item.serviceTypeId)}</td>
-            <td>${escapeHtml(item.startsAt)}</td>
+            <td>${formatDateTime(item.startsAt)}</td>
             <td>${item.capacityRemaining}</td>
           </tr>`,
         )
@@ -270,14 +270,14 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="conocimiento">
     <h2>Base de conocimiento</h2>
     <form class="action-form" data-r02-action="upload-knowledge">
-      <label>Documento<input name="documentId" value="doc-r02-dashboard" /></label>
-      <label>Archivo<input name="sourceName" value="cedco-r02-dashboard.md" /></label>
+      <label>Documento<input name="documentId" value="documento-operativo-demo" /></label>
+      <label>Archivo<input name="sourceName" value="cedco-operacion-demo.md" /></label>
       <label>Fuente local<input name="ragTextFile" type="file" accept=".txt,.md,.csv,.json,text/plain,text/markdown,text/csv,application/json" data-r02-local-text-file /></label>
       <label class="action-form__wide">Contenido<textarea name="contentText">CEDCO agenda orientacion inicial y programacion de cita con calendario interno.</textarea></label>
       <button type="submit">Cargar documento</button>
     </form>
     <form class="inline-actions" data-r02-action="knowledge-transition">
-      <input name="documentId" value="${escapeHtml(model.knowledgeDocuments[0]?.documentId ?? "doc-r02-dashboard")}" />
+      <input name="documentId" value="${operatorInputValue(model.knowledgeDocuments[0]?.documentId, "documento-operativo-demo")}" />
       <button name="transition" value="process" type="submit">Procesar</button>
       <button name="transition" value="approve" type="submit">Aprobar</button>
       <button name="transition" value="activate" type="submit">Activar</button>
@@ -307,13 +307,13 @@ function renderAgents(model: R02OperationalPanelModel): string {
     <h2>Asistente</h2>
     <form class="action-form" data-r02-action="agent-version">
       <label>Agente<input name="agentId" value="${escapeHtml(model.agents[0]?.agentId ?? "cedco-r02-recepcion-agendamiento")}" /></label>
-      <label>Version<input name="versionId" value="cedco-r02-dashboard-v2" /></label>
+      <label>Version<input name="versionId" value="version-operativa-demo" /></label>
       <label>Saludo<input name="greeting" value="Hola, gracias por comunicarte con CEDCO." /></label>
       <label class="action-form__wide">Guion operativo<textarea name="prompt">Consulta la base de conocimiento aprobada y la disponibilidad interna antes de confirmar una cita.</textarea></label>
       <button type="submit">Crear version</button>
     </form>
     <form class="inline-actions" data-r02-action="agent-transition">
-      <input name="versionId" value="${escapeHtml(model.agents[0]?.activeVersionId ?? "cedco-r02-dashboard-v2")}" />
+      <input name="versionId" value="${operatorInputValue(model.agents[0]?.activeVersionId, "version-operativa-demo")}" />
       <button name="transition" value="approve" type="submit">Aprobar</button>
       <button name="transition" value="activate" type="submit">Activar</button>
     </form>
@@ -353,23 +353,23 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
       <output data-r02-output="seed-demo"></output>
     </form>
     <form class="action-form" data-r02-action="availability">
-      <label>Slot<input name="slotId" value="slot-r02-dashboard" /></label>
-      <label>Recurso<input name="resourceId" value="cedco-r02-recepcion" /></label>
-      <label>Sede<input name="siteId" value="cedco-main-site" /></label>
-      <label>Servicio<input name="serviceTypeId" value="consulta-general" /></label>
-      <label>Inicio<input name="startsAt" value="${escapeHtml(nextIsoHour())}" /></label>
+      <label>Bloque de agenda<input name="slotId" value="bloque-agenda-demo" /></label>
+      <label>Agenda<input name="resourceId" value="recepcion-cedco" /></label>
+      <label>Sede<input name="siteId" value="sede-principal" /></label>
+      <label>Servicio<input name="serviceTypeId" value="orientacion-inicial" /></label>
+      <label>Fecha y hora<input name="startsAt" value="${escapeHtml(nextIsoHour())}" /></label>
       <label>Cupos<input name="capacity" type="number" min="1" max="20" value="1" /></label>
       <button type="submit">Crear disponibilidad</button>
     </form>
     <form class="action-form" data-r02-action="appointment">
-      <label>Cita<input name="appointmentId" value="appointment-r02-dashboard" /></label>
-      <label>Slot<input name="slotId" value="${escapeHtml(model.availability[0]?.slotId ?? "slot-r02-dashboard")}" /></label>
-      <label>Paciente ref<input name="patientRef" value="patient-demo-dashboard" /></label>
+      <label>Solicitud de cita<input name="appointmentId" value="solicitud-cita-demo" /></label>
+      <label>Bloque de agenda<input name="slotId" value="${operatorInputValue(model.availability[0]?.slotId, "bloque-agenda-demo")}" /></label>
+      <label>Usuario<input name="patientRef" value="usuario-demo" /></label>
       <button type="submit">Crear cita</button>
     </form>
     <form class="inline-actions" data-r02-action="external-calendar-sync-dry-run">
-      <input name="appointmentId" value="${operatorInputValue(model.appointments[0]?.appointmentId, "appointment-r02-dashboard")}" />
-      <button type="submit">Validar calendario externo</button>
+      <input name="appointmentId" value="${operatorInputValue(model.appointments[0]?.appointmentId, "solicitud-cita-demo")}" />
+      <button type="submit">Validar sincronizacion</button>
     </form>
     <output class="action-log" data-r02-output="global"></output>
   </section>`;
@@ -379,10 +379,10 @@ function renderHandoff(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="derivaciones">
     <h2>Derivaciones</h2>
     <form class="action-form" data-r02-action="handoff-target">
-      <label>Target<input name="targetId" value="handoff-human-queue" /></label>
+      <label>Destino<input name="targetId" value="equipo-humano-cedco" /></label>
       <label>Tipo<select name="targetType"><option value="human">equipo humano</option><option value="pbx">enrutador interno</option></select></label>
       <label>Nombre<input name="displayName" value="Recepcion humana CEDCO" /></label>
-      <label>Ruta ref<input name="routeRef" value="human_queue_demo" /></label>
+      <label>Ruta interna<input name="routeRef" value="cola-humana-demo" /></label>
       <button type="submit">Guardar derivacion</button>
     </form>
     <table>
@@ -411,7 +411,7 @@ function renderReadiness(model: R02OperationalPanelModel): string {
           ${model.readinessItems
             .map(
               (item) => `<li>
-                <span class="status-pill status-pill--${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>
+                <span class="status-pill status-pill--${escapeHtml(item.status)}">${operatorText(item.status)}</span>
                 <strong>${escapeHtml(item.label)}</strong>
                 <small>${escapeHtml(item.detail)}</small>
               </li>`,
@@ -438,9 +438,9 @@ function renderIntegrations(model: R02OperationalPanelModel): string {
   return `<section class="panel">
     <h2>Estado de canales</h2>
     <dl class="kv-grid">
-      <dt>Calendario externo</dt><dd>${escapeHtml(status.externalCalendar)}</dd>
-      <dt>Canal de entrada</dt><dd>${escapeHtml(status.externalInbound)}</dd>
-      <dt>Enrutador interno</dt><dd>${escapeHtml(status.pbx)}</dd>
+      <dt>Sincronizacion de agenda</dt><dd>${operatorText(status.externalCalendar)}</dd>
+      <dt>Canal de entrada</dt><dd>${operatorText(status.externalInbound)}</dd>
+      <dt>Enrutador interno</dt><dd>${operatorText(status.pbx)}</dd>
       <dt>Llamadas reales</dt><dd>${renderBoolean(status.realCallsEnabled)}</dd>
       <dt>Conexiones salientes</dt><dd>${renderBoolean(status.providerEgressEnabled)}</dd>
       <dt>Grabacion y transcripcion</dt><dd>${renderBoolean(status.transcriptAudioEnabled)}</dd>
@@ -605,8 +605,48 @@ function operatorInputValue(value: string | undefined, fallback: string): string
   return escapeHtml(neutralizeOperatorText(value ?? fallback));
 }
 
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return escapeHtml(value);
+  }
+
+  return escapeHtml(
+    new Intl.DateTimeFormat("es-CO", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "America/Bogota",
+    }).format(date),
+  );
+}
+
 function neutralizeOperatorText(value: string): string {
+  const exactLabels: Record<string, string> = {
+    active: "activo",
+    archived: "archivado",
+    blocked: "bloqueado",
+    cancelled: "cancelada",
+    disabled: "desactivado",
+    done: "listo",
+    failed: "fallo",
+    human: "equipo humano",
+    partial: "parcial",
+    pending: "pendiente",
+    ready: "operativo",
+    scheduled: "programada",
+    synced: "sincronizada",
+  };
+  const exact = exactLabels[value.toLowerCase()];
+  if (exact) {
+    return exact;
+  }
+
   return value
+    .replace(/appointment/giu, "cita")
+    .replace(/patient/giu, "usuario")
+    .replace(/slot/giu, "bloque")
+    .replace(/dashboard/giu, "panel")
+    .replace(/main-site/giu, "sede-principal")
     .replace(/google/giu, "externo")
     .replace(/twilio/giu, "canal")
     .replace(/elevenlabs|11labs/giu, "asistente")

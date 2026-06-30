@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { FastifyInstance } from "fastify";
 import {
   createR02OperationalDemoModel,
@@ -24,10 +25,25 @@ import { getRequiredRequestContext } from "../http/request-context";
 import type { RouteRegistryDependencies } from "../http/route-registry";
 import { validateWithSchema } from "../http/validation";
 
+const r02OperationalStylesheet = readFileSync(
+  new URL("../../../web/src/dashboard/styles/operational-dashboard.css", import.meta.url),
+  "utf8",
+);
+
 export async function registerCedcoR02Routes(
   app: FastifyInstance,
   dependencies: RouteRegistryDependencies,
 ): Promise<void> {
+  app.get(
+    "/api/v1/tenants/:tenantId/r02/styles/operational-dashboard.css",
+    async (request, reply) => {
+      validateWithSchema(cedcoR02ParamsSchema, request.params);
+      getRequiredRequestContext(request, ["tenant:read"]);
+      reply.type("text/css; charset=utf-8");
+      return r02OperationalStylesheet;
+    },
+  );
+
   app.get("/api/v1/tenants/:tenantId/r02/dashboard", async (request, reply) => {
     const params = validateWithSchema(cedcoR02ParamsSchema, request.params);
     const context = getRequiredRequestContext(request, [
