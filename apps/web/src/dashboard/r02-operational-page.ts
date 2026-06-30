@@ -107,19 +107,20 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
     },
     readinessItems: [
       {
-        label: "Dashboard R02",
+        label: "Operacion diaria",
         status: "done",
-        detail: "Calendario, RAG, agentes, handoff interno y auditoria operativos.",
+        detail: "Agenda, base de conocimiento, asistente, derivaciones y auditoria operativos.",
       },
       {
-        label: "Numero inbound CEDCO",
+        label: "Canal de atencion entrante",
         status: "done",
-        detail: "Twilio Colombia importado y bindeado en ElevenLabs para validaciones controladas.",
+        detail:
+          "Numero operativo enlazado al asistente de recepcion para validaciones controladas.",
       },
       {
-        label: "Google Calendar",
+        label: "Calendario externo",
         status: "pending",
-        detail: "Faltan credenciales y mapeo de calendarios de staging.",
+        detail: "Faltan credenciales y mapeo de agenda externa de staging.",
       },
       {
         label: "Handoff persistente",
@@ -127,31 +128,31 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
         detail: "Falta decidir si queda activo y aportar destino aprobado por canal privado.",
       },
       {
-        label: "PBX real",
+        label: "Enrutador de llamadas",
         status: "blocked",
-        detail: "Requiere loop separado de refactor y runtime; hoy solo existe baseline sintetica.",
+        detail: "Requiere refactor separado de runtime; hoy queda fuera de la operacion diaria.",
       },
       {
-        label: "Transcript/audio",
+        label: "Grabacion y transcripcion",
         status: "blocked",
-        detail: "Sigue bloqueado salvo aprobacion puntual de QA o audio.",
+        detail: "Sigue bloqueado salvo aprobacion puntual de control de calidad.",
       },
     ],
     finalOperatorInputs: [
-      "Credenciales Twilio/ElevenLabs solo por terminal privada cuando toque verificar providers.",
-      "Credenciales y mapeo Google Calendar para staging.",
-      "Documentos CEDCO sanitizados para cargar RAG desde este dashboard.",
+      "Credenciales del canal de comunicaciones solo por terminal privada cuando toque verificarlo.",
+      "Credenciales y mapeo de calendario externo para staging.",
+      "Documentos CEDCO sanitizados para cargar la base de conocimiento desde este dashboard.",
       "Destino humano aprobado si se habilita handoff persistente.",
       "Ventana y numero llamante autorizado para piloto inbound.",
-      "Decision PBX: mantener fuera o abrir refactor staging.",
+      "Decision sobre enrutador interno: mantener fuera o abrir refactor staging.",
     ],
     futureGates: [
-      "APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT",
-      "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
-      "APPROVE_PROVIDER_HANDOFF_TARGET_PERSISTENT_ENABLEMENT",
-      "APPROVE_PBX_STAGING_RUNTIME_REFACTOR",
-      "APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT",
-      "APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT",
+      "Activar piloto entrante controlado",
+      "Conectar calendario externo de staging",
+      "Habilitar destino humano persistente",
+      "Refactor de enrutador interno en staging",
+      "Control de calidad con transcripcion redactada",
+      "Captura de audio controlada",
     ],
     auditCount: 4,
   };
@@ -163,29 +164,42 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CEDCO R02 Operations</title>
+    <title>Centro operativo CEDCO</title>
     <link rel="stylesheet" href="./styles/operational-dashboard.css" />
   </head>
   <body>
     <main class="dashboard-shell">
       <aside class="dashboard-shell__sidebar">
-        <strong>Hyperion</strong>
-        <nav>CEDCO R02</nav>
+        <div class="brand-lockup">
+          <strong>CEDCO</strong>
+          <span>Centro operativo</span>
+        </div>
+        <nav class="sidebar-nav" aria-label="Secciones">
+          <a href="#agenda">Agenda</a>
+          <a href="#conocimiento">Conocimiento</a>
+          <a href="#asistente">Asistente</a>
+          <a href="#derivaciones">Derivaciones</a>
+          <a href="#auditoria">Auditoria</a>
+        </nav>
       </aside>
       <section class="dashboard-shell__content" data-r02-tenant="${escapeHtml(model.tenantId)}">
         <header class="dashboard-header">
           <div>
-            <h1>CEDCO R02 Operations</h1>
-            <p>Tenant ${escapeHtml(model.tenantId)}</p>
+            <span class="dashboard-eyebrow">Recepcion y agendamiento</span>
+            <h1>Centro operativo CEDCO</h1>
+            <p>Agenda, base de conocimiento, asistente y derivaciones en un solo lugar.</p>
           </div>
-          <span class="status-pill status-pill--${escapeHtml(model.overallStatus)}">${escapeHtml(
-            model.overallStatus,
-          )}</span>
+          <div class="header-meta">
+            <span>Entorno ${escapeHtml(model.tenantId)}</span>
+            <span class="status-pill status-pill--${escapeHtml(model.overallStatus)}">${escapeHtml(
+              renderStatusLabel(model.overallStatus),
+            )}</span>
+          </div>
         </header>
         <section class="summary-grid">
           ${renderMiniCard("Citas", String(model.appointments.length), "Calendario interno")}
-          ${renderMiniCard("RAG", String(model.knowledgeDocuments.length), "Documentos activos")}
-          ${renderMiniCard("Agentes", String(model.agents.length), "Versiones controladas")}
+          ${renderMiniCard("Conocimiento", String(model.knowledgeDocuments.length), "Documentos activos")}
+          ${renderMiniCard("Asistentes", String(model.agents.length), "Versiones controladas")}
           ${renderMiniCard("Auditoria", String(model.auditCount), "Eventos seguros")}
         </section>
         <section class="dashboard-grid">
@@ -214,7 +228,7 @@ function renderMiniCard(label: string, value: string, helperText: string): strin
 }
 
 function renderAppointments(model: R02OperationalPanelModel): string {
-  return `<section class="panel">
+  return `<section class="panel" id="agenda">
     <h2>Calendario y citas</h2>
     <table>
       <thead><tr><th>Cita</th><th>Estado</th><th>Sync</th><th>Servicio</th><th>Inicio</th></tr></thead>
@@ -253,14 +267,14 @@ function renderAvailability(model: R02OperationalPanelModel): string {
 }
 
 function renderKnowledge(model: R02OperationalPanelModel): string {
-  return `<section class="panel">
-    <h2>RAG / Knowledge base</h2>
+  return `<section class="panel" id="conocimiento">
+    <h2>Base de conocimiento</h2>
     <form class="action-form" data-r02-action="upload-knowledge">
       <label>Documento<input name="documentId" value="doc-r02-dashboard" /></label>
       <label>Archivo<input name="sourceName" value="cedco-r02-dashboard.md" /></label>
       <label>Fuente local<input name="ragTextFile" type="file" accept=".txt,.md,.csv,.json,text/plain,text/markdown,text/csv,application/json" data-r02-local-text-file /></label>
       <label class="action-form__wide">Contenido<textarea name="contentText">CEDCO agenda orientacion inicial y programacion de cita con calendario interno.</textarea></label>
-      <button type="submit">Cargar RAG</button>
+      <button type="submit">Cargar documento</button>
     </form>
     <form class="inline-actions" data-r02-action="knowledge-transition">
       <input name="documentId" value="${escapeHtml(model.knowledgeDocuments[0]?.documentId ?? "doc-r02-dashboard")}" />
@@ -289,13 +303,13 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
 }
 
 function renderAgents(model: R02OperationalPanelModel): string {
-  return `<section class="panel">
-    <h2>Agentes</h2>
+  return `<section class="panel" id="asistente">
+    <h2>Asistente</h2>
     <form class="action-form" data-r02-action="agent-version">
       <label>Agente<input name="agentId" value="${escapeHtml(model.agents[0]?.agentId ?? "cedco-r02-recepcion-agendamiento")}" /></label>
       <label>Version<input name="versionId" value="cedco-r02-dashboard-v2" /></label>
       <label>Saludo<input name="greeting" value="Hola, gracias por comunicarte con CEDCO." /></label>
-      <label class="action-form__wide">Prompt<textarea name="prompt">Consulta RAG aprobado y disponibilidad interna antes de confirmar una cita.</textarea></label>
+      <label class="action-form__wide">Guion operativo<textarea name="prompt">Consulta la base de conocimiento aprobada y la disponibilidad interna antes de confirmar una cita.</textarea></label>
       <button type="submit">Crear version</button>
     </form>
     <form class="inline-actions" data-r02-action="agent-transition">
@@ -313,7 +327,7 @@ function renderAgents(model: R02OperationalPanelModel): string {
       <button type="submit">Simular</button>
     </form>
     <table>
-      <thead><tr><th>Agente</th><th>Nombre</th><th>Version activa</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Asistente</th><th>Nombre</th><th>Version activa</th><th>Estado</th></tr></thead>
       <tbody>${model.agents
         .map(
           (item) => `<tr>
@@ -329,8 +343,11 @@ function renderAgents(model: R02OperationalPanelModel): string {
 }
 
 function renderOperatorActions(model: R02OperationalPanelModel): string {
-  return `<section class="panel panel--wide">
-    <h2>Operacion diaria</h2>
+  return `<section class="panel panel--wide panel--command">
+    <div>
+      <h2>Operacion diaria</h2>
+      <p>Acciones frecuentes para preparar agenda, registrar solicitudes y probar el flujo sin salir del panel.</p>
+    </div>
     <form class="inline-actions" data-r02-action="seed-demo">
       <button type="submit">Sembrar demo</button>
       <output data-r02-output="seed-demo"></output>
@@ -350,26 +367,26 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
       <label>Paciente ref<input name="patientRef" value="patient-demo-dashboard" /></label>
       <button type="submit">Crear cita</button>
     </form>
-    <form class="inline-actions" data-r02-action="google-sync-dry-run">
+    <form class="inline-actions" data-r02-action="external-calendar-sync-dry-run">
       <input name="appointmentId" value="${escapeHtml(model.appointments[0]?.appointmentId ?? "appointment-r02-dashboard")}" />
-      <button type="submit">Validar Google dry-run</button>
+      <button type="submit">Validar calendario externo</button>
     </form>
     <output class="action-log" data-r02-output="global"></output>
   </section>`;
 }
 
 function renderHandoff(model: R02OperationalPanelModel): string {
-  return `<section class="panel">
-    <h2>Handoff</h2>
+  return `<section class="panel" id="derivaciones">
+    <h2>Derivaciones</h2>
     <form class="action-form" data-r02-action="handoff-target">
       <label>Target<input name="targetId" value="handoff-human-queue" /></label>
-      <label>Tipo<select name="targetType"><option value="human">humano</option><option value="pbx">pbx</option><option value="twilio_fallback">twilio fallback</option></select></label>
+      <label>Tipo<select name="targetType"><option value="human">equipo humano</option><option value="pbx">enrutador interno</option></select></label>
       <label>Nombre<input name="displayName" value="Recepcion humana CEDCO" /></label>
       <label>Ruta ref<input name="routeRef" value="human_queue_demo" /></label>
-      <button type="submit">Guardar handoff</button>
+      <button type="submit">Guardar derivacion</button>
     </form>
     <table>
-      <thead><tr><th>Target</th><th>Tipo</th><th>Nombre</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Destino</th><th>Tipo</th><th>Nombre</th><th>Estado</th></tr></thead>
       <tbody>${model.handoffTargets
         .map(
           (item) => `<tr>
@@ -385,8 +402,8 @@ function renderHandoff(model: R02OperationalPanelModel): string {
 }
 
 function renderReadiness(model: R02OperationalPanelModel): string {
-  return `<section class="panel panel--wide">
-    <h2>Inputs y gates finales</h2>
+  return `<section class="panel panel--wide" id="auditoria">
+    <h2>Preparacion y pendientes</h2>
     <div class="readiness-layout">
       <div>
         <h3>Estado operativo</h3>
@@ -407,7 +424,7 @@ function renderReadiness(model: R02OperationalPanelModel): string {
         <ul class="compact-list">
           ${model.finalOperatorInputs.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
         </ul>
-        <h3>Gates separados</h3>
+        <h3>Aprobaciones separadas</h3>
         <ul class="gate-list">
           ${model.futureGates.map((item) => `<li><code>${escapeHtml(item)}</code></li>`).join("")}
         </ul>
@@ -419,14 +436,14 @@ function renderReadiness(model: R02OperationalPanelModel): string {
 function renderIntegrations(model: R02OperationalPanelModel): string {
   const status = model.integrationStatus;
   return `<section class="panel">
-    <h2>Integraciones</h2>
+    <h2>Estado de canales</h2>
     <dl class="kv-grid">
       <dt>Calendario externo</dt><dd>${escapeHtml(status.externalCalendar)}</dd>
-      <dt>Inbound externo</dt><dd>${escapeHtml(status.externalInbound)}</dd>
-      <dt>PBX</dt><dd>${escapeHtml(status.pbx)}</dd>
+      <dt>Canal de entrada</dt><dd>${escapeHtml(status.externalInbound)}</dd>
+      <dt>Enrutador interno</dt><dd>${escapeHtml(status.pbx)}</dd>
       <dt>Llamadas reales</dt><dd>${renderBoolean(status.realCallsEnabled)}</dd>
-      <dt>Egress provider</dt><dd>${renderBoolean(status.providerEgressEnabled)}</dd>
-      <dt>Transcript/audio</dt><dd>${renderBoolean(status.transcriptAudioEnabled)}</dd>
+      <dt>Conexiones salientes</dt><dd>${renderBoolean(status.providerEgressEnabled)}</dd>
+      <dt>Grabacion y transcripcion</dt><dd>${renderBoolean(status.transcriptAudioEnabled)}</dd>
     </dl>
   </section>`;
 }
@@ -520,8 +537,8 @@ function renderR02DashboardScript(): string {
             metadata: { source: "r02-dashboard" },
           });
         }
-        if (action === "google-sync-dry-run") {
-          await postJson("/google-calendar/" + encodeURIComponent(data.appointmentId) + "/sync-dry-run", {});
+        if (action === "external-calendar-sync-dry-run") {
+          await postJson("/external-calendar/" + encodeURIComponent(data.appointmentId) + "/sync-dry-run", {});
         }
         if (action === "upload-knowledge") {
           await postJson("/knowledge-documents/upload", {
@@ -561,7 +578,7 @@ function renderR02DashboardScript(): string {
             displayName: data.displayName,
             routeRef: data.routeRef,
             status: "active",
-            metadata: { source: "r02-dashboard", providerMutation: false },
+            metadata: { source: "r02-dashboard", externalMutation: false },
           });
         }
         write("accion completada");
@@ -572,6 +589,12 @@ function renderR02DashboardScript(): string {
   });
 })();
 </script>`;
+}
+
+function renderStatusLabel(status: R02OperationalPanelModel["overallStatus"]): string {
+  if (status === "ready") return "operativo";
+  if (status === "partial") return "parcial";
+  return "bloqueado";
 }
 
 function nextIsoHour(): string {

@@ -70,7 +70,7 @@ await configureAuthHeaders();
 
 const dashboard = await request("GET", `${basePath}/dashboard`, undefined, 200, adminHeaders);
 result.dashboard_route_loaded =
-  dashboard.text.includes("CEDCO R02 Operations") && !blockedEvidencePattern.test(dashboard.text);
+  dashboard.text.includes("Centro operativo CEDCO") && !blockedEvidencePattern.test(dashboard.text);
 
 const seed = await request("POST", `${basePath}/demo/seed`, {}, 200);
 result.seed_created = seed.json.data?.seeded === true;
@@ -154,7 +154,7 @@ const upload = await request(
     sourceName: "cedco-r02-demo.md",
     contentText:
       "CEDCO Demo atiende programacion de cita, consulta general y orientacion inicial. " +
-      "La agenda interna es fuente principal y Google Calendar permanece deshabilitado en staging.",
+      "La agenda interna es fuente principal y el calendario externo permanece deshabilitado en staging.",
     metadata: { source: "r02-staging-validation", purpose: "demo_knowledge" },
   },
   201,

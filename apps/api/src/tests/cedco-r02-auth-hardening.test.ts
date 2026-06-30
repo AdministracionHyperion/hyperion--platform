@@ -56,7 +56,7 @@ describe("CEDCO R02 local staging auth hardening", () => {
       headers: { authorization: `Bearer ${sessionToken}` },
     });
     expect(dashboard.statusCode).toBe(200);
-    expect(dashboard.body).toContain("CEDCO R02 Operations");
+    expect(dashboard.body).toContain("Centro operativo CEDCO");
   });
 
   it("denies viewer writes with DB-backed-role semantics", async () => {
