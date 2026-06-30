@@ -26,6 +26,12 @@ audio fields, PII/provider IDs, and oversized bodies were rejected or stripped a
 
 Real provider webhook remains disconnected.
 
+## D02-AUTO-22 Update
+
+The real-provider webhook approval phrase was received, but the loop stopped before mutation on
+`workspace_scope_risk_blocker`. The public route remains synthetic-only and no webhook secret was
+installed for real provider callbacks.
+
 ## Gates Before Pilot
 
 - D02 Spanish controlled MVP evidence remains available.
@@ -34,7 +40,8 @@ Real provider webhook remains disconnected.
   synthetic VM validation is complete.
 - Public webhook must remain synthetic-only until real provider metadata-only processing is
   separately approved.
-- Real metadata-only provider webhook callbacks must remain blocked until separately approved.
+- Real metadata-only provider webhook callbacks must remain blocked until workspace scoping is
+  resolved and separately approved again.
 - Public webhook route must remain on the approved synthetic staging path only.
 - Transcript QA must remain blocked until separately approved.
 - Audio capture/review must remain blocked until separately approved.

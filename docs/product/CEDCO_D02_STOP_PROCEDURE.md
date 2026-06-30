@@ -12,6 +12,9 @@ For public webhook staging, the kill switch must disable the Traefik public rout
 provider webhook processing disconnected until separately approved, keep transcript/audio disabled,
 and confirm provider egress and live calls remain disabled.
 
+D02-AUTO-22 did not connect the real provider webhook. Current stop posture remains synthetic-only
+public route plus disabled provider egress/live calls.
+
 ## Stop Conditions
 
 Stop the pilot immediately if any of the following occurs:
