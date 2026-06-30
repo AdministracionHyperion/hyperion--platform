@@ -1,6 +1,6 @@
 # CEDCO R02 Twilio ElevenLabs Number Status
 
-Generated from sanitized read-only provider inventory at `2026-06-30T08:13:30.251198+00:00`.
+Generated from sanitized provider inventory and later import/binding evidence on `2026-06-30`.
 
 | Item                                               | Status                |
 | -------------------------------------------------- | --------------------- |
@@ -19,9 +19,15 @@ Generated from sanitized read-only provider inventory at `2026-06-30T08:13:30.25
 | Twilio Colombia messaging attached                 | no                    |
 | ElevenLabs API auth status                         | ok                    |
 | ElevenLabs agents count                            | 2                     |
-| ElevenLabs phone numbers count                     | 1                     |
+| ElevenLabs pre-import phone numbers count          | 1                     |
 | ElevenLabs Colombia number visible                 | yes                   |
 | ElevenLabs binding visible                         | yes                   |
-| Same number seen in Twilio and ElevenLabs          | no                    |
+| Same number seen in Twilio and ElevenLabs          | yes                   |
+| ElevenLabs import retry result                     | success               |
+| CEDCO R02 agent binding verified                   | yes                   |
+| Controlled inbound call result                     | answered in Spanish   |
+| Functional inbound appointment-flow result         | pass with warnings    |
 
-No calls, provider mutations, webhook updates, transcript access, or audio access were performed.
+No Twilio mutation, webhook update, unbounded calls, raw transcript commit, audio access, or
+provider ID exposure was performed. A later controlled ElevenLabs import retry was executed under
+approval, and controlled inbound calls were executed separately.
