@@ -19,6 +19,14 @@ Functional flow:
 - Transfer to human/PBX when confidence is low, user asks for a person, there is urgency, or policy
   blocks the answer.
 
+R02-CEDCO-AUTO-2 implementation state:
+
+- Agent flow simulation API exists.
+- The simulation can create an internal appointment from an approved availability slot.
+- Google Calendar sync remains pending/disabled.
+- RAG results cite sanitized source/version references.
+- Handoff uses route references only.
+
 Blocked behavior:
 
 - Do not request sensitive data.

@@ -7,4 +7,5 @@ export const webAppBoundary = {
 export * from "./dashboard/operational-dashboard-api-client";
 export * from "./dashboard/operational-dashboard-page";
 export * from "./dashboard/operational-dashboard-types";
+export * from "./dashboard/r02-operational-page";
 export * from "./dashboard/components/dashboard-shell";

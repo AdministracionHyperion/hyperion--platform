@@ -93,7 +93,9 @@ body {
 }
 
 .status-pill--degraded,
-.status-pill--unknown {
+.status-pill--unknown,
+.status-pill--partial,
+.status-pill--ready {
   background: #fff3bf;
   color: #7a4b00;
 }

@@ -614,3 +614,311 @@ model CedcoD02Metric {
   @@index([key])
   @@index([occurredAt])
 }
+
+model CedcoR02CalendarResource {
+  id            String   @id
+  tenantId      String
+  siteRef       String
+  serviceTypeId String
+  displayName   String
+  status        String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([serviceTypeId])
+}
+
+model CedcoR02ServiceType {
+  id              String   @id
+  tenantId        String
+  displayName     String
+  durationMinutes Int
+  status          String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model CedcoR02AvailabilitySlot {
+  id            String   @id
+  tenantId      String
+  resourceId    String
+  siteRef       String
+  serviceTypeId String
+  startsAt      DateTime
+  endsAt        DateTime
+  capacity      Int
+  booked        Int
+  status        String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([resourceId])
+  @@index([startsAt])
+}
+
+model CedcoR02Appointment {
+  id            String   @id
+  tenantId      String
+  slotId        String
+  resourceId    String
+  siteRef       String
+  serviceTypeId String
+  patientRef    String
+  status        String
+  syncStatus    String
+  startsAt      DateTime
+  endsAt        DateTime
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([slotId])
+  @@index([status])
+}
+
+model CedcoR02CalendarSyncState {
+  id            String    @id
+  tenantId      String
+  appointmentId String
+  adapterMode   String
+  status        String
+  errorClass    String?
+  retryCount    Int       @default(0)
+  nextRetryAt   DateTime?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([tenantId, appointmentId, adapterMode])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model CedcoR02KnowledgeBase {
+  id          String   @id
+  tenantId    String
+  name        String
+  description String?
+  status      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+model CedcoR02KnowledgeDocument {
+  id              String   @id
+  tenantId        String
+  knowledgeBaseId String
+  sourceName      String
+  sourceType      String
+  status          String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([knowledgeBaseId])
+  @@index([status])
+}
+
+model CedcoR02KnowledgeDocumentVersion {
+  id         String    @id
+  tenantId   String
+  documentId String
+  version    Int
+  status     String
+  approvedBy String?
+  approvedAt DateTime?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([tenantId, documentId, version])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model CedcoR02KnowledgeChunk {
+  id         String   @id
+  tenantId   String
+  documentId String
+  versionId  String
+  ordinal    Int
+  textSafe   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@unique([versionId, ordinal])
+  @@index([tenantId])
+  @@index([documentId])
+}
+
+model CedcoR02KnowledgeIngestionJob {
+  id         String    @id
+  tenantId   String
+  documentId String
+  status     String
+  errorClass String?
+  metadata   Json?
+  startedAt  DateTime
+  endedAt    DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([documentId])
+  @@index([status])
+}
+
+model CedcoR02VoiceAgent {
+  id              String   @id
+  tenantId        String
+  displayName     String
+  locale          String
+  status          String
+  activeVersionId String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model CedcoR02VoiceAgentVersion {
+  id               String    @id
+  tenantId         String
+  agentId          String
+  version          Int
+  status           String
+  promptSafe       String
+  greetingSafe     String
+  allowedTools     Json
+  blockedTools     Json
+  approvedBy       String?
+  approvedAt       DateTime?
+  activatedAt      DateTime?
+  providerMutation Boolean   @default(false)
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([tenantId, agentId, version])
+  @@index([tenantId])
+  @@index([agentId])
+  @@index([status])
+}
+
+model CedcoR02AgentFlow {
+  id        String   @id
+  tenantId  String
+  agentId   String
+  versionId String
+  status    String
+  nodes     Json
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([agentId])
+}
+
+model CedcoR02AgentToolPolicy {
+  id           String   @id
+  tenantId     String
+  agentId      String
+  versionId    String
+  allowedTools Json
+  blockedTools Json
+  status       String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([agentId])
+}
+
+model CedcoR02AgentKnowledgeBinding {
+  id              String   @id
+  tenantId        String
+  agentId         String
+  versionId       String
+  knowledgeBaseId String
+  status          String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([agentId])
+  @@index([knowledgeBaseId])
+}
+
+model CedcoR02AgentCalendarBinding {
+  id         String   @id
+  tenantId   String
+  agentId    String
+  versionId  String
+  resourceId String
+  status     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([agentId])
+  @@index([resourceId])
+}
+
+model CedcoR02HandoffTarget {
+  id          String   @id
+  tenantId    String
+  targetType  String
+  displayName String
+  routeRef    String
+  status      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([targetType])
+}
+
+model CedcoR02AuditEvent {
+  id            String   @id
+  tenantId      String
+  actorId       String?
+  correlationId String
+  action        String
+  resourceType  String
+  resourceId    String
+  result        String
+  metadata      Json?
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([correlationId])
+  @@index([resourceType, resourceId])
+}
