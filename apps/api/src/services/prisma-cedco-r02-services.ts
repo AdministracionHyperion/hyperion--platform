@@ -13,6 +13,7 @@ import type {
   SearchKnowledgeBody,
   SimulateAgentFlowBody,
   UploadKnowledgeDocumentBody,
+  UpsertHandoffTargetBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
 
@@ -69,7 +70,9 @@ export function createPrismaCedcoR02Services(prisma: HyperionPrismaClient): Cedc
     runCalendarSyncTest: (context, appointmentId) =>
       service.runCalendarSyncTest(context, appointmentId),
     createKnowledgeBase: (context, input) => service.createKnowledgeBase(context, input),
+    listKnowledgeBases: (context) => service.listKnowledgeBases(context),
     uploadKnowledgeDocument: (context, input) => service.uploadKnowledgeDocument(context, input),
+    listKnowledgeDocuments: (context) => service.listKnowledgeDocuments(context),
     processKnowledgeDocument: (context, documentId) =>
       service.processKnowledgeDocument(context, documentId),
     approveKnowledgeDocument: (context, documentId) =>
@@ -78,11 +81,14 @@ export function createPrismaCedcoR02Services(prisma: HyperionPrismaClient): Cedc
       service.activateKnowledgeDocument(context, documentId),
     searchKnowledge: (context, input) => service.searchKnowledge(context, input),
     createAgent: (context, input) => service.createAgent(context, input),
+    listAgents: (context) => service.listAgents(context),
     createAgentVersion: (context, agentId, input) =>
       service.createAgentVersion(context, agentId, input),
     approveAgent: (context, versionId) => service.approveAgent(context, versionId),
     activateAgent: (context, versionId) => service.activateAgent(context, versionId),
     simulateAgentFlow: (context, input) => service.simulateAgentFlow(context, input),
+    listHandoffTargets: (context) => service.listHandoffTargets(context),
+    upsertHandoffTarget: (context, input) => service.upsertHandoffTarget(context, input),
     listAudit: (context) => service.listAudit(context),
   };
 }
@@ -396,6 +402,14 @@ class PrismaCedcoR02Services {
     return toKnowledgeBase(row);
   }
 
+  async listKnowledgeBases(context: RequestContext) {
+    const rows = await this.prisma.cedcoR02KnowledgeBase.findMany({
+      where: { tenantId: context.tenantId },
+      orderBy: { createdAt: "asc" },
+    });
+    return rows.map(toKnowledgeBase);
+  }
+
   async uploadKnowledgeDocument(context: RequestContext, input: UploadKnowledgeDocumentBody) {
     const sourceType = classifySourceType(input.sourceName);
     if (sourceType === "pdf" || sourceType === "docx" || sourceType === "extractor_required") {
@@ -493,6 +507,26 @@ class PrismaCedcoR02Services {
     };
   }
 
+  async listKnowledgeDocuments(context: RequestContext) {
+    const rows = await this.prisma.cedcoR02KnowledgeDocument.findMany({
+      where: { tenantId: context.tenantId },
+      orderBy: { createdAt: "asc" },
+    });
+    const versions = await this.prisma.cedcoR02KnowledgeDocumentVersion.findMany({
+      where: { tenantId: context.tenantId },
+      orderBy: [{ documentId: "asc" }, { version: "desc" }],
+    });
+    const latestVersionByDocument = new Map<string, string>();
+    for (const version of versions) {
+      if (!latestVersionByDocument.has(version.documentId)) {
+        latestVersionByDocument.set(version.documentId, version.id);
+      }
+    }
+    return rows.map((row) =>
+      toKnowledgeDocument(row, latestVersionByDocument.get(row.id) ?? `${row.id}-v1`),
+    );
+  }
+
   async processKnowledgeDocument(context: RequestContext, documentId: string) {
     const row = await this.transitionKnowledgeDocument(context, documentId, "ready_for_review");
     await this.recordAudit(
@@ -562,6 +596,36 @@ class PrismaCedcoR02Services {
     const version = await this.ensureDefaultAgent(this.prisma, context);
     await this.recordAudit(context, "agent_created", "voice_agent", version.agentId);
     return toAgentVersion(version);
+  }
+
+  async listAgents(context: RequestContext) {
+    const [agents, versions] = await Promise.all([
+      this.prisma.cedcoR02VoiceAgent.findMany({
+        where: { tenantId: context.tenantId },
+        orderBy: { createdAt: "asc" },
+      }),
+      this.prisma.cedcoR02VoiceAgentVersion.findMany({
+        where: { tenantId: context.tenantId },
+        orderBy: [{ agentId: "asc" }, { version: "desc" }],
+      }),
+    ]);
+    const versionsByAgent = new Map<string, ReturnType<typeof toAgentVersion>[]>();
+    for (const version of versions) {
+      const existing = versionsByAgent.get(version.agentId) ?? [];
+      existing.push(toAgentVersion(version));
+      versionsByAgent.set(version.agentId, existing);
+    }
+    return agents.map((agent) => ({
+      agentId: agent.id,
+      tenantId: agent.tenantId,
+      displayName: agent.displayName,
+      locale: agent.locale,
+      status: agent.status,
+      activeVersionId: agent.activeVersionId ?? "none",
+      providerMutationExecuted: false,
+      versions: versionsByAgent.get(agent.id) ?? [],
+      metadata: safeMetadata(agent.metadata),
+    }));
   }
 
   async createAgentVersion(
@@ -669,6 +733,75 @@ class PrismaCedcoR02Services {
       auditEventId,
       externalProvidersUsed: false,
       transcriptAudioAccessed: false,
+    };
+  }
+
+  async listHandoffTargets(context: RequestContext) {
+    const rows = await this.prisma.cedcoR02HandoffTarget.findMany({
+      where: { tenantId: context.tenantId },
+      orderBy: { createdAt: "asc" },
+    });
+    return rows.map((row) => ({
+      targetId: row.id,
+      tenantId: row.tenantId,
+      targetType: row.targetType,
+      displayName: row.displayName,
+      routeRef: row.routeRef,
+      status: row.status,
+      metadata: safeMetadata(row.metadata),
+      realProviderMutation: false,
+    }));
+  }
+
+  async upsertHandoffTarget(context: RequestContext, input: UpsertHandoffTargetBody) {
+    const existing = await this.prisma.cedcoR02HandoffTarget.findUnique({
+      where: { id: input.targetId },
+    });
+    if (existing && existing.tenantId !== context.tenantId) {
+      throw conflictError("handoff target id is unavailable for this tenant");
+    }
+
+    const row = existing
+      ? await this.prisma.cedcoR02HandoffTarget.update({
+          where: { id: input.targetId },
+          data: {
+            targetType: input.targetType,
+            displayName: input.displayName,
+            routeRef: safeReference(input.routeRef, "handoff-route"),
+            status: input.status,
+            metadata: toPrismaJson({
+              ...(input.metadata ?? {}),
+              providerMutation: false,
+            }),
+          },
+        })
+      : await this.prisma.cedcoR02HandoffTarget.create({
+          data: {
+            id: input.targetId,
+            tenantId: context.tenantId,
+            targetType: input.targetType,
+            displayName: input.displayName,
+            routeRef: safeReference(input.routeRef, "handoff-route"),
+            status: input.status,
+            metadata: toPrismaJson({
+              ...(input.metadata ?? {}),
+              providerMutation: false,
+            }),
+          },
+        });
+    await this.recordAudit(context, "handoff_target_upserted", "handoff_target", row.id, {
+      targetType: input.targetType,
+      providerMutation: false,
+    });
+    return {
+      targetId: row.id,
+      tenantId: row.tenantId,
+      targetType: row.targetType,
+      displayName: row.displayName,
+      routeRef: row.routeRef,
+      status: row.status,
+      metadata: safeMetadata(row.metadata),
+      realProviderMutation: false,
     };
   }
 

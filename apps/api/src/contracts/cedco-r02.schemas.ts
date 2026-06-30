@@ -118,6 +118,17 @@ export const simulateAgentFlowBodySchema = z
   })
   .strict();
 
+export const upsertHandoffTargetBodySchema = z
+  .object({
+    targetId: z.string().min(1).max(120),
+    targetType: z.enum(["human", "pbx", "twilio_fallback"]),
+    displayName: z.string().min(1).max(160),
+    routeRef: z.string().min(1).max(160),
+    status: z.enum(["active", "disabled"]).default("active"),
+    metadata: r02MetadataSchema.optional(),
+  })
+  .strict();
+
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
 export type CreateAvailabilityBody = z.infer<typeof createAvailabilityBodySchema>;
 export type CreateAppointmentBody = z.infer<typeof createAppointmentBodySchema>;
@@ -128,3 +139,4 @@ export type SearchKnowledgeBody = z.infer<typeof searchKnowledgeBodySchema>;
 export type CreateAgentBodyR02 = z.infer<typeof createAgentBodyR02Schema>;
 export type CreateAgentVersionBodyR02 = z.infer<typeof createAgentVersionBodyR02Schema>;
 export type SimulateAgentFlowBody = z.infer<typeof simulateAgentFlowBodySchema>;
+export type UpsertHandoffTargetBody = z.infer<typeof upsertHandoffTargetBodySchema>;

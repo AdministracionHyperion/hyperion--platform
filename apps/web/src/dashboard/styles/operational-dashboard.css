@@ -78,6 +78,10 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
+.panel--wide {
+  grid-column: 1 / -1;
+}
+
 .status-pill {
   border-radius: 999px;
   display: inline-block;
@@ -126,6 +130,68 @@ td {
 
 .kv-grid dt {
   color: #52627a;
+}
+
+.action-form,
+.inline-actions {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.action-form {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.inline-actions {
+  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+}
+
+.action-form label,
+.inline-actions label {
+  color: #52627a;
+  display: grid;
+  font-size: 0.78rem;
+  gap: 4px;
+}
+
+.action-form__wide {
+  grid-column: 1 / -1;
+}
+
+input,
+select,
+textarea {
+  background: #ffffff;
+  border: 1px solid #c9d4e2;
+  border-radius: 6px;
+  color: #172033;
+  font: inherit;
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+button {
+  background: #1b4d89;
+  border: 1px solid #143e70;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+
+.action-log {
+  color: #52627a;
+  display: block;
+  min-height: 20px;
 }
 
 .disabled-controls__grid {

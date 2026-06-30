@@ -15,6 +15,7 @@ import {
   rescheduleAppointmentBodySchema,
   searchKnowledgeBodySchema,
   simulateAgentFlowBodySchema,
+  upsertHandoffTargetBodySchema,
   uploadKnowledgeDocumentBodySchema,
 } from "../contracts";
 import { ok } from "../http/api-response";
@@ -38,12 +39,20 @@ export async function registerCedcoR02Routes(
       dependencies.services.cedcoR02.listAvailability(context, {}),
       dependencies.services.cedcoR02.listAudit(context),
     ]);
+    const [knowledgeDocuments, agents, handoffTargets] = await Promise.all([
+      dependencies.services.cedcoR02.listKnowledgeDocuments(context),
+      dependencies.services.cedcoR02.listAgents(context),
+      dependencies.services.cedcoR02.listHandoffTargets(context),
+    ]);
     const demoModel = createR02OperationalDemoModel();
     const html = renderR02OperationalPage({
       ...demoModel,
       tenantId: params.tenantId,
       appointments: toDashboardAppointments(appointments),
       availability: toDashboardAvailability(availability),
+      knowledgeDocuments: toDashboardKnowledgeDocuments(knowledgeDocuments),
+      agents: toDashboardAgents(agents),
+      handoffTargets: toDashboardHandoffTargets(handoffTargets),
       auditCount: Array.isArray(audit) ? audit.length : demoModel.auditCount,
     });
     reply.type("text/html; charset=utf-8");
@@ -118,12 +127,24 @@ export async function registerCedcoR02Routes(
     return ok(await dependencies.services.cedcoR02.createKnowledgeBase(context, body), context);
   });
 
+  app.get("/api/v1/tenants/:tenantId/r02/knowledge-bases", async (request) => {
+    validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:read", "agent:read"]);
+    return ok(await dependencies.services.cedcoR02.listKnowledgeBases(context), context);
+  });
+
   app.post("/api/v1/tenants/:tenantId/r02/knowledge-documents/upload", async (request, reply) => {
     validateWithSchema(cedcoR02ParamsSchema, request.params);
     const body = validateWithSchema(uploadKnowledgeDocumentBodySchema, request.body);
     const context = getRequiredRequestContext(request, ["tenant:update", "agent:write"]);
     reply.code(201);
     return ok(await dependencies.services.cedcoR02.uploadKnowledgeDocument(context, body), context);
+  });
+
+  app.get("/api/v1/tenants/:tenantId/r02/knowledge-documents", async (request) => {
+    validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:read", "agent:read"]);
+    return ok(await dependencies.services.cedcoR02.listKnowledgeDocuments(context), context);
   });
 
   app.post("/api/v1/tenants/:tenantId/r02/knowledge-documents/:id/process", async (request) => {
@@ -168,6 +189,12 @@ export async function registerCedcoR02Routes(
     return ok(await dependencies.services.cedcoR02.createAgent(context, body), context);
   });
 
+  app.get("/api/v1/tenants/:tenantId/r02/agents", async (request) => {
+    validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:read", "agent:read"]);
+    return ok(await dependencies.services.cedcoR02.listAgents(context), context);
+  });
+
   app.post("/api/v1/tenants/:tenantId/r02/agents/:id/versions", async (request, reply) => {
     const params = validateWithSchema(cedcoR02IdParamsSchema, request.params);
     const body = validateWithSchema(createAgentVersionBodyR02Schema, request.body);
@@ -196,6 +223,20 @@ export async function registerCedcoR02Routes(
     const body = validateWithSchema(simulateAgentFlowBodySchema, request.body);
     const context = getRequiredRequestContext(request, ["tenant:update", "voice:call:write"]);
     return ok(await dependencies.services.cedcoR02.simulateAgentFlow(context, body), context);
+  });
+
+  app.get("/api/v1/tenants/:tenantId/r02/handoff-targets", async (request) => {
+    validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:read", "agent:read"]);
+    return ok(await dependencies.services.cedcoR02.listHandoffTargets(context), context);
+  });
+
+  app.post("/api/v1/tenants/:tenantId/r02/handoff-targets", async (request, reply) => {
+    validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const body = validateWithSchema(upsertHandoffTargetBodySchema, request.body);
+    const context = getRequiredRequestContext(request, ["tenant:update", "agent:write"]);
+    reply.code(201);
+    return ok(await dependencies.services.cedcoR02.upsertHandoffTarget(context, body), context);
   });
 
   app.get("/api/v1/tenants/:tenantId/r02/audit", async (request) => {
@@ -234,6 +275,51 @@ function toDashboardAvailability(value: unknown) {
       serviceTypeId: String(record.serviceTypeId ?? "service-ref"),
       startsAt: toIsoString(record.startsAt),
       capacityRemaining: Math.max(0, capacity - booked),
+    };
+  });
+}
+
+function toDashboardKnowledgeDocuments(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, 12).map((item) => {
+    const record = asRecord(item);
+    return {
+      documentId: String(record.documentId ?? "document-ref"),
+      status: String(record.status ?? "unknown"),
+      versionId: String(record.versionId ?? "version-ref"),
+      sourceName: String(record.sourceName ?? "source-ref"),
+    };
+  });
+}
+
+function toDashboardAgents(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, 8).map((item) => {
+    const record = asRecord(item);
+    return {
+      agentId: String(record.agentId ?? "agent-ref"),
+      displayName: String(record.displayName ?? record.name ?? "CEDCO R02 agent"),
+      activeVersionId: String(record.activeVersionId ?? "none"),
+      status: String(record.status ?? "unknown"),
+    };
+  });
+}
+
+function toDashboardHandoffTargets(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, 8).map((item) => {
+    const record = asRecord(item);
+    return {
+      targetId: String(record.targetId ?? "handoff-ref"),
+      targetType: String(record.targetType ?? "human"),
+      displayName: String(record.displayName ?? "Handoff target"),
+      status: String(record.status ?? "unknown"),
     };
   });
 }

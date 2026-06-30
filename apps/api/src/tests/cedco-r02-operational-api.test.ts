@@ -41,6 +41,8 @@ describe("CEDCO R02 operational API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toContain("text/html");
     expect(response.body).toContain("CEDCO R02 Operations");
+    expect(response.body).toContain("Cargar RAG");
+    expect(response.body).toContain('data-r02-action="handoff-target"');
     expect(response.body).toContain("cedco-r02-test");
     expect(response.body).not.toMatch(
       /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript/iu,
@@ -158,6 +160,16 @@ describe("CEDCO R02 operational API", () => {
     const body = search.json<Envelope<unknown[]>>();
     expect(search.statusCode).toBe(200);
     expect(body.data).toHaveLength(1);
+
+    const documents = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/knowledge-documents`,
+      headers: adminHeaders,
+    });
+    expect(documents.json<Envelope<unknown[]>>().data?.[0]).toMatchObject({
+      documentId: "doc-r02-api",
+      versionId: "doc-r02-api-v1",
+    });
   });
 
   it("creates and activates an agent version and simulates a scheduling flow", async () => {
@@ -218,6 +230,43 @@ describe("CEDCO R02 operational API", () => {
       externalProvidersUsed: false,
       transcriptAudioAccessed: false,
     });
+
+    const agents = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/agents`,
+      headers: adminHeaders,
+    });
+    expect(agents.json<Envelope<unknown[]>>().data?.[0]).toMatchObject({
+      agentId: "cedco-r02-recepcion-agendamiento",
+    });
+  });
+
+  it("stores handoff targets as internal refs without provider mutation", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/handoff-targets`,
+      headers: adminHeaders,
+      payload: {
+        targetId: "handoff-dashboard",
+        targetType: "human",
+        displayName: "Recepcion humana CEDCO",
+        routeRef: "human_queue_dashboard",
+        status: "active",
+        metadata: { source: "api-test" },
+      },
+    });
+    expect(response.statusCode).toBe(201);
+    expect(response.json<Envelope<Record<string, unknown>>>().data).toMatchObject({
+      targetId: "handoff-dashboard",
+      realProviderMutation: false,
+    });
+
+    const targets = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/handoff-targets`,
+      headers: adminHeaders,
+    });
+    expect(targets.json<Envelope<unknown[]>>().data).toHaveLength(1);
   });
 
   it("denies write routes to viewer roles and blocks sensitive payload fields", async () => {

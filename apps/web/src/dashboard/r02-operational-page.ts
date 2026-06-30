@@ -20,10 +20,18 @@ export interface R02OperationalPanelModel {
     readonly documentId: string;
     readonly status: string;
     readonly versionId: string;
+    readonly sourceName: string;
   }[];
   readonly agents: readonly {
     readonly agentId: string;
+    readonly displayName: string;
     readonly activeVersionId: string;
+    readonly status: string;
+  }[];
+  readonly handoffTargets: readonly {
+    readonly targetId: string;
+    readonly targetType: string;
+    readonly displayName: string;
     readonly status: string;
   }[];
   readonly integrationStatus: {
@@ -59,12 +67,26 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
       },
     ],
     knowledgeDocuments: [
-      { documentId: "doc-r02-demo", status: "active", versionId: "doc-r02-demo-v1" },
+      {
+        documentId: "doc-r02-demo",
+        status: "active",
+        versionId: "doc-r02-demo-v1",
+        sourceName: "cedco-r02-demo.md",
+      },
     ],
     agents: [
       {
         agentId: "cedco-r02-recepcion-agendamiento",
+        displayName: "CEDCO R02 Recepcion y Agendamiento",
         activeVersionId: "cedco-r02-recepcion-v1",
+        status: "active",
+      },
+    ],
+    handoffTargets: [
+      {
+        targetId: "handoff-human-queue",
+        targetType: "human",
+        displayName: "Recepcion humana CEDCO",
         status: "active",
       },
     ],
@@ -95,7 +117,7 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
         <strong>Hyperion</strong>
         <nav>CEDCO R02</nav>
       </aside>
-      <section class="dashboard-shell__content">
+      <section class="dashboard-shell__content" data-r02-tenant="${escapeHtml(model.tenantId)}">
         <header class="dashboard-header">
           <div>
             <h1>CEDCO R02 Operations</h1>
@@ -112,14 +134,17 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
           ${renderMiniCard("Auditoria", String(model.auditCount), "Eventos seguros")}
         </section>
         <section class="dashboard-grid">
+          ${renderOperatorActions(model)}
           ${renderAppointments(model)}
           ${renderAvailability(model)}
           ${renderKnowledge(model)}
           ${renderAgents(model)}
+          ${renderHandoff(model)}
           ${renderIntegrations(model)}
         </section>
       </section>
     </main>
+    ${renderR02DashboardScript()}
   </body>
 </html>`;
 }
@@ -173,13 +198,30 @@ function renderAvailability(model: R02OperationalPanelModel): string {
 
 function renderKnowledge(model: R02OperationalPanelModel): string {
   return `<section class="panel">
-    <h2>Knowledge base</h2>
+    <h2>RAG / Knowledge base</h2>
+    <form class="action-form" data-r02-action="upload-knowledge">
+      <label>Documento<input name="documentId" value="doc-r02-dashboard" /></label>
+      <label>Archivo<input name="sourceName" value="cedco-r02-dashboard.md" /></label>
+      <label class="action-form__wide">Contenido<textarea name="contentText">CEDCO agenda orientacion inicial y programacion de cita con calendario interno.</textarea></label>
+      <button type="submit">Cargar RAG</button>
+    </form>
+    <form class="inline-actions" data-r02-action="knowledge-transition">
+      <input name="documentId" value="${escapeHtml(model.knowledgeDocuments[0]?.documentId ?? "doc-r02-dashboard")}" />
+      <button name="transition" value="process" type="submit">Procesar</button>
+      <button name="transition" value="approve" type="submit">Aprobar</button>
+      <button name="transition" value="activate" type="submit">Activar</button>
+    </form>
+    <form class="inline-actions" data-r02-action="knowledge-search">
+      <input name="queryText" value="orientacion inicial cita" />
+      <button type="submit">Probar busqueda</button>
+    </form>
     <table>
-      <thead><tr><th>Documento</th><th>Estado</th><th>Version</th></tr></thead>
+      <thead><tr><th>Documento</th><th>Fuente</th><th>Estado</th><th>Version</th></tr></thead>
       <tbody>${model.knowledgeDocuments
         .map(
           (item) => `<tr>
             <td>${escapeHtml(item.documentId)}</td>
+            <td>${escapeHtml(item.sourceName)}</td>
             <td>${escapeHtml(item.status)}</td>
             <td>${escapeHtml(item.versionId)}</td>
           </tr>`,
@@ -192,13 +234,87 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
 function renderAgents(model: R02OperationalPanelModel): string {
   return `<section class="panel">
     <h2>Agentes</h2>
+    <form class="action-form" data-r02-action="agent-version">
+      <label>Agente<input name="agentId" value="${escapeHtml(model.agents[0]?.agentId ?? "cedco-r02-recepcion-agendamiento")}" /></label>
+      <label>Version<input name="versionId" value="cedco-r02-dashboard-v2" /></label>
+      <label>Saludo<input name="greeting" value="Hola, gracias por comunicarte con CEDCO." /></label>
+      <label class="action-form__wide">Prompt<textarea name="prompt">Consulta RAG aprobado y disponibilidad interna antes de confirmar una cita.</textarea></label>
+      <button type="submit">Crear version</button>
+    </form>
+    <form class="inline-actions" data-r02-action="agent-transition">
+      <input name="versionId" value="${escapeHtml(model.agents[0]?.activeVersionId ?? "cedco-r02-dashboard-v2")}" />
+      <button name="transition" value="approve" type="submit">Aprobar</button>
+      <button name="transition" value="activate" type="submit">Activar</button>
+    </form>
+    <form class="inline-actions" data-r02-action="simulate-flow">
+      <select name="intent">
+        <option value="schedule">agenda</option>
+        <option value="knowledge">conocimiento</option>
+        <option value="handoff">handoff</option>
+      </select>
+      <input name="queryText" value="quiero programar una cita" />
+      <button type="submit">Simular</button>
+    </form>
     <table>
-      <thead><tr><th>Agente</th><th>Version activa</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Agente</th><th>Nombre</th><th>Version activa</th><th>Estado</th></tr></thead>
       <tbody>${model.agents
         .map(
           (item) => `<tr>
             <td>${escapeHtml(item.agentId)}</td>
+            <td>${escapeHtml(item.displayName)}</td>
             <td>${escapeHtml(item.activeVersionId)}</td>
+            <td>${escapeHtml(item.status)}</td>
+          </tr>`,
+        )
+        .join("")}</tbody>
+    </table>
+  </section>`;
+}
+
+function renderOperatorActions(model: R02OperationalPanelModel): string {
+  return `<section class="panel panel--wide">
+    <h2>Operacion diaria</h2>
+    <form class="inline-actions" data-r02-action="seed-demo">
+      <button type="submit">Sembrar demo</button>
+      <output data-r02-output="seed-demo"></output>
+    </form>
+    <form class="action-form" data-r02-action="availability">
+      <label>Slot<input name="slotId" value="slot-r02-dashboard" /></label>
+      <label>Recurso<input name="resourceId" value="cedco-r02-recepcion" /></label>
+      <label>Sede<input name="siteId" value="cedco-main-site" /></label>
+      <label>Servicio<input name="serviceTypeId" value="consulta-general" /></label>
+      <label>Inicio<input name="startsAt" value="${escapeHtml(nextIsoHour())}" /></label>
+      <label>Cupos<input name="capacity" type="number" min="1" max="20" value="1" /></label>
+      <button type="submit">Crear disponibilidad</button>
+    </form>
+    <form class="action-form" data-r02-action="appointment">
+      <label>Cita<input name="appointmentId" value="appointment-r02-dashboard" /></label>
+      <label>Slot<input name="slotId" value="${escapeHtml(model.availability[0]?.slotId ?? "slot-r02-dashboard")}" /></label>
+      <label>Paciente ref<input name="patientRef" value="patient-demo-dashboard" /></label>
+      <button type="submit">Crear cita</button>
+    </form>
+    <output class="action-log" data-r02-output="global"></output>
+  </section>`;
+}
+
+function renderHandoff(model: R02OperationalPanelModel): string {
+  return `<section class="panel">
+    <h2>Handoff</h2>
+    <form class="action-form" data-r02-action="handoff-target">
+      <label>Target<input name="targetId" value="handoff-human-queue" /></label>
+      <label>Tipo<select name="targetType"><option value="human">humano</option><option value="pbx">pbx</option><option value="twilio_fallback">twilio fallback</option></select></label>
+      <label>Nombre<input name="displayName" value="Recepcion humana CEDCO" /></label>
+      <label>Ruta ref<input name="routeRef" value="human_queue_demo" /></label>
+      <button type="submit">Guardar handoff</button>
+    </form>
+    <table>
+      <thead><tr><th>Target</th><th>Tipo</th><th>Nombre</th><th>Estado</th></tr></thead>
+      <tbody>${model.handoffTargets
+        .map(
+          (item) => `<tr>
+            <td>${escapeHtml(item.targetId)}</td>
+            <td>${escapeHtml(item.targetType)}</td>
+            <td>${escapeHtml(item.displayName)}</td>
             <td>${escapeHtml(item.status)}</td>
           </tr>`,
         )
@@ -220,4 +336,116 @@ function renderIntegrations(model: R02OperationalPanelModel): string {
       <dt>Transcript/audio</dt><dd>${renderBoolean(status.transcriptAudioEnabled)}</dd>
     </dl>
   </section>`;
+}
+
+function renderR02DashboardScript(): string {
+  return `<script>
+(() => {
+  const root = document.querySelector("[data-r02-tenant]");
+  if (!root) return;
+  const tenant = root.getAttribute("data-r02-tenant");
+  const apiBase = "/api/v1/tenants/" + encodeURIComponent(tenant) + "/r02";
+  const output = document.querySelector("[data-r02-output='global']");
+  const write = (message) => {
+    if (output) output.textContent = message;
+  };
+  const jsonHeaders = { "content-type": "application/json" };
+  const postJson = async (path, body) => {
+    const response = await fetch(apiBase + path, {
+      method: "POST",
+      headers: jsonHeaders,
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.ok) throw new Error(payload.error?.message || "request failed");
+    return payload.data;
+  };
+  const formData = (form) => Object.fromEntries(new FormData(form).entries());
+  const isoPlusMinutes = (value, minutes) => new Date(new Date(value).getTime() + minutes * 60000).toISOString();
+
+  document.querySelectorAll("form[data-r02-action]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const action = form.getAttribute("data-r02-action");
+      const data = formData(form);
+      try {
+        if (action === "seed-demo") {
+          await postJson("/demo/seed", {});
+        }
+        if (action === "availability") {
+          await postJson("/calendar/availability", {
+            slotId: data.slotId,
+            resourceId: data.resourceId,
+            siteId: data.siteId,
+            serviceTypeId: data.serviceTypeId,
+            startsAt: new Date(data.startsAt).toISOString(),
+            endsAt: isoPlusMinutes(data.startsAt, 30),
+            capacity: Number(data.capacity || 1),
+            metadata: { source: "r02-dashboard" },
+          });
+        }
+        if (action === "appointment") {
+          await postJson("/appointments", {
+            appointmentId: data.appointmentId,
+            slotId: data.slotId,
+            patientRef: data.patientRef,
+            metadata: { source: "r02-dashboard" },
+          });
+        }
+        if (action === "upload-knowledge") {
+          await postJson("/knowledge-documents/upload", {
+            documentId: data.documentId,
+            sourceName: data.sourceName,
+            contentText: data.contentText,
+            metadata: { source: "r02-dashboard" },
+          });
+        }
+        if (action === "knowledge-transition") {
+          await postJson("/knowledge-documents/" + encodeURIComponent(data.documentId) + "/" + data.transition, {});
+        }
+        if (action === "knowledge-search") {
+          await postJson("/knowledge/search-test", { queryText: data.queryText, limit: 5 });
+        }
+        if (action === "agent-version") {
+          await postJson("/agents/" + encodeURIComponent(data.agentId) + "/versions", {
+            versionId: data.versionId,
+            greeting: data.greeting,
+            prompt: data.prompt,
+          });
+        }
+        if (action === "agent-transition") {
+          await postJson("/agents/" + encodeURIComponent(data.versionId) + "/" + data.transition, {});
+        }
+        if (action === "simulate-flow") {
+          await postJson("/agent-flow/simulate", {
+            simulationId: "sim-r02-dashboard-" + Date.now(),
+            intent: data.intent,
+            queryText: data.queryText,
+          });
+        }
+        if (action === "handoff-target") {
+          await postJson("/handoff-targets", {
+            targetId: data.targetId,
+            targetType: data.targetType,
+            displayName: data.displayName,
+            routeRef: data.routeRef,
+            status: "active",
+            metadata: { source: "r02-dashboard", providerMutation: false },
+          });
+        }
+        write("accion completada");
+      } catch (error) {
+        write("error: " + (error instanceof Error ? error.message : "fallo desconocido"));
+      }
+    });
+  });
+})();
+</script>`;
+}
+
+function nextIsoHour(): string {
+  const date = new Date(Date.now() + 60 * 60 * 1000);
+  date.setMinutes(0, 0, 0);
+  return date.toISOString();
 }

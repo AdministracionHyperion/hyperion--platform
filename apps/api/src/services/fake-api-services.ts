@@ -72,6 +72,7 @@ import type {
   SimulateAgentFlowBody,
   InternalDialerDryRunBody,
   UploadKnowledgeDocumentBody,
+  UpsertHandoffTargetBody,
 } from "../contracts";
 import type { ApiServices } from "./api-services";
 import type { ApiAuditRecord } from "./api-services";
@@ -591,6 +592,17 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
         const result = r02Workspace.createKnowledgeBase(toOperationContext(context), input);
         return unwrapDomainResult(result);
       },
+      async listKnowledgeBases(context) {
+        return [
+          {
+            knowledgeBaseId: `${context.tenantId}-kb-r02-default`,
+            tenantId: context.tenantId,
+            name: "CEDCO R02 Default Knowledge",
+            status: "draft",
+            metadata: { externalEmbeddingsUsed: false },
+          },
+        ];
+      },
       async uploadKnowledgeDocument(context, input: UploadKnowledgeDocumentBody) {
         const result = r02Workspace.uploadKnowledgeDocument({
           context: toOperationContext(context),
@@ -601,6 +613,9 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
           metadata: input.metadata,
         });
         return unwrapDomainResult(result);
+      },
+      async listKnowledgeDocuments(context) {
+        return r02Workspace.listKnowledgeDocuments(context.tenantId);
       },
       async processKnowledgeDocument(context, documentId) {
         const result = r02Workspace.processKnowledgeDocument(
@@ -634,6 +649,9 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
         const result = r02Workspace.createAgent(toOperationContext(context));
         return unwrapDomainResult(result);
       },
+      async listAgents(context) {
+        return r02Workspace.listAgents(context.tenantId);
+      },
       async createAgentVersion(context, agentId, input: CreateAgentVersionBodyR02) {
         const result = r02Workspace.createAgentVersion({
           context: toOperationContext(context),
@@ -664,6 +682,21 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
           ...(input.patientRef ? { patientRef: input.patientRef } : {}),
         });
         return unwrapDomainResult(result);
+      },
+      async listHandoffTargets(context) {
+        return r02Workspace.listHandoffTargets(context.tenantId);
+      },
+      async upsertHandoffTarget(context, input: UpsertHandoffTargetBody) {
+        const target = r02Workspace.upsertHandoffTarget({
+          targetId: input.targetId,
+          tenantId: context.tenantId,
+          targetType: input.targetType,
+          displayName: input.displayName,
+          routeRef: input.routeRef,
+          status: input.status,
+          metadata: input.metadata ?? {},
+        });
+        return { ...target, realProviderMutation: false };
       },
       async listAudit(context) {
         return r02Workspace.listAudit(context.tenantId);

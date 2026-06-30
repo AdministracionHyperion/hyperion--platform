@@ -12,16 +12,21 @@ Implemented tenant-scoped API surface:
 - `POST /api/v1/tenants/:tenantId/r02/appointments/:id/reschedule`
 - `POST /api/v1/tenants/:tenantId/r02/google-calendar/:id/sync-test`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-bases`
+- `GET /api/v1/tenants/:tenantId/r02/knowledge-bases`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-documents/upload`
+- `GET /api/v1/tenants/:tenantId/r02/knowledge-documents`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-documents/:id/process`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-documents/:id/approve`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-documents/:id/activate`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge/search-test`
 - `POST /api/v1/tenants/:tenantId/r02/agents`
+- `GET /api/v1/tenants/:tenantId/r02/agents`
 - `POST /api/v1/tenants/:tenantId/r02/agents/:id/versions`
 - `POST /api/v1/tenants/:tenantId/r02/agents/:id/approve`
 - `POST /api/v1/tenants/:tenantId/r02/agents/:id/activate`
 - `POST /api/v1/tenants/:tenantId/r02/agent-flow/simulate`
+- `GET /api/v1/tenants/:tenantId/r02/handoff-targets`
+- `POST /api/v1/tenants/:tenantId/r02/handoff-targets`
 - `GET /api/v1/tenants/:tenantId/r02/audit`
 
 Safety:
@@ -31,6 +36,7 @@ Safety:
 - External calendar sync-test stays disabled and returns a safe status.
 - Agent flow simulation does not call providers or access transcript/audio.
 - RAG search uses keyword retrieval only; no external embeddings are used.
+- Dashboard handoff target writes are internal refs only and set `realProviderMutation=false`.
 
 Staging validation:
 

@@ -32,6 +32,7 @@ import type {
   SimulateAgentFlowBody,
   InternalDialerDryRunBody,
   UploadKnowledgeDocumentBody,
+  UpsertHandoffTargetBody,
 } from "../contracts";
 
 export interface ApiServices {
@@ -99,15 +100,18 @@ export interface ApiServices {
     ): Promise<unknown>;
     runCalendarSyncTest(context: RequestContext, appointmentId: string): Promise<unknown>;
     createKnowledgeBase(context: RequestContext, input: CreateKnowledgeBaseBody): Promise<unknown>;
+    listKnowledgeBases(context: RequestContext): Promise<unknown>;
     uploadKnowledgeDocument(
       context: RequestContext,
       input: UploadKnowledgeDocumentBody,
     ): Promise<unknown>;
+    listKnowledgeDocuments(context: RequestContext): Promise<unknown>;
     processKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
     approveKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
     activateKnowledgeDocument(context: RequestContext, documentId: string): Promise<unknown>;
     searchKnowledge(context: RequestContext, input: SearchKnowledgeBody): Promise<unknown>;
     createAgent(context: RequestContext, input: CreateAgentBodyR02): Promise<unknown>;
+    listAgents(context: RequestContext): Promise<unknown>;
     createAgentVersion(
       context: RequestContext,
       agentId: string,
@@ -116,6 +120,8 @@ export interface ApiServices {
     approveAgent(context: RequestContext, agentId: string): Promise<unknown>;
     activateAgent(context: RequestContext, agentId: string): Promise<unknown>;
     simulateAgentFlow(context: RequestContext, input: SimulateAgentFlowBody): Promise<unknown>;
+    listHandoffTargets(context: RequestContext): Promise<unknown>;
+    upsertHandoffTarget(context: RequestContext, input: UpsertHandoffTargetBody): Promise<unknown>;
     listAudit(context: RequestContext): Promise<unknown>;
   };
   readonly operationsDashboard: {
