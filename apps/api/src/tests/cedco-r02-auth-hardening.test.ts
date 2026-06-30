@@ -122,6 +122,20 @@ describe("CEDCO R02 local staging auth hardening", () => {
     });
     expect(dashboard.statusCode).toBe(401);
   });
+
+  it("records failed login as a controlled auth failure", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/login",
+      payload: {
+        tenantId,
+        loginRef: "cedco-admin",
+        credential: "short",
+      },
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json<Envelope>().error?.code).toBe("validation_error");
+  });
 });
 
 async function login(loginRef: string): Promise<string> {

@@ -64,8 +64,16 @@ runWhenDatabaseExists("CEDCO R02 Prisma local staging auth", () => {
       headers: { authorization: `Bearer ${sessionToken}` },
     });
     expect(dashboard.statusCode).toBe(200);
+    await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/logout",
+      headers: { authorization: `Bearer ${sessionToken}` },
+    });
     expect(await harness.prisma.localAuthSession.count()).toBe(1);
     expect(await harness.prisma.auditLog.count({ where: { action: "auth.login.success" } })).toBe(
+      1,
+    );
+    expect(await harness.prisma.auditLog.count({ where: { action: "auth.logout.success" } })).toBe(
       1,
     );
   });

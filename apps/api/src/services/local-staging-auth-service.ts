@@ -164,10 +164,16 @@ class LocalStagingAuthService implements ApiAuthServices {
 
   async logout(sessionToken: string): Promise<{ revoked: boolean }> {
     const sessionHash = hashLocalSessionToken(sessionToken);
+    const session = await this.prisma.localAuthSession.findUnique({ where: { sessionHash } });
     const result = await this.prisma.localAuthSession.updateMany({
       where: { sessionHash, status: "active" },
       data: { status: "revoked", revokedAt: new Date() },
     });
+    if (session && result.count > 0) {
+      await this.recordLoginAudit(session.tenantId, session.userId, "success", "logout", {
+        sessionId: session.id,
+      });
+    }
     return { revoked: result.count > 0 };
   }
 
@@ -196,7 +202,7 @@ class LocalStagingAuthService implements ApiAuthServices {
         tenantId,
         actorId,
         correlationId: `auth-${Date.now().toString(36)}`,
-        action: `auth.login.${result}`,
+        action: `${reason === "logout" ? "auth.logout" : "auth.login"}.${result}`,
         resourceType: "local_auth",
         resourceId: reason,
         result,
