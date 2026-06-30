@@ -87,7 +87,7 @@ describe("CEDCO R02 local staging auth hardening", () => {
     });
     expect(dashboard.statusCode).toBe(200);
     expect(dashboard.body).toContain("Consulta y reportes");
-    expect(dashboard.body).toContain("Restringido");
+    expect(dashboard.body).not.toMatch(/Auditoria|Auditoría|Restringido/iu);
     expect(dashboard.body).not.toContain('data-r02-action="availability"');
     expect(dashboard.body).not.toContain('data-r02-action="appointment"');
     expect(dashboard.body).not.toContain('data-r02-action="upload-knowledge"');

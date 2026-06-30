@@ -1,7 +1,10 @@
-import { escapeHtml, renderBoolean } from "./components/utils";
+import { escapeHtml } from "./components/utils";
+
+export type R02DashboardModule = "agenda" | "conocimiento" | "asistente" | "derivaciones";
 
 export interface R02OperationalPanelModel {
   readonly tenantId: string;
+  readonly activeModule: R02DashboardModule;
   readonly workspaceName: string;
   readonly viewer: {
     readonly actorId: string;
@@ -77,6 +80,7 @@ export interface R02OperationalPanelModel {
 export function createR02OperationalDemoModel(): R02OperationalPanelModel {
   return {
     tenantId: "cedco",
+    activeModule: "agenda",
     workspaceName: "CEDCO",
     viewer: {
       actorId: "operador",
@@ -116,7 +120,7 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
       {
         label: "Operacion diaria",
         status: "done",
-        detail: "Agenda, base de conocimiento, asistente, derivaciones y auditoria operativos.",
+        detail: "Agenda, base de conocimiento, asistente y derivaciones operativos.",
       },
       {
         label: "Canal de atencion entrante",
@@ -202,24 +206,13 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
           </div>
         </header>
         <section class="summary-grid">
-          ${renderMiniCard("Citas", String(model.appointments.length), "Calendario interno")}
-          ${renderMiniCard("Conocimiento", String(model.knowledgeDocuments.length), "Documentos activos")}
-          ${renderMiniCard("Asistentes", String(model.agents.length), "Versiones controladas")}
-          ${renderMiniCard(
-            "Auditoria",
-            model.auditRestricted ? "Restringido" : String(model.auditCount),
-            model.auditRestricted ? "Segun rol" : "Eventos seguros",
-          )}
+          ${renderModuleSummary(model)}
         </section>
-        <section class="dashboard-grid">
-          ${renderOperatorActions(model)}
-          ${renderReadiness(model)}
-          ${model.capabilities.canViewCalendar ? renderAppointments(model) : ""}
-          ${model.capabilities.canViewCalendar ? renderAvailability(model) : ""}
-          ${model.capabilities.canViewKnowledge ? renderKnowledge(model) : ""}
-          ${model.capabilities.canViewAgents ? renderAgents(model) : ""}
-          ${model.capabilities.canViewHandoff ? renderHandoff(model) : ""}
-          ${model.capabilities.canViewIntegrations ? renderIntegrations(model) : ""}
+        <section class="module-shell" aria-live="polite">
+          ${renderModuleHeader(model)}
+          <div class="dashboard-grid dashboard-grid--module">
+            ${renderActiveModule(model)}
+          </div>
         </section>
       </section>
     </main>
@@ -230,22 +223,131 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
 
 function renderSidebarNav(model: R02OperationalPanelModel): string {
   const links = [
-    model.capabilities.canViewCalendar ? { href: "#agenda", label: "Agenda" } : undefined,
+    model.capabilities.canViewCalendar ? { module: "agenda", label: "Agenda" } : undefined,
     model.capabilities.canViewKnowledge
-      ? { href: "#conocimiento", label: "Conocimiento" }
+      ? { module: "conocimiento", label: "Conocimiento" }
       : undefined,
-    model.capabilities.canViewAgents ? { href: "#asistente", label: "Asistente" } : undefined,
+    model.capabilities.canViewAgents ? { module: "asistente", label: "Asistente" } : undefined,
     model.capabilities.canViewHandoff
-      ? { href: "#derivaciones", label: "Derivaciones" }
+      ? { module: "derivaciones", label: "Derivaciones" }
       : undefined,
-    { href: "#auditoria", label: model.capabilities.canReadAudit ? "Auditoria" : "Preparacion" },
-  ].filter((link): link is { href: string; label: string } => Boolean(link));
+  ].filter((link): link is { module: R02DashboardModule; label: string } => Boolean(link));
   return links
     .map(
-      (link, index) =>
-        `<a href="${link.href}"${index === 0 ? ' aria-current="page"' : ""}>${link.label}</a>`,
+      (link) =>
+        `<a href="?modulo=${link.module}"${
+          model.activeModule === link.module ? ' aria-current="page"' : ""
+        }>${link.label}</a>`,
     )
     .join("");
+}
+
+function renderModuleSummary(model: R02OperationalPanelModel): string {
+  if (model.activeModule === "agenda") {
+    return [
+      renderMiniCard("Citas", String(model.appointments.length), "Solicitudes internas"),
+      renderMiniCard("Disponibilidad", String(model.availability.length), "Bloques activos"),
+      renderMiniCard("Estado", renderStatusLabel(model.overallStatus), "Operacion de agenda"),
+    ].join("");
+  }
+  if (model.activeModule === "conocimiento") {
+    return [
+      renderMiniCard("Documentos", String(model.knowledgeDocuments.length), "Fuentes controladas"),
+      renderMiniCard(
+        "Activos",
+        String(model.knowledgeDocuments.filter((item) => item.status === "active").length),
+        "Listos para consulta",
+      ),
+      renderMiniCard(
+        "Carga",
+        model.capabilities.canManageKnowledge ? "Disponible" : "Lectura",
+        "Segun rol",
+      ),
+    ].join("");
+  }
+  if (model.activeModule === "asistente") {
+    return [
+      renderMiniCard("Asistentes", String(model.agents.length), "Versiones visibles"),
+      renderMiniCard(
+        "Activos",
+        String(
+          model.agents.filter((item) => item.status === "active" || item.activeVersionId !== "none")
+            .length,
+        ),
+        "En uso operativo",
+      ),
+      renderMiniCard(
+        "Simulador",
+        model.capabilities.canSimulateFlow ? "Disponible" : "No disponible",
+        "Segun rol",
+      ),
+    ].join("");
+  }
+  return [
+    renderMiniCard("Derivaciones", String(model.handoffTargets.length), "Destinos internos"),
+    renderMiniCard(
+      "Activas",
+      String(model.handoffTargets.filter((item) => item.status === "active").length),
+      "Listas para uso",
+    ),
+    renderMiniCard(
+      "Gestion",
+      model.capabilities.canManageHandoff ? "Disponible" : "Lectura",
+      "Segun rol",
+    ),
+  ].join("");
+}
+
+function renderModuleHeader(model: R02OperationalPanelModel): string {
+  const details: Record<R02DashboardModule, { title: string; detail: string }> = {
+    agenda: {
+      title: "Agenda",
+      detail: "Administra disponibilidad y solicitudes internas sin salir de este modulo.",
+    },
+    conocimiento: {
+      title: "Conocimiento",
+      detail: "Carga, revisa y consulta documentos aprobados para respuestas controladas.",
+    },
+    asistente: {
+      title: "Asistente",
+      detail: "Gestiona versiones, guion operativo y simulaciones antes de usarlo con pacientes.",
+    },
+    derivaciones: {
+      title: "Derivaciones",
+      detail: "Configura y revisa destinos humanos aprobados para casos que requieren apoyo.",
+    },
+  };
+  const current = details[model.activeModule];
+  return `<header class="module-header">
+    <span>Modulo seleccionado</span>
+    <h2>${escapeHtml(current.title)}</h2>
+    <p>${escapeHtml(current.detail)}</p>
+  </header>`;
+}
+
+function renderActiveModule(model: R02OperationalPanelModel): string {
+  if (model.activeModule === "agenda") {
+    return model.capabilities.canViewCalendar
+      ? `${renderOperatorActions(model)}${renderAppointments(model)}${renderAvailability(model)}`
+      : renderUnavailableModule("Agenda no disponible para tu rol.");
+  }
+  if (model.activeModule === "conocimiento") {
+    return model.capabilities.canViewKnowledge
+      ? renderKnowledge(model)
+      : renderUnavailableModule("Conocimiento no disponible para tu rol.");
+  }
+  if (model.activeModule === "asistente") {
+    return model.capabilities.canViewAgents
+      ? renderAgents(model)
+      : renderUnavailableModule("Asistente no disponible para tu rol.");
+  }
+  return model.capabilities.canViewHandoff
+    ? renderHandoff(model)
+    : renderUnavailableModule("Derivaciones no disponible para tu rol.");
+}
+
+function renderUnavailableModule(message: string): string {
+  return `<section class="panel panel--wide">${renderRoleNotice(message)}</section>`;
 }
 
 function renderMiniCard(label: string, value: string, helperText: string): string {
@@ -532,53 +634,6 @@ function renderHandoff(model: R02OperationalPanelModel): string {
         .join("")}</tbody>
     </table>`
     }
-  </section>`;
-}
-
-function renderReadiness(model: R02OperationalPanelModel): string {
-  return `<section class="panel panel--wide" id="auditoria">
-    <h2>Preparacion y pendientes</h2>
-    <div class="readiness-layout">
-      <div>
-        <h3>Estado operativo</h3>
-        <ul class="readiness-list">
-          ${model.readinessItems
-            .map(
-              (item) => `<li>
-                <span class="status-pill status-pill--${escapeHtml(item.status)}">${operatorText(item.status)}</span>
-                <strong>${escapeHtml(item.label)}</strong>
-                <small>${escapeHtml(item.detail)}</small>
-              </li>`,
-            )
-            .join("")}
-        </ul>
-      </div>
-      <div>
-        <h3>Lo que debe aportar el operador</h3>
-        <ul class="compact-list">
-          ${model.finalOperatorInputs.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-        </ul>
-        <h3>Aprobaciones separadas</h3>
-        <ul class="gate-list">
-          ${model.futureGates.map((item) => `<li><code>${escapeHtml(item)}</code></li>`).join("")}
-        </ul>
-      </div>
-    </div>
-  </section>`;
-}
-
-function renderIntegrations(model: R02OperationalPanelModel): string {
-  const status = model.integrationStatus;
-  return `<section class="panel">
-    <h2>Estado de canales</h2>
-    <dl class="kv-grid">
-      <dt>Sincronizacion de agenda</dt><dd>${operatorText(status.externalCalendar)}</dd>
-      <dt>Canal de entrada</dt><dd>${operatorText(status.externalInbound)}</dd>
-      <dt>Enrutador interno</dt><dd>${operatorText(status.pbx)}</dd>
-      <dt>Llamadas reales</dt><dd>${renderBoolean(status.realCallsEnabled)}</dd>
-      <dt>Conexiones salientes</dt><dd>${renderBoolean(status.providerEgressEnabled)}</dd>
-      <dt>Grabacion y transcripcion</dt><dd>${renderBoolean(status.transcriptAudioEnabled)}</dd>
-    </dl>
   </section>`;
 }
 

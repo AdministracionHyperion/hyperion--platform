@@ -6,6 +6,7 @@ import type { Role } from "../../../../modules/core/identity-access/src/role";
 import {
   createR02OperationalDemoModel,
   renderR02OperationalPage,
+  type R02DashboardModule,
   type R02OperationalPanelModel,
 } from "../../../web/src/dashboard/r02-operational-page";
 import {
@@ -55,15 +56,25 @@ export async function registerCedcoR02Routes(
       "voice:call:read",
     ]);
     const access = buildR02DashboardAccess(context.roles);
-    const [appointments, availability, audit] = await Promise.all([
-      access.canViewCalendar ? dependencies.services.cedcoR02.listAppointments(context) : [],
-      access.canViewCalendar ? dependencies.services.cedcoR02.listAvailability(context, {}) : [],
-      access.canReadAudit ? dependencies.services.cedcoR02.listAudit(context) : [],
+    const activeModule = resolveDashboardModule(request.query, access);
+    const [appointments, availability] = await Promise.all([
+      activeModule === "agenda" && access.canViewCalendar
+        ? dependencies.services.cedcoR02.listAppointments(context)
+        : [],
+      activeModule === "agenda" && access.canViewCalendar
+        ? dependencies.services.cedcoR02.listAvailability(context, {})
+        : [],
     ]);
     const [knowledgeDocuments, agents, handoffTargets] = await Promise.all([
-      access.canViewKnowledge ? dependencies.services.cedcoR02.listKnowledgeDocuments(context) : [],
-      access.canViewAgents ? dependencies.services.cedcoR02.listAgents(context) : [],
-      access.canViewHandoff ? dependencies.services.cedcoR02.listHandoffTargets(context) : [],
+      activeModule === "conocimiento" && access.canViewKnowledge
+        ? dependencies.services.cedcoR02.listKnowledgeDocuments(context)
+        : [],
+      activeModule === "asistente" && access.canViewAgents
+        ? dependencies.services.cedcoR02.listAgents(context)
+        : [],
+      activeModule === "derivaciones" && access.canViewHandoff
+        ? dependencies.services.cedcoR02.listHandoffTargets(context)
+        : [],
     ]);
     const baseModel = createR02OperationalDemoModel();
     const dashboardAppointments = toDashboardAppointments(appointments);
@@ -77,11 +88,12 @@ export async function registerCedcoR02Routes(
       knowledgeDocuments: dashboardKnowledgeDocuments,
       agents: dashboardAgents,
       handoffTargets: dashboardHandoffTargets,
-      auditCount: Array.isArray(audit) ? audit.length : baseModel.auditCount,
+      auditCount: 0,
     });
     const html = renderR02OperationalPage({
       ...baseModel,
       tenantId: params.tenantId,
+      activeModule,
       workspaceName: "CEDCO",
       viewer: {
         actorId: context.actorId,
@@ -99,7 +111,7 @@ export async function registerCedcoR02Routes(
       futureGates: readiness.futureGates,
       integrationStatus: readiness.integrationStatus,
       auditCount: readiness.auditCount,
-      auditRestricted: !access.canReadAudit,
+      auditRestricted: true,
     });
     reply.type("text/html; charset=utf-8");
     return html;
@@ -376,6 +388,22 @@ function buildR02DashboardAccess(roles: readonly Role[]): R02OperationalPanelMod
   };
 }
 
+function resolveDashboardModule(
+  query: unknown,
+  access: R02OperationalPanelModel["capabilities"],
+): R02DashboardModule {
+  const requested = asRecord(query).modulo;
+  const candidate = typeof requested === "string" ? requested : undefined;
+  if (candidate === "agenda" && access.canViewCalendar) return "agenda";
+  if (candidate === "conocimiento" && access.canViewKnowledge) return "conocimiento";
+  if (candidate === "asistente" && access.canViewAgents) return "asistente";
+  if (candidate === "derivaciones" && access.canViewHandoff) return "derivaciones";
+  if (access.canViewCalendar) return "agenda";
+  if (access.canViewKnowledge) return "conocimiento";
+  if (access.canViewAgents) return "asistente";
+  return "derivaciones";
+}
+
 function roleLabel(roles: readonly string[]): string {
   const role = roles[0] ?? "reports_viewer";
   const labels: Record<string, string> = {
@@ -388,7 +416,7 @@ function roleLabel(roles: readonly string[]): string {
     reports_viewer: "Consulta y reportes",
     integration_admin: "Integraciones",
     human_handoff_agent: "Derivaciones humanas",
-    auditor: "Auditoria",
+    auditor: "Consulta",
     "tenant-viewer": "Consulta",
     "voice-manager": "Gestion de voz",
     "voice-operator": "Operacion de voz",
@@ -542,12 +570,6 @@ function buildR02Readiness(input: {
       "Hay destino interno de derivacion sin mutacion externa.",
       "Falta guardar destino interno de derivacion.",
     ),
-    readinessItem(
-      "Auditoria",
-      input.auditCount > 0,
-      "Writes operativos generan eventos de auditoria sanitizados.",
-      "Falta actividad auditada en el tenant.",
-    ),
     {
       label: "Calendario externo",
       status: "pending",
@@ -571,7 +593,7 @@ function buildR02Readiness(input: {
     },
   ];
 
-  const coreReady = readinessItems.slice(0, 5).every((item) => item.status === "done");
+  const coreReady = readinessItems.slice(0, 4).every((item) => item.status === "done");
   const hasAnyCoreData =
     input.appointments.length > 0 ||
     input.availability.length > 0 ||

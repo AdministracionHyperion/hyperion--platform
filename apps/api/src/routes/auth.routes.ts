@@ -181,7 +181,7 @@ function renderLoginPage(): string {
           <div><strong>CEDCO</strong><span>Centro operativo</span></div>
         </div>
         <h1 id="login-title">Acceso al panel operativo</h1>
-        <p class="lead">Gestiona agenda, conocimiento, asistentes, derivaciones y auditoria desde un espacio privado para el equipo autorizado.</p>
+        <p class="lead">Gestiona agenda, conocimiento, asistentes y derivaciones desde un espacio privado para el equipo autorizado.</p>
       </div>
       <div class="status-grid" aria-label="Estado del acceso">
         <div class="status"><small>Ambiente</small><strong>Staging operativo</strong></div>

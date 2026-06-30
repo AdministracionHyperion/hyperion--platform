@@ -6,21 +6,18 @@ describe("CEDCO R02 operational page", () => {
     const html = renderR02OperationalPage(modelWithOperationalData());
 
     expect(html).toContain("Centro operativo CEDCO");
+    expect(html).toContain('href="?modulo=agenda"');
+    expect(html).toContain('href="?modulo=conocimiento"');
+    expect(html).toContain('href="?modulo=asistente"');
+    expect(html).toContain('href="?modulo=derivaciones"');
+    expect(html).not.toContain('href="#agenda"');
     expect(html).toContain("Calendario y citas");
-    expect(html).toContain("Base de conocimiento");
-    expect(html).toContain('data-r02-action="upload-knowledge"');
-    expect(html).toContain("data-r02-local-text-file");
-    expect(html).toContain('accept=".txt,.md,.csv,.json');
-    expect(html).toContain("Cargar documento");
     expect(html).toContain('data-r02-action="external-calendar-sync-dry-run"');
     expect(html).toContain("Validar sincronizacion");
-    expect(html).toContain("Asistente");
-    expect(html).toContain("Derivaciones");
-    expect(html).toContain("Estado de canales");
-    expect(html).toContain("Preparacion y pendientes");
-    expect(html).toContain("Conectar agenda externa autorizada");
-    expect(html).toContain("Documentos CEDCO sanitizados");
-    expect(html).toContain("desactivado");
+    expect(html).not.toContain("Base de conocimiento");
+    expect(html).not.toContain("Estado de canales");
+    expect(html).not.toContain("Preparacion y pendientes");
+    expect(html).not.toMatch(/Auditoria|Auditoría|audit/iu);
     expect(html).not.toMatch(/demo|Sembrar demo|seed-demo|cedco-demo/iu);
     expect(html).not.toMatch(
       /Google|Twilio|ElevenLabs|11labs|Knowledge base|Egress provider|Transcript\/audio/iu,
@@ -41,10 +38,57 @@ describe("CEDCO R02 operational page", () => {
     const html = renderR02OperationalPage(createR02OperationalDemoModel());
 
     expect(html).toContain("Aun no hay citas registradas.");
-    expect(html).toContain("No hay documentos activos.");
-    expect(html).toContain("No hay asistente activo en esta vista.");
-    expect(html).toContain("No hay destinos de derivacion activos.");
+    expect(html).not.toContain("No hay documentos activos.");
+    expect(html).not.toContain("No hay asistente activo en esta vista.");
+    expect(html).not.toContain("No hay destinos de derivacion activos.");
     expect(html).not.toMatch(/demo|Sembrar demo|seed-demo|cedco-demo/iu);
+  });
+
+  it("renders knowledge as a dedicated module view", () => {
+    const html = renderR02OperationalPage({
+      ...modelWithOperationalData(),
+      activeModule: "conocimiento",
+    });
+
+    expect(html).toContain("Modulo seleccionado");
+    expect(html).toContain("Base de conocimiento");
+    expect(html).toContain('data-r02-action="upload-knowledge"');
+    expect(html).toContain("data-r02-local-text-file");
+    expect(html).toContain('accept=".txt,.md,.csv,.json');
+    expect(html).toContain("Cargar documento");
+    expect(html).not.toContain("Calendario y citas");
+    expect(html).not.toContain('data-r02-action="appointment"');
+    expect(html).not.toContain("No hay asistente activo en esta vista.");
+    expect(html).not.toMatch(/Auditoria|Auditoría|audit/iu);
+  });
+
+  it("renders assistant as a dedicated module view", () => {
+    const html = renderR02OperationalPage({
+      ...modelWithOperationalData(),
+      activeModule: "asistente",
+    });
+
+    expect(html).toContain("Asistente");
+    expect(html).toContain('data-r02-action="agent-version"');
+    expect(html).toContain('data-r02-action="simulate-flow"');
+    expect(html).not.toContain("Calendario y citas");
+    expect(html).not.toContain("Base de conocimiento");
+    expect(html).not.toContain("Derivaciones</h2>");
+    expect(html).not.toMatch(/Auditoria|Auditoría|audit/iu);
+  });
+
+  it("renders handoff as a dedicated module view", () => {
+    const html = renderR02OperationalPage({
+      ...modelWithOperationalData(),
+      activeModule: "derivaciones",
+    });
+
+    expect(html).toContain("Derivaciones");
+    expect(html).toContain('data-r02-action="handoff-target"');
+    expect(html).not.toContain("Calendario y citas");
+    expect(html).not.toContain("Base de conocimiento");
+    expect(html).not.toContain('data-r02-action="agent-version"');
+    expect(html).not.toMatch(/Auditoria|Auditoría|audit/iu);
   });
 
   it("hides write actions for report-only roles", () => {
@@ -68,7 +112,7 @@ describe("CEDCO R02 operational page", () => {
     });
 
     expect(html).toContain("Consulta y reportes");
-    expect(html).toContain("Restringido");
+    expect(html).not.toMatch(/Auditoria|Auditoría|Restringido/iu);
     expect(html).not.toContain('data-r02-action="availability"');
     expect(html).not.toContain('data-r02-action="appointment"');
     expect(html).not.toContain('data-r02-action="upload-knowledge"');
@@ -80,6 +124,7 @@ describe("CEDCO R02 operational page", () => {
     const model = createR02OperationalDemoModel();
     const html = renderR02OperationalPage({
       ...model,
+      activeModule: "derivaciones",
       appointments: [
         {
           appointmentId: "appointment-r02-google-dry-run",
@@ -100,7 +145,6 @@ describe("CEDCO R02 operational page", () => {
     });
 
     expect(html).not.toMatch(/Google|Twilio|ElevenLabs|11labs|demo/iu);
-    expect(html).toContain("cita-r02-externo-dry-run");
     expect(html).toContain("canal-fallback-operativo");
   });
 });
