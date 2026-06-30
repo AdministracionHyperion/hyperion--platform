@@ -10,9 +10,12 @@ Current status after the first controlled inbound call:
 | ElevenLabs agent           | CEDCO R02 Recepcion y Agendamiento                                    |
 | ElevenLabs phone binding   | verified before inbound call                                          |
 | Controlled inbound call    | answered by CEDCO R02 agent                                           |
+| Functional inbound call    | pass with warnings                                                    |
+| Redacted transcript QA     | completed once                                                        |
 | Outbound-call              | not used                                                              |
-| Transcript/audio           | not accessed                                                          |
+| Audio                      | not accessed                                                          |
 | Google Calendar real OAuth | not connected                                                         |
 | PBX real runtime           | not connected                                                         |
 
-No platform data model or authentication boundary changed in this call loop.
+No platform data model, authentication boundary, Twilio setting, ElevenLabs setting, Google
+integration or PBX runtime changed in this call loop.
