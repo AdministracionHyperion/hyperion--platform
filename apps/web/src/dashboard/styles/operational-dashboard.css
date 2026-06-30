@@ -109,6 +109,16 @@ body {
   color: #8a1f1f;
 }
 
+.status-pill--done {
+  background: #d9fbe6;
+  color: #075c2d;
+}
+
+.status-pill--pending {
+  background: #fff3bf;
+  color: #7a4b00;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -194,6 +204,48 @@ button {
   min-height: 20px;
 }
 
+.readiness-layout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(260px, 0.8fr);
+}
+
+.readiness-list,
+.compact-list,
+.gate-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.readiness-list li,
+.compact-list li,
+.gate-list li {
+  background: #f8fafd;
+  border: 1px solid #e3eaf3;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.readiness-list li {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: max-content 1fr;
+}
+
+.readiness-list small {
+  color: #52627a;
+  grid-column: 2;
+}
+
+.gate-list code {
+  color: #143e70;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
 .disabled-controls__grid {
   display: grid;
   gap: 8px;
@@ -211,6 +263,10 @@ button[disabled] {
 
 @media (max-width: 760px) {
   .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .readiness-layout {
     grid-template-columns: 1fr;
   }
 }
