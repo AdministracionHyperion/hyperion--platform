@@ -8,13 +8,16 @@ R02 operational persistence state:
 - Calendar, appointments, RAG, agents, handoff targets and R02 audit are Prisma-backed in staging.
 - Header-dev auth is local/test only and requires `ALLOW_HEADER_DEV_AUTH=true`.
 - Local staging auth is Prisma-backed through users, memberships and sessions.
-- External providers remain disabled.
+- External providers remain disabled for calls.
+- The ElevenLabs CEDCO R02 agent configuration is complete.
+- The exact Twilio Colombia phone number is not yet imported/bound in ElevenLabs.
 
 Future gates:
 
 - `APPROVE_R02_ELEVENLABS_IMPORT_EXISTING_TWILIO_NUMBER`
-- `APPROVE_R02_ELEVENLABS_AGENT_CONFIG_FOR_EXISTING_TWILIO_NUMBER`
+- `APPROVE_R02_ELEVENLABS_TWILIO_IMPORT_SCHEMA_RETRY`
 - `APPROVE_TWILIO_INBOUND_NUMBER_CONNECTION`
+- `APPROVE_SINGLE_CONTROLLED_R02_INBOUND_TEST_CALL`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
 - `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`
 - `APPROVE_PBX_STAGING_RUNTIME_REFACTOR`
