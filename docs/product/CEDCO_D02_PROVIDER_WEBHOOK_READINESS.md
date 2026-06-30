@@ -52,3 +52,12 @@ audio was accessed.
 Next work should focus on durable metadata-only event handling, rollback ownership, and pilot
 readiness. Transcript QA, audio access, provider egress, live calls, and pilot calls still require
 separate approval.
+
+## D02-AUTO-23 Update
+
+Durable metadata-only handling for `call_initiation_failure` is now implemented and validated with
+synthetic signed payloads. The dialer persists only sanitized metadata and hashes, rejects/replays
+idempotent duplicates according to policy, and records an audit event.
+
+This update does not approve pilot calls, transcript QA, audio access, raw provider payload
+persistence, campaigns, batch calls, automatic retries, provider egress, or live dispatch.

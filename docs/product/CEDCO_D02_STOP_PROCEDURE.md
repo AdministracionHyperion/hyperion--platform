@@ -17,6 +17,10 @@ D02-AUTO-22 connected the real provider webhook only for the staging agent's
 disabled, keep transcript/audio disabled, and use provider webhook rollback if failure-event
 callbacks behave unexpectedly.
 
+D02-AUTO-23 adds durable metadata-only handling for that failure event. Current stop posture also
+keeps raw payload persistence disabled and avoids destructive changes to the durable store unless a
+separate incident loop approves them.
+
 ## Stop Conditions
 
 Stop the pilot immediately if any of the following occurs:
@@ -39,12 +43,16 @@ Stop the pilot immediately if any of the following occurs:
 4. Disable the Traefik public route if public webhook behavior is unsafe.
 5. Disable the real provider webhook or remove the staging agent webhook override if provider
    callback behavior is unsafe.
-6. Preserve only private raw evidence in local private storage if it already exists.
-7. Record sanitized status only.
-8. Run platform-to-dialer and staging health checks before resuming any gate.
+6. Disable dialer public/real provider webhook processing flags if application behavior is unsafe.
+7. Preserve only private raw evidence in local private storage if it already exists.
+8. Record sanitized status only.
+9. Run platform-to-dialer and staging health checks before resuming any gate.
 
 ## Rollback Boundary
 
 Rollback for this phase means returning to metadata-only evidence and no further provider calls. It
 does not require firewall or Nginx changes. Provider webhook rollback must be scoped to the single
 D02 staging webhook and staging agent override.
+
+Durable event rows are operational audit evidence. They should not be deleted as part of normal
+rollback.
