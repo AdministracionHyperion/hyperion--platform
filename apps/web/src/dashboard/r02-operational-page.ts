@@ -235,10 +235,10 @@ function renderAppointments(model: R02OperationalPanelModel): string {
       <tbody>${model.appointments
         .map(
           (item) => `<tr>
-            <td>${escapeHtml(item.appointmentId)}</td>
-            <td>${escapeHtml(item.status)}</td>
-            <td>${escapeHtml(item.syncStatus)}</td>
-            <td>${escapeHtml(item.serviceTypeId)}</td>
+            <td>${operatorText(item.appointmentId)}</td>
+            <td>${operatorText(item.status)}</td>
+            <td>${operatorText(item.syncStatus)}</td>
+            <td>${operatorText(item.serviceTypeId)}</td>
             <td>${escapeHtml(item.startsAt)}</td>
           </tr>`,
         )
@@ -255,8 +255,8 @@ function renderAvailability(model: R02OperationalPanelModel): string {
       <tbody>${model.availability
         .map(
           (item) => `<tr>
-            <td>${escapeHtml(item.slotId)}</td>
-            <td>${escapeHtml(item.serviceTypeId)}</td>
+            <td>${operatorText(item.slotId)}</td>
+            <td>${operatorText(item.serviceTypeId)}</td>
             <td>${escapeHtml(item.startsAt)}</td>
             <td>${item.capacityRemaining}</td>
           </tr>`,
@@ -291,10 +291,10 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
       <tbody>${model.knowledgeDocuments
         .map(
           (item) => `<tr>
-            <td>${escapeHtml(item.documentId)}</td>
-            <td>${escapeHtml(item.sourceName)}</td>
-            <td>${escapeHtml(item.status)}</td>
-            <td>${escapeHtml(item.versionId)}</td>
+            <td>${operatorText(item.documentId)}</td>
+            <td>${operatorText(item.sourceName)}</td>
+            <td>${operatorText(item.status)}</td>
+            <td>${operatorText(item.versionId)}</td>
           </tr>`,
         )
         .join("")}</tbody>
@@ -331,10 +331,10 @@ function renderAgents(model: R02OperationalPanelModel): string {
       <tbody>${model.agents
         .map(
           (item) => `<tr>
-            <td>${escapeHtml(item.agentId)}</td>
-            <td>${escapeHtml(item.displayName)}</td>
-            <td>${escapeHtml(item.activeVersionId)}</td>
-            <td>${escapeHtml(item.status)}</td>
+            <td>${operatorText(item.agentId)}</td>
+            <td>${operatorText(item.displayName)}</td>
+            <td>${operatorText(item.activeVersionId)}</td>
+            <td>${operatorText(item.status)}</td>
           </tr>`,
         )
         .join("")}</tbody>
@@ -368,7 +368,7 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
       <button type="submit">Crear cita</button>
     </form>
     <form class="inline-actions" data-r02-action="external-calendar-sync-dry-run">
-      <input name="appointmentId" value="${escapeHtml(model.appointments[0]?.appointmentId ?? "appointment-r02-dashboard")}" />
+      <input name="appointmentId" value="${operatorInputValue(model.appointments[0]?.appointmentId, "appointment-r02-dashboard")}" />
       <button type="submit">Validar calendario externo</button>
     </form>
     <output class="action-log" data-r02-output="global"></output>
@@ -390,10 +390,10 @@ function renderHandoff(model: R02OperationalPanelModel): string {
       <tbody>${model.handoffTargets
         .map(
           (item) => `<tr>
-            <td>${escapeHtml(item.targetId)}</td>
-            <td>${escapeHtml(item.targetType)}</td>
-            <td>${escapeHtml(item.displayName)}</td>
-            <td>${escapeHtml(item.status)}</td>
+            <td>${operatorText(item.targetId)}</td>
+            <td>${operatorText(item.targetType)}</td>
+            <td>${operatorText(item.displayName)}</td>
+            <td>${operatorText(item.status)}</td>
           </tr>`,
         )
         .join("")}</tbody>
@@ -595,6 +595,27 @@ function renderStatusLabel(status: R02OperationalPanelModel["overallStatus"]): s
   if (status === "ready") return "operativo";
   if (status === "partial") return "parcial";
   return "bloqueado";
+}
+
+function operatorText(value: string): string {
+  return escapeHtml(neutralizeOperatorText(value));
+}
+
+function operatorInputValue(value: string | undefined, fallback: string): string {
+  return escapeHtml(neutralizeOperatorText(value ?? fallback));
+}
+
+function neutralizeOperatorText(value: string): string {
+  return value
+    .replace(/google/giu, "externo")
+    .replace(/twilio/giu, "canal")
+    .replace(/elevenlabs|11labs/giu, "asistente")
+    .replace(/knowledge base/giu, "base de conocimiento")
+    .replace(/rag/giu, "conocimiento")
+    .replace(/pbx/giu, "enrutador")
+    .replace(/handoff/giu, "derivacion")
+    .replace(/provider/giu, "externo")
+    .replace(/transcript\/audio/giu, "grabacion y transcripcion");
 }
 
 function nextIsoHour(): string {

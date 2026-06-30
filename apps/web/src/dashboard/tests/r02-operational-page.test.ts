@@ -32,4 +32,32 @@ describe("CEDCO R02 operational page", () => {
     expect(html).not.toMatch(/outbound-call|dispatch\s*\(|externalMutation:\s*true/iu);
     expect(html).not.toMatch(/accept="[^"]*pdf|accept="[^"]*docx/iu);
   });
+
+  it("neutralizes provider-looking persisted refs before rendering operator HTML", () => {
+    const model = createR02OperationalDemoModel();
+    const html = renderR02OperationalPage({
+      ...model,
+      appointments: [
+        {
+          appointmentId: "appointment-r02-google-dry-run",
+          status: "scheduled",
+          syncStatus: "pending",
+          serviceTypeId: "consulta-general",
+          startsAt: "2026-07-03T14:00:00.000Z",
+        },
+      ],
+      handoffTargets: [
+        {
+          targetId: "twilio-fallback-demo",
+          targetType: "twilio_fallback",
+          displayName: "Twilio Fallback Demo",
+          status: "disabled",
+        },
+      ],
+    });
+
+    expect(html).not.toMatch(/Google|Twilio|ElevenLabs|11labs/iu);
+    expect(html).toContain("appointment-r02-externo-dry-run");
+    expect(html).toContain("canal-fallback-demo");
+  });
 });
