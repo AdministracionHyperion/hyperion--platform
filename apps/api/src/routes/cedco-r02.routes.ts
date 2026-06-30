@@ -1,5 +1,8 @@
 import { readFileSync } from "node:fs";
 import type { FastifyInstance } from "fastify";
+import type { Permission } from "../../../../modules/core/identity-access/src/permission";
+import { rolesAllow } from "../../../../modules/core/identity-access/src/rbac-policy";
+import type { Role } from "../../../../modules/core/identity-access/src/role";
 import {
   createR02OperationalDemoModel,
   renderR02OperationalPage,
@@ -51,17 +54,18 @@ export async function registerCedcoR02Routes(
       "agent:read",
       "voice:call:read",
     ]);
+    const access = buildR02DashboardAccess(context.roles);
     const [appointments, availability, audit] = await Promise.all([
-      dependencies.services.cedcoR02.listAppointments(context),
-      dependencies.services.cedcoR02.listAvailability(context, {}),
-      dependencies.services.cedcoR02.listAudit(context),
+      access.canViewCalendar ? dependencies.services.cedcoR02.listAppointments(context) : [],
+      access.canViewCalendar ? dependencies.services.cedcoR02.listAvailability(context, {}) : [],
+      access.canReadAudit ? dependencies.services.cedcoR02.listAudit(context) : [],
     ]);
     const [knowledgeDocuments, agents, handoffTargets] = await Promise.all([
-      dependencies.services.cedcoR02.listKnowledgeDocuments(context),
-      dependencies.services.cedcoR02.listAgents(context),
-      dependencies.services.cedcoR02.listHandoffTargets(context),
+      access.canViewKnowledge ? dependencies.services.cedcoR02.listKnowledgeDocuments(context) : [],
+      access.canViewAgents ? dependencies.services.cedcoR02.listAgents(context) : [],
+      access.canViewHandoff ? dependencies.services.cedcoR02.listHandoffTargets(context) : [],
     ]);
-    const demoModel = createR02OperationalDemoModel();
+    const baseModel = createR02OperationalDemoModel();
     const dashboardAppointments = toDashboardAppointments(appointments);
     const dashboardAvailability = toDashboardAvailability(availability);
     const dashboardKnowledgeDocuments = toDashboardKnowledgeDocuments(knowledgeDocuments);
@@ -73,11 +77,17 @@ export async function registerCedcoR02Routes(
       knowledgeDocuments: dashboardKnowledgeDocuments,
       agents: dashboardAgents,
       handoffTargets: dashboardHandoffTargets,
-      auditCount: Array.isArray(audit) ? audit.length : demoModel.auditCount,
+      auditCount: Array.isArray(audit) ? audit.length : baseModel.auditCount,
     });
     const html = renderR02OperationalPage({
-      ...demoModel,
+      ...baseModel,
       tenantId: params.tenantId,
+      workspaceName: "CEDCO",
+      viewer: {
+        actorId: context.actorId,
+        roleLabel: roleLabel(context.roles),
+      },
+      capabilities: access,
       appointments: dashboardAppointments,
       availability: dashboardAvailability,
       knowledgeDocuments: dashboardKnowledgeDocuments,
@@ -89,6 +99,7 @@ export async function registerCedcoR02Routes(
       futureGates: readiness.futureGates,
       integrationStatus: readiness.integrationStatus,
       auditCount: readiness.auditCount,
+      auditRestricted: !access.canReadAudit,
     });
     reply.type("text/html; charset=utf-8");
     return html;
@@ -342,6 +353,49 @@ export async function registerCedcoR02Routes(
   });
 }
 
+function buildR02DashboardAccess(roles: readonly Role[]): R02OperationalPanelModel["capabilities"] {
+  const can = (permission: Permission) => rolesAllow(roles, permission);
+  const canManageOperationalData = can("tenant:update") || can("voice:call:write");
+  const canManageAgentData = can("agent:write") || can("version:write");
+  const canApprove = can("version:activate");
+  return {
+    canViewCalendar: can("tenant:read") || can("voice:call:read"),
+    canManageCalendar: canManageOperationalData,
+    canViewKnowledge: can("agent:read") || can("tenant:read"),
+    canManageKnowledge: canManageAgentData || can("tenant:update"),
+    canApproveKnowledge: canApprove,
+    canViewAgents: can("agent:read") || can("tenant:read"),
+    canManageAgents: canManageAgentData,
+    canApproveAgents: canApprove,
+    canSimulateFlow: can("voice:call:write") || can("tenant:update"),
+    canViewHandoff: can("voice:handoff:manage") || can("agent:read") || can("tenant:read"),
+    canManageHandoff: can("voice:handoff:manage") || can("agent:write"),
+    canViewIntegrations: can("audit:read") || can("tenant:read"),
+    canSyncCalendar: canManageOperationalData,
+    canReadAudit: can("audit:read"),
+  };
+}
+
+function roleLabel(roles: readonly string[]): string {
+  const role = roles[0] ?? "reports_viewer";
+  const labels: Record<string, string> = {
+    super_admin_hyperion: "Super administracion",
+    "super-admin": "Super administracion",
+    "tenant-admin": "Administracion",
+    cedco_admin: "Administracion CEDCO",
+    r02_operator: "Operacion",
+    compliance_auditor: "Cumplimiento",
+    reports_viewer: "Consulta y reportes",
+    integration_admin: "Integraciones",
+    human_handoff_agent: "Derivaciones humanas",
+    auditor: "Auditoria",
+    "tenant-viewer": "Consulta",
+    "voice-manager": "Gestion de voz",
+    "voice-operator": "Operacion de voz",
+  };
+  return labels[role] ?? "Consulta";
+}
+
 function toDashboardAppointments(value: unknown) {
   if (!Array.isArray(value)) {
     return [];
@@ -468,7 +522,7 @@ function buildR02Readiness(input: {
       "Calendario interno",
       openAvailabilitySlots > 0 && scheduledAppointments > 0,
       "Disponibilidad y citas internas leidas desde Prisma.",
-      "Falta crear disponibilidad y una cita interna de demo.",
+      "Falta crear disponibilidad y registrar la primera cita interna.",
     ),
     readinessItem(
       "Base de conocimiento",

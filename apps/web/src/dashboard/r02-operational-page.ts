@@ -2,6 +2,27 @@ import { escapeHtml, renderBoolean } from "./components/utils";
 
 export interface R02OperationalPanelModel {
   readonly tenantId: string;
+  readonly workspaceName: string;
+  readonly viewer: {
+    readonly actorId: string;
+    readonly roleLabel: string;
+  };
+  readonly capabilities: {
+    readonly canViewCalendar: boolean;
+    readonly canManageCalendar: boolean;
+    readonly canViewKnowledge: boolean;
+    readonly canManageKnowledge: boolean;
+    readonly canApproveKnowledge: boolean;
+    readonly canViewAgents: boolean;
+    readonly canManageAgents: boolean;
+    readonly canApproveAgents: boolean;
+    readonly canSimulateFlow: boolean;
+    readonly canViewHandoff: boolean;
+    readonly canManageHandoff: boolean;
+    readonly canViewIntegrations: boolean;
+    readonly canSyncCalendar: boolean;
+    readonly canReadAudit: boolean;
+  };
   readonly overallStatus: "ready" | "partial" | "blocked";
   readonly appointments: readonly {
     readonly appointmentId: string;
@@ -50,53 +71,39 @@ export interface R02OperationalPanelModel {
   readonly finalOperatorInputs: readonly string[];
   readonly futureGates: readonly string[];
   readonly auditCount: number;
+  readonly auditRestricted: boolean;
 }
 
 export function createR02OperationalDemoModel(): R02OperationalPanelModel {
   return {
-    tenantId: "cedco-r02-demo",
+    tenantId: "cedco",
+    workspaceName: "CEDCO",
+    viewer: {
+      actorId: "operador",
+      roleLabel: "Administracion CEDCO",
+    },
+    capabilities: {
+      canViewCalendar: true,
+      canManageCalendar: true,
+      canViewKnowledge: true,
+      canManageKnowledge: true,
+      canApproveKnowledge: true,
+      canViewAgents: true,
+      canManageAgents: true,
+      canApproveAgents: true,
+      canSimulateFlow: true,
+      canViewHandoff: true,
+      canManageHandoff: true,
+      canViewIntegrations: true,
+      canSyncCalendar: true,
+      canReadAudit: true,
+    },
     overallStatus: "partial",
-    appointments: [
-      {
-        appointmentId: "appointment-r02-demo",
-        status: "scheduled",
-        syncStatus: "pending",
-        serviceTypeId: "consulta-general",
-        startsAt: "2026-07-03T14:00:00.000Z",
-      },
-    ],
-    availability: [
-      {
-        slotId: "slot-r02-demo",
-        serviceTypeId: "consulta-general",
-        startsAt: "2026-07-03T14:00:00.000Z",
-        capacityRemaining: 1,
-      },
-    ],
-    knowledgeDocuments: [
-      {
-        documentId: "doc-r02-demo",
-        status: "active",
-        versionId: "doc-r02-demo-v1",
-        sourceName: "cedco-r02-demo.md",
-      },
-    ],
-    agents: [
-      {
-        agentId: "cedco-r02-recepcion-agendamiento",
-        displayName: "CEDCO R02 Recepcion y Agendamiento",
-        activeVersionId: "cedco-r02-recepcion-v1",
-        status: "active",
-      },
-    ],
-    handoffTargets: [
-      {
-        targetId: "handoff-human-queue",
-        targetType: "human",
-        displayName: "Recepcion humana CEDCO",
-        status: "active",
-      },
-    ],
+    appointments: [],
+    availability: [],
+    knowledgeDocuments: [],
+    agents: [],
+    handoffTargets: [],
     integrationStatus: {
       externalCalendar: "disabled",
       externalInbound: "disabled",
@@ -154,7 +161,8 @@ export function createR02OperationalDemoModel(): R02OperationalPanelModel {
       "Control de calidad con transcripcion redactada",
       "Captura de audio controlada",
     ],
-    auditCount: 4,
+    auditCount: 0,
+    auditRestricted: false,
   };
 }
 
@@ -171,15 +179,11 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
     <main class="dashboard-shell">
       <aside class="dashboard-shell__sidebar">
         <div class="brand-lockup">
-          <strong>CEDCO</strong>
+          <strong>${escapeHtml(model.workspaceName)}</strong>
           <span>Centro operativo</span>
         </div>
         <nav class="sidebar-nav" aria-label="Secciones">
-          <a href="#agenda">Agenda</a>
-          <a href="#conocimiento">Conocimiento</a>
-          <a href="#asistente">Asistente</a>
-          <a href="#derivaciones">Derivaciones</a>
-          <a href="#auditoria">Auditoria</a>
+          ${renderSidebarNav(model)}
         </nav>
       </aside>
       <section class="dashboard-shell__content" data-r02-tenant="${escapeHtml(model.tenantId)}">
@@ -190,7 +194,8 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
             <p>Agenda, base de conocimiento, asistente y derivaciones en un solo lugar.</p>
           </div>
           <div class="header-meta">
-            <span>Entorno ${escapeHtml(model.tenantId)}</span>
+            <span>${escapeHtml(model.viewer.roleLabel)}</span>
+            <span>${escapeHtml(model.workspaceName)}</span>
             <span class="status-pill status-pill--${escapeHtml(model.overallStatus)}">${escapeHtml(
               renderStatusLabel(model.overallStatus),
             )}</span>
@@ -200,23 +205,47 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
           ${renderMiniCard("Citas", String(model.appointments.length), "Calendario interno")}
           ${renderMiniCard("Conocimiento", String(model.knowledgeDocuments.length), "Documentos activos")}
           ${renderMiniCard("Asistentes", String(model.agents.length), "Versiones controladas")}
-          ${renderMiniCard("Auditoria", String(model.auditCount), "Eventos seguros")}
+          ${renderMiniCard(
+            "Auditoria",
+            model.auditRestricted ? "Restringido" : String(model.auditCount),
+            model.auditRestricted ? "Segun rol" : "Eventos seguros",
+          )}
         </section>
         <section class="dashboard-grid">
           ${renderOperatorActions(model)}
           ${renderReadiness(model)}
-          ${renderAppointments(model)}
-          ${renderAvailability(model)}
-          ${renderKnowledge(model)}
-          ${renderAgents(model)}
-          ${renderHandoff(model)}
-          ${renderIntegrations(model)}
+          ${model.capabilities.canViewCalendar ? renderAppointments(model) : ""}
+          ${model.capabilities.canViewCalendar ? renderAvailability(model) : ""}
+          ${model.capabilities.canViewKnowledge ? renderKnowledge(model) : ""}
+          ${model.capabilities.canViewAgents ? renderAgents(model) : ""}
+          ${model.capabilities.canViewHandoff ? renderHandoff(model) : ""}
+          ${model.capabilities.canViewIntegrations ? renderIntegrations(model) : ""}
         </section>
       </section>
     </main>
     ${renderR02DashboardScript()}
   </body>
 </html>`;
+}
+
+function renderSidebarNav(model: R02OperationalPanelModel): string {
+  const links = [
+    model.capabilities.canViewCalendar ? { href: "#agenda", label: "Agenda" } : undefined,
+    model.capabilities.canViewKnowledge
+      ? { href: "#conocimiento", label: "Conocimiento" }
+      : undefined,
+    model.capabilities.canViewAgents ? { href: "#asistente", label: "Asistente" } : undefined,
+    model.capabilities.canViewHandoff
+      ? { href: "#derivaciones", label: "Derivaciones" }
+      : undefined,
+    { href: "#auditoria", label: model.capabilities.canReadAudit ? "Auditoria" : "Preparacion" },
+  ].filter((link): link is { href: string; label: string } => Boolean(link));
+  return links
+    .map(
+      (link, index) =>
+        `<a href="${link.href}"${index === 0 ? ' aria-current="page"' : ""}>${link.label}</a>`,
+    )
+    .join("");
 }
 
 function renderMiniCard(label: string, value: string, helperText: string): string {
@@ -227,10 +256,40 @@ function renderMiniCard(label: string, value: string, helperText: string): strin
   </article>`;
 }
 
+function renderEmptyState(title: string, detail: string): string {
+  return `<div class="empty-state">
+    <strong>${escapeHtml(title)}</strong>
+    <span>${escapeHtml(detail)}</span>
+  </div>`;
+}
+
+function renderRoleNotice(message: string): string {
+  return `<p class="role-notice">${escapeHtml(message)}</p>`;
+}
+
+function operatorActionSummary(model: R02OperationalPanelModel): string {
+  if (model.capabilities.canManageCalendar) {
+    return "Prepara disponibilidad, registra solicitudes y valida el flujo operativo desde el panel.";
+  }
+  if (model.capabilities.canApproveKnowledge || model.capabilities.canApproveAgents) {
+    return "Revisa cambios pendientes, aprueba contenido y controla versiones antes de activar operacion.";
+  }
+  if (model.capabilities.canManageHandoff) {
+    return "Gestiona derivaciones y revisa solicitudes que requieren atencion humana.";
+  }
+  return "Vista de consulta: revisa estado, agenda y evidencia disponible segun tu rol.";
+}
+
 function renderAppointments(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="agenda">
     <h2>Calendario y citas</h2>
-    <table>
+    ${
+      model.appointments.length === 0
+        ? renderEmptyState(
+            "Aun no hay citas registradas.",
+            "Crea disponibilidad y registra la primera solicitud cuando tengas agenda definida.",
+          )
+        : `<table>
       <thead><tr><th>Solicitud</th><th>Estado</th><th>Agenda externa</th><th>Servicio</th><th>Fecha y hora</th></tr></thead>
       <tbody>${model.appointments
         .map(
@@ -243,14 +302,21 @@ function renderAppointments(model: R02OperationalPanelModel): string {
           </tr>`,
         )
         .join("")}</tbody>
-    </table>
+    </table>`
+    }
   </section>`;
 }
 
 function renderAvailability(model: R02OperationalPanelModel): string {
   return `<section class="panel">
     <h2>Disponibilidad</h2>
-    <table>
+    ${
+      model.availability.length === 0
+        ? renderEmptyState(
+            "No hay bloques de agenda activos.",
+            "Define horarios, sede y servicio para que el asistente pueda consultar disponibilidad real.",
+          )
+        : `<table>
       <thead><tr><th>Bloque de agenda</th><th>Servicio</th><th>Fecha y hora</th><th>Cupos</th></tr></thead>
       <tbody>${model.availability
         .map(
@@ -262,31 +328,50 @@ function renderAvailability(model: R02OperationalPanelModel): string {
           </tr>`,
         )
         .join("")}</tbody>
-    </table>
+    </table>`
+    }
   </section>`;
 }
 
 function renderKnowledge(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="conocimiento">
     <h2>Base de conocimiento</h2>
+    ${
+      model.capabilities.canManageKnowledge
+        ? `
     <form class="action-form" data-r02-action="upload-knowledge">
-      <label>Documento<input name="documentId" value="documento-operativo-demo" /></label>
-      <label>Archivo<input name="sourceName" value="cedco-operacion-demo.md" /></label>
+      <label>Documento<input name="documentId" placeholder="documento-operativo-001" required /></label>
+      <label>Archivo<input name="sourceName" placeholder="servicios-cedco.md" required /></label>
       <label>Fuente local<input name="ragTextFile" type="file" accept=".txt,.md,.csv,.json,text/plain,text/markdown,text/csv,application/json" data-r02-local-text-file /></label>
-      <label class="action-form__wide">Contenido<textarea name="contentText">CEDCO agenda orientacion inicial y programacion de cita con calendario interno.</textarea></label>
+      <label class="action-form__wide">Contenido<textarea name="contentText" placeholder="Pega aqui contenido aprobado y sanitizado." required></textarea></label>
       <button type="submit">Cargar documento</button>
     </form>
+        `
+        : renderRoleNotice("Tu rol puede consultar conocimiento, pero no cargar documentos.")
+    }
+    ${
+      model.knowledgeDocuments.length > 0
+        ? `
     <form class="inline-actions" data-r02-action="knowledge-transition">
-      <input name="documentId" value="${operatorInputValue(model.knowledgeDocuments[0]?.documentId, "documento-operativo-demo")}" />
-      <button name="transition" value="process" type="submit">Procesar</button>
-      <button name="transition" value="approve" type="submit">Aprobar</button>
-      <button name="transition" value="activate" type="submit">Activar</button>
+      <input name="documentId" value="${operatorInputValue(model.knowledgeDocuments[0]?.documentId, "documento-operativo-001")}" />
+      ${model.capabilities.canManageKnowledge ? '<button name="transition" value="process" type="submit">Procesar</button>' : ""}
+      ${model.capabilities.canApproveKnowledge ? '<button name="transition" value="approve" type="submit">Aprobar</button>' : ""}
+      ${model.capabilities.canApproveKnowledge ? '<button name="transition" value="activate" type="submit">Activar</button>' : ""}
     </form>
+        `
+        : ""
+    }
     <form class="inline-actions" data-r02-action="knowledge-search">
-      <input name="queryText" value="orientacion inicial cita" />
+      <input name="queryText" placeholder="Buscar en documentos aprobados" required />
       <button type="submit">Probar busqueda</button>
     </form>
-    <table>
+    ${
+      model.knowledgeDocuments.length === 0
+        ? renderEmptyState(
+            "No hay documentos activos.",
+            "Carga documentos aprobados de CEDCO para que el asistente responda desde fuentes controladas.",
+          )
+        : `<table>
       <thead><tr><th>Documento</th><th>Fuente</th><th>Estado</th><th>Version</th></tr></thead>
       <tbody>${model.knowledgeDocuments
         .map(
@@ -298,35 +383,60 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
           </tr>`,
         )
         .join("")}</tbody>
-    </table>
+    </table>`
+    }
   </section>`;
 }
 
 function renderAgents(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="asistente">
     <h2>Asistente</h2>
+    ${
+      model.capabilities.canManageAgents
+        ? `
     <form class="action-form" data-r02-action="agent-version">
       <label>Agente<input name="agentId" value="${escapeHtml(model.agents[0]?.agentId ?? "cedco-r02-recepcion-agendamiento")}" /></label>
-      <label>Version<input name="versionId" value="version-operativa-demo" /></label>
+      <label>Version<input name="versionId" placeholder="version-operativa-001" required /></label>
       <label>Saludo<input name="greeting" value="Hola, gracias por comunicarte con CEDCO." /></label>
       <label class="action-form__wide">Guion operativo<textarea name="prompt">Consulta la base de conocimiento aprobada y la disponibilidad interna antes de confirmar una cita.</textarea></label>
       <button type="submit">Crear version</button>
     </form>
+        `
+        : renderRoleNotice("Tu rol puede revisar el asistente, pero no crear versiones.")
+    }
+    ${
+      model.agents.length > 0 && model.capabilities.canApproveAgents
+        ? `
     <form class="inline-actions" data-r02-action="agent-transition">
-      <input name="versionId" value="${operatorInputValue(model.agents[0]?.activeVersionId, "version-operativa-demo")}" />
+      <input name="versionId" value="${operatorInputValue(model.agents[0]?.activeVersionId, "version-operativa-001")}" />
       <button name="transition" value="approve" type="submit">Aprobar</button>
       <button name="transition" value="activate" type="submit">Activar</button>
     </form>
+        `
+        : ""
+    }
+    ${
+      model.capabilities.canSimulateFlow
+        ? `
     <form class="inline-actions" data-r02-action="simulate-flow">
       <select name="intent">
         <option value="schedule">agenda</option>
         <option value="knowledge">conocimiento</option>
         <option value="handoff">handoff</option>
       </select>
-      <input name="queryText" value="quiero programar una cita" />
+      <input name="queryText" placeholder="Ej. quiero programar una cita" required />
       <button type="submit">Simular</button>
     </form>
-    <table>
+        `
+        : ""
+    }
+    ${
+      model.agents.length === 0
+        ? renderEmptyState(
+            "No hay asistente activo en esta vista.",
+            "Crea o activa una version aprobada antes de operar llamadas reales.",
+          )
+        : `<table>
       <thead><tr><th>Asistente</th><th>Nombre</th><th>Version activa</th><th>Estado</th></tr></thead>
       <tbody>${model.agents
         .map(
@@ -338,7 +448,8 @@ function renderAgents(model: R02OperationalPanelModel): string {
           </tr>`,
         )
         .join("")}</tbody>
-    </table>
+    </table>`
+    }
   </section>`;
 }
 
@@ -346,31 +457,41 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
   return `<section class="panel panel--wide panel--command">
     <div>
       <h2>Operacion diaria</h2>
-      <p>Acciones frecuentes para preparar agenda, registrar solicitudes y probar el flujo sin salir del panel.</p>
+      <p>${escapeHtml(operatorActionSummary(model))}</p>
     </div>
-    <form class="inline-actions" data-r02-action="seed-demo">
-      <button type="submit">Sembrar demo</button>
-      <output data-r02-output="seed-demo"></output>
-    </form>
+    ${
+      model.capabilities.canManageCalendar
+        ? `
     <form class="action-form" data-r02-action="availability">
-      <label>Bloque de agenda<input name="slotId" value="bloque-agenda-demo" /></label>
-      <label>Agenda<input name="resourceId" value="recepcion-cedco" /></label>
-      <label>Sede<input name="siteId" value="sede-principal" /></label>
-      <label>Servicio<input name="serviceTypeId" value="orientacion-inicial" /></label>
+      <label>Bloque de agenda<input name="slotId" placeholder="bloque-agenda-001" required /></label>
+      <label>Agenda<input name="resourceId" placeholder="agenda-recepcion" required /></label>
+      <label>Sede<input name="siteId" placeholder="sede-principal" required /></label>
+      <label>Servicio<input name="serviceTypeId" placeholder="orientacion-inicial" required /></label>
       <label>Fecha y hora<input name="startsAt" value="${escapeHtml(nextIsoHour())}" /></label>
       <label>Cupos<input name="capacity" type="number" min="1" max="20" value="1" /></label>
       <button type="submit">Crear disponibilidad</button>
     </form>
     <form class="action-form" data-r02-action="appointment">
-      <label>Solicitud de cita<input name="appointmentId" value="solicitud-cita-demo" /></label>
-      <label>Bloque de agenda<input name="slotId" value="${operatorInputValue(model.availability[0]?.slotId, "bloque-agenda-demo")}" /></label>
-      <label>Usuario<input name="patientRef" value="usuario-demo" /></label>
+      <label>Solicitud de cita<input name="appointmentId" placeholder="solicitud-cita-001" required /></label>
+      <label>Bloque de agenda<input name="slotId" value="${operatorInputValue(model.availability[0]?.slotId, "")}" placeholder="bloque-agenda-001" required /></label>
+      <label>Usuario<input name="patientRef" placeholder="usuario-referencia" required /></label>
       <button type="submit">Crear cita</button>
     </form>
+        `
+        : renderRoleNotice(
+            "Tu rol no puede crear disponibilidad ni citas. Puedes revisar el estado disponible para tu area.",
+          )
+    }
+    ${
+      model.capabilities.canSyncCalendar && model.appointments.length > 0
+        ? `
     <form class="inline-actions" data-r02-action="external-calendar-sync-dry-run">
-      <input name="appointmentId" value="${operatorInputValue(model.appointments[0]?.appointmentId, "solicitud-cita-demo")}" />
+      <input name="appointmentId" value="${operatorInputValue(model.appointments[0]?.appointmentId, "")}" />
       <button type="submit">Validar sincronizacion</button>
     </form>
+        `
+        : ""
+    }
     <output class="action-log" data-r02-output="global"></output>
   </section>`;
 }
@@ -378,14 +499,26 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
 function renderHandoff(model: R02OperationalPanelModel): string {
   return `<section class="panel" id="derivaciones">
     <h2>Derivaciones</h2>
+    ${
+      model.capabilities.canManageHandoff
+        ? `
     <form class="action-form" data-r02-action="handoff-target">
-      <label>Destino<input name="targetId" value="equipo-humano-cedco" /></label>
+      <label>Destino<input name="targetId" placeholder="equipo-humano-cedco" required /></label>
       <label>Tipo<select name="targetType"><option value="human">equipo humano</option><option value="pbx">enrutador interno</option></select></label>
-      <label>Nombre<input name="displayName" value="Recepcion humana CEDCO" /></label>
-      <label>Ruta interna<input name="routeRef" value="cola-humana-demo" /></label>
+      <label>Nombre<input name="displayName" placeholder="Recepcion humana CEDCO" required /></label>
+      <label>Ruta interna<input name="routeRef" placeholder="cola-humana" required /></label>
       <button type="submit">Guardar derivacion</button>
     </form>
-    <table>
+        `
+        : renderRoleNotice("Tu rol puede revisar derivaciones, pero no cambiar destinos.")
+    }
+    ${
+      model.handoffTargets.length === 0
+        ? renderEmptyState(
+            "No hay destinos de derivacion activos.",
+            "Define un destino humano aprobado antes de habilitar transferencia persistente.",
+          )
+        : `<table>
       <thead><tr><th>Destino</th><th>Tipo</th><th>Nombre</th><th>Estado</th></tr></thead>
       <tbody>${model.handoffTargets
         .map(
@@ -397,7 +530,8 @@ function renderHandoff(model: R02OperationalPanelModel): string {
           </tr>`,
         )
         .join("")}</tbody>
-    </table>
+    </table>`
+    }
   </section>`;
 }
 
@@ -514,9 +648,6 @@ function renderR02DashboardScript(): string {
       const action = form.getAttribute("data-r02-action");
       const data = formData(form);
       try {
-        if (action === "seed-demo") {
-          await postJson("/demo/seed", {});
-        }
         if (action === "availability") {
           await postJson("/calendar/availability", {
             slotId: data.slotId,
@@ -645,6 +776,7 @@ function neutralizeOperatorText(value: string): string {
     .replace(/appointment/giu, "cita")
     .replace(/patient/giu, "usuario")
     .replace(/slot/giu, "bloque")
+    .replace(/demo/giu, "operativo")
     .replace(/dashboard/giu, "panel")
     .replace(/main-site/giu, "sede-principal")
     .replace(/google/giu, "externo")
