@@ -12,6 +12,7 @@ enabled by this document.
 | VM loopback validation     | Passed                |
 | Public provider webhook    | Not exposed           |
 | Real provider webhook      | Not connected         |
+| Provider capability review | Completed             |
 | Provider egress            | Disabled              |
 | Live calls                 | Disabled              |
 | Transcript/audio           | Not accessed          |
@@ -27,6 +28,10 @@ The private endpoint accepts only synthetic signed payloads and is limited to st
 D02-AUTO-18B validated it on the Contabo staging VM through loopback/internal access. It does not
 authorize a public route, provider callback configuration, transcript QA, audio capture, or pilot
 traffic.
+
+D02-AUTO-19 reviewed real provider webhook readiness and kept provider webhook staging NO-GO.
+Provider callbacks require a reachable URL, agent-level-only scope is unconfirmed, and metadata-only
+filtering without transcript/audio risk is unconfirmed.
 
 ## Required Future Gates
 

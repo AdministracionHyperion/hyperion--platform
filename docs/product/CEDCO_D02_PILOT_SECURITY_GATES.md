@@ -5,6 +5,12 @@ D02-AUTO-17 adds a private synthetic endpoint contract, and D02-AUTO-18B validat
 the Contabo staging VM through loopback/internal access. These loops do not approve public webhook
 exposure, real provider callbacks, or pilot traffic.
 
+## D02-AUTO-19 Update
+
+Real provider webhook metadata-only staging remains blocked. The current validated webhook path is
+synthetic loopback/internal only. Public exposure and real provider callbacks require separate
+approval and design review before pilot traffic can be considered.
+
 ## Gates Before Pilot
 
 - D02 Spanish controlled MVP evidence remains available.
