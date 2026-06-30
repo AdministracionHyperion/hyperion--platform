@@ -8,6 +8,10 @@ product and operations boundary, not a runtime switch implementation.
 The platform keeps provider egress and live calls disabled. If a future pilot is approved, the pilot
 must still have a verified stop path before any call is placed.
 
+For future public webhook staging, the kill switch must disable the public route, keep real provider
+webhook processing disconnected until separately approved, keep transcript/audio disabled, and
+confirm provider egress and live calls remain disabled.
+
 ## Stop Conditions
 
 Stop the pilot immediately if any of the following occurs:
@@ -27,9 +31,10 @@ Stop the pilot immediately if any of the following occurs:
 1. Do not start another call.
 2. Keep platform provider egress and live calls disabled.
 3. Keep public webhook disabled.
-4. Preserve only private raw evidence in local private storage if it already exists.
-5. Record sanitized status only.
-6. Run platform-to-dialer and staging health checks before resuming any gate.
+4. Disable the public route if it was approved in a future loop.
+5. Preserve only private raw evidence in local private storage if it already exists.
+6. Record sanitized status only.
+7. Run platform-to-dialer and staging health checks before resuming any gate.
 
 ## Rollback Boundary
 

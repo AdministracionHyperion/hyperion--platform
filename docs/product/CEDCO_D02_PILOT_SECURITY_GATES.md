@@ -11,6 +11,12 @@ Real provider webhook metadata-only staging remains blocked. The current validat
 synthetic loopback/internal only. Public exposure and real provider callbacks require separate
 approval and design review before pilot traffic can be considered.
 
+## D02-AUTO-20 Update
+
+Public webhook exposure remains inactive. The new blueprint defines route, TLS, POST-only, HMAC,
+replay, idempotency, sanitizer, metadata-only, logging, rate-limit, rollback and kill-switch
+requirements, but does not expose a route or connect the provider.
+
 ## Gates Before Pilot
 
 - D02 Spanish controlled MVP evidence remains available.
@@ -19,6 +25,7 @@ approval and design review before pilot traffic can be considered.
   synthetic VM validation is complete.
 - Public webhook must remain blocked until separately approved.
 - Real metadata-only provider webhook callbacks must remain blocked until separately approved.
+- Public webhook route templates must remain non-applied until separately approved.
 - Transcript QA must remain blocked until separately approved.
 - Audio capture/review must remain blocked until separately approved.
 - Pilot scope, call count, numbers, operator, rate limits and stop owner must be approved.
@@ -28,7 +35,8 @@ approval and design review before pilot traffic can be considered.
 - Transcript QA: `APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT`.
 - Audio capture/review: `APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT`.
 - Public webhook: `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`.
-- Real metadata-only webhook staging: `APPROVE_PRIVATE_METADATA_ONLY_PROVIDER_WEBHOOK_STAGING`.
-- Pilot calls: a future exact approval phrase scoped to the pilot window and allowed numbers.
+- Real metadata-only webhook staging: `APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`.
+- Pilot calls: `APPROVE_SINGLE_CONTROLLED_PILOT_CALL` scoped to the pilot window and allowed
+  numbers.
 
 No platform feature should infer approval from the synthetic webhook rehearsal alone.

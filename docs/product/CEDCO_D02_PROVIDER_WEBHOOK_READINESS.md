@@ -26,6 +26,7 @@ metadata-only status in a future approved integration, but must not store, rende
 | Control                            | State           |
 | ---------------------------------- | --------------- |
 | Private synthetic webhook endpoint | Validated on VM |
+| Public exposure blueprint          | Created only    |
 | Real provider webhook              | Not connected   |
 | Public webhook                     | Not exposed     |
 | Provider config attempted          | No              |
@@ -39,3 +40,7 @@ metadata-only status in a future approved integration, but must not store, rende
 Public staging exposure requires a separate loop and this exact phrase:
 
 `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`
+
+Real provider webhook metadata-only processing requires a later loop:
+
+`APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`
