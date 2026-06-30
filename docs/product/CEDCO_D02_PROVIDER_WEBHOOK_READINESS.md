@@ -27,6 +27,12 @@ Public staging exposure is now active through Traefik for synthetic signed paylo
 changes only the staging ingress readiness boundary; real ElevenLabs webhook registration remains
 NO-GO.
 
+## D02-AUTO-22 Update
+
+The exact real-provider webhook approval was received, but configuration stopped before provider
+mutation with `workspace_scope_risk_blocker`. No real provider webhook was connected, no webhook
+secret was created in VM config, and no real provider payload, transcript, or audio was accessed.
+
 ## Current State
 
 | Control                            | State                                      |
@@ -36,7 +42,7 @@ NO-GO.
 | Real provider webhook              | Not connected                              |
 | Public webhook                     | Exposed for synthetic signed payloads only |
 | Provider config attempted          | No                                         |
-| API key used                       | No                                         |
+| API key used                       | In memory only for read-only discovery     |
 | Transcript/audio accessed          | No                                         |
 | Provider egress                    | Disabled                                   |
 | Live calls                         | Disabled                                   |
@@ -46,3 +52,6 @@ NO-GO.
 Real provider webhook metadata-only processing requires a later loop:
 
 `APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`
+
+That approval is not sufficient by itself until workspace scope is resolved or agent-level scoping
+is proven.
