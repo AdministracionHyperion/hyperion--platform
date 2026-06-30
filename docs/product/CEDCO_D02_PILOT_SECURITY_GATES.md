@@ -3,8 +3,8 @@
 The D02 pilot remains NO-GO. D02-AUTO-16 proves synthetic webhook controls in the dialer repo,
 D02-AUTO-17 adds a private synthetic endpoint contract, and D02-AUTO-18B validates that endpoint on
 the Contabo staging VM through loopback/internal access. D02-AUTO-21A exposes a Traefik public
-route, and D02-AUTO-22 connects failure-event provider metadata only. These loops do not approve
-pilot traffic.
+route, D02-AUTO-22 connects failure-event provider metadata only, and D02-AUTO-23 adds durable
+metadata-only handling for that event. These loops do not approve pilot traffic.
 
 ## D02-AUTO-19 Update
 
@@ -33,13 +33,22 @@ through the staging agent override for `call_initiation_failure` only. The webho
 VM-only. No real provider payload, transcript, audio, call, provider egress, or live dispatch was
 used.
 
+## D02-AUTO-23 Update
+
+Durable metadata-only handling for `call_initiation_failure` is implemented and validated with
+synthetic signed payloads. The dialer persists sanitized metadata and hashes only, handles replay
+and idempotency conflicts, and creates an audit record.
+
+No pilot traffic, transcript QA, audio access, raw provider payload persistence, campaign, batch, or
+automatic retry is approved.
+
 ## Gates Before Pilot
 
 - D02 Spanish controlled MVP evidence remains available.
 - Provider egress and live calls remain disabled by default.
 - Private webhook staging must pass with synthetic fixtures and remain non-public. Loopback/internal
   synthetic VM validation is complete.
-- Real provider webhook handling is limited to failure-event metadata; it does not authorize
+- Real provider webhook handling is limited to durable failure-event metadata; it does not authorize
   successful post-call transcript handling or pilot traffic.
 - Public webhook route must remain on the approved staging path only.
 - Transcript QA must remain blocked until separately approved.
@@ -50,7 +59,7 @@ used.
 
 - Transcript QA: `APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT`.
 - Audio capture/review: `APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT`.
-- Pilot calls: `APPROVE_SINGLE_CONTROLLED_PILOT_CALL` scoped to the pilot window and allowed
-  numbers.
+- Pilot metadata call: `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL` scoped to one allowed
+  controlled number and one call.
 
 No platform feature should infer approval from the synthetic webhook rehearsal alone.
