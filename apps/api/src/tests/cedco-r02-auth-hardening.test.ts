@@ -27,6 +27,25 @@ afterEach(async () => {
 });
 
 describe("CEDCO R02 local staging auth hardening", () => {
+  it("serves a product-ready login page with password-manager friendly fields", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/auth/login",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/html");
+    expect(response.body).toContain("Acceso al panel operativo");
+    expect(response.body).toContain("Centro operativo");
+    expect(response.body).toContain('name="username"');
+    expect(response.body).toContain('autocomplete="username"');
+    expect(response.body).toContain('name="password"');
+    expect(response.body).toContain('type="password"');
+    expect(response.body).toContain('autocomplete="current-password"');
+    expect(response.body).toContain("navigator.credentials.store");
+    expect(response.body).not.toMatch(/Hyperion R02|Twilio|ElevenLabs|Google|11labs/iu);
+  });
+
   it("blocks anonymous R02 access in local-staging mode", async () => {
     const response = await app.inject({
       method: "GET",
