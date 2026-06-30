@@ -11,6 +11,9 @@ describe("CEDCO R02 operational page", () => {
     expect(html).toContain('href="?modulo=asistente"');
     expect(html).toContain('href="?modulo=derivaciones"');
     expect(html).not.toContain('href="#agenda"');
+    expect(html).toContain("Cerrar sesion");
+    expect(html).toContain("data-r02-logout");
+    expect(html).toContain("/api/v1/auth/logout");
     expect(html).toContain("Calendario y citas");
     expect(html).toContain('data-r02-action="external-calendar-sync-dry-run"');
     expect(html).toContain("Validar sincronizacion");
