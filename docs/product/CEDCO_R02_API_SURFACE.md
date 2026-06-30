@@ -11,6 +11,7 @@ Implemented tenant-scoped API surface:
 - `POST /api/v1/tenants/:tenantId/r02/appointments/:id/cancel`
 - `POST /api/v1/tenants/:tenantId/r02/appointments/:id/reschedule`
 - `POST /api/v1/tenants/:tenantId/r02/google-calendar/:id/sync-test`
+- `POST /api/v1/tenants/:tenantId/r02/google-calendar/:id/sync-dry-run`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-bases`
 - `GET /api/v1/tenants/:tenantId/r02/knowledge-bases`
 - `POST /api/v1/tenants/:tenantId/r02/knowledge-documents/upload`
@@ -34,6 +35,8 @@ Safety:
 - Contracts reject forbidden payload fields before route handling.
 - Accepted fields use safe references, never real numbers or provider identifiers.
 - External calendar sync-test stays disabled and returns a safe status.
+- External calendar sync dry-run persists a disabled sync state and returns the planned operation,
+  required future inputs and `externalRequestMade=false`.
 - Agent flow simulation does not call providers or access transcript/audio.
 - RAG upload accepts `txt`, `md`, `csv`, `json`, plus PDF/DOCX source names when the request body
   contains operator-supplied extracted text. Binary PDF/DOCX content is not accepted or stored.

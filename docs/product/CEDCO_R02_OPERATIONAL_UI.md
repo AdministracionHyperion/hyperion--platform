@@ -17,6 +17,7 @@ The page also provides same-origin operator actions:
 - Seed demo data.
 - Create internal availability.
 - Create an internal appointment.
+- Run Google Calendar sync dry-run for an internal appointment.
 - Upload a RAG document from the dashboard.
 - Upload operator-supplied extracted text from PDF/DOCX sources without storing the binary file.
 - Process, approve and activate RAG content.
@@ -31,6 +32,7 @@ Runtime boundaries:
 - Real calls: disabled.
 - Provider egress: disabled.
 - External calendar credentials: not used.
+- Google Calendar dry-run: enabled; no credentials, network calls or external mutation.
 - External inbound provider: not connected.
 - PBX real route: not connected.
 - Transcript/audio: not accessed.

@@ -18,6 +18,8 @@ R02 operational persistence state:
   afterward.
 - R02 dashboard now exposes internal operator actions for calendar, RAG upload, agent versioning,
   flow simulation, handoff refs and audit visibility.
+- Google Calendar sync dry-run is operator-ready from API/UI and remains disabled for real OAuth
+  until a separate gate is approved.
 
 Future gates:
 

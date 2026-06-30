@@ -14,6 +14,8 @@ integration work can be completed. Do not put these values in Git, chat, PR bodi
 
 ## Google Calendar Inputs
 
+- Current platform state: dashboard/API dry-run is available and produces the planned sync operation
+  without external credentials or Google requests.
 - OAuth/client configuration or approved service-account approach for staging.
 - Calendar IDs or resource mapping for CEDCO staging.
 - Sync policy decision: one-way internal-to-Google or bi-directional reconciliation.

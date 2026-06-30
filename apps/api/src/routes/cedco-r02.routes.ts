@@ -119,6 +119,15 @@ export async function registerCedcoR02Routes(
     );
   });
 
+  app.post("/api/v1/tenants/:tenantId/r02/google-calendar/:id/sync-dry-run", async (request) => {
+    const params = validateWithSchema(cedcoR02IdParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:update", "voice:call:write"]);
+    return ok(
+      await dependencies.services.cedcoR02.runCalendarSyncDryRun(context, params.id),
+      context,
+    );
+  });
+
   app.post("/api/v1/tenants/:tenantId/r02/knowledge-bases", async (request, reply) => {
     validateWithSchema(cedcoR02ParamsSchema, request.params);
     const body = validateWithSchema(createKnowledgeBaseBodySchema, request.body);
