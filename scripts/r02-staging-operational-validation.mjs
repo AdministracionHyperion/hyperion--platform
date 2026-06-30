@@ -236,9 +236,17 @@ const denied = await request(
 );
 result.rbac_viewer_write_denied = denied.json.error?.code === "forbidden";
 
-const otherTenant = await request("GET", `${otherTenantPath}/appointments`, undefined, 200);
+const otherTenant = await requestWithExpectedStatuses(
+  "GET",
+  `${otherTenantPath}/appointments`,
+  undefined,
+  [200, 401, 403],
+);
 result.tenant_isolation_passed =
-  Array.isArray(otherTenant.json.data) && otherTenant.json.data.length === 0;
+  (otherTenant.response.status === 200 &&
+    Array.isArray(otherTenant.json.data) &&
+    otherTenant.json.data.length === 0) ||
+  ["missing_actor", "forbidden"].includes(otherTenant.json.error?.code);
 
 const audit = await request("GET", `${basePath}/audit`, undefined, 200);
 assertNoBlockedEvidence(JSON.stringify(audit.json));
@@ -306,6 +314,19 @@ async function expectStatus(method, path, payload, expectedStatus) {
   return request(method, path, payload, expectedStatus);
 }
 
+async function requestWithExpectedStatuses(method, path, payload, expectedStatuses) {
+  const response = await requestRaw(method, path, payload, adminHeaders);
+  if (!expectedStatuses.includes(response.response.status)) {
+    throw new Error(
+      `${method} ${path} expected ${expectedStatuses.join("/")}, got ${
+        response.response.status
+      }: ${response.text.slice(0, 240)}`,
+    );
+  }
+  assertNoBlockedEvidence(response.text);
+  return response;
+}
+
 async function configureAuthHeaders() {
   const adminSessionToken =
     process.env.R02_STAGING_ADMIN_SESSION_TOKEN ??
@@ -359,6 +380,17 @@ async function loginIfConfigured(loginRef, credential) {
 }
 
 async function request(method, path, payload, expectedStatus, headers = adminHeaders) {
+  const response = await requestRaw(method, path, payload, headers);
+  if (response.response.status !== expectedStatus) {
+    throw new Error(
+      `${method} ${path} expected ${expectedStatus}, got ${response.response.status}: ${response.text.slice(0, 240)}`,
+    );
+  }
+  assertNoBlockedEvidence(response.text);
+  return response;
+}
+
+async function requestRaw(method, path, payload, headers = adminHeaders) {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers,
@@ -371,12 +403,6 @@ async function request(method, path, payload, expectedStatus, headers = adminHea
   } catch {
     json = undefined;
   }
-  if (response.status !== expectedStatus) {
-    throw new Error(
-      `${method} ${path} expected ${expectedStatus}, got ${response.status}: ${text.slice(0, 240)}`,
-    );
-  }
-  assertNoBlockedEvidence(text);
   return { response, text, json };
 }
 
