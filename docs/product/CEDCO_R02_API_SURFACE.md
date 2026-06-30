@@ -36,4 +36,6 @@ Staging validation:
 
 - `scripts/r02-staging-operational-validation.mjs` seeds synthetic CEDCO data and exercises the
   operational API surface against the staging API.
+- The seed response must include `storageMode=prisma`.
+- Appointment create, reschedule and cancel are read back after each write.
 - The script must print `R02_STAGING_OPERATIONAL_VALIDATION_PASSED`.

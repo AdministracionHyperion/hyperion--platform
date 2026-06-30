@@ -86,7 +86,7 @@ import type {
   InternalDialerDryRunBody,
 } from "../contracts";
 import type { ApiAuditRecord, ApiServices } from "./api-services";
-import { createFakeApiServices } from "./fake-api-services";
+import { createPrismaCedcoR02Services } from "./prisma-cedco-r02-services";
 
 export interface PrismaBackedApiServicesInput {
   readonly prisma: HyperionPrismaClient;
@@ -125,7 +125,7 @@ class PrismaBackedApiServices implements ApiServices {
     metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
     private readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort,
   ) {
-    this.cedcoR02 = createFakeApiServices().cedcoR02;
+    this.cedcoR02 = createPrismaCedcoR02Services(this.prisma);
     this.internalDialerAdapter = new BlockedInternalDialerAdapter({
       hardeningStatus: defaultDialerHardeningStatus,
       logger,

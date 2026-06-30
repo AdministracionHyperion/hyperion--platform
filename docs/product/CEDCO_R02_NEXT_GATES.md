@@ -2,8 +2,15 @@
 
 Current state: staging demo is operational with synthetic data only.
 
+R02 operational persistence state:
+
+- Calendar, appointments, RAG, agents, handoff targets and R02 audit are Prisma-backed in staging.
+- Header-dev auth remains a staging-only boundary.
+- External providers remain disabled.
+
 Future gates:
 
+- `APPROVE_R02_STAGING_AUTH_HARDENING`
 - `APPROVE_TWILIO_INBOUND_NUMBER_CONNECTION`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
 - `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`
