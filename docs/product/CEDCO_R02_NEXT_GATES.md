@@ -12,10 +12,12 @@ R02 operational persistence state:
 - The ElevenLabs CEDCO R02 agent configuration is complete.
 - The exact Twilio Colombia phone number is imported and bound in ElevenLabs.
 - One single controlled inbound call answered with the expected Spanish CEDCO R02 agent behavior.
+- One single functional inbound appointment-flow call passed with warnings after redacted transcript
+  QA.
 
 Future gates:
 
-- `APPROVE_SINGLE_CONTROLLED_R02_INBOUND_FUNCTIONAL_CALL`
+- `APPROVE_SINGLE_CONTROLLED_R02_HANDOFF_AND_AVAILABILITY_CALL`
 - `APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
 - `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`
