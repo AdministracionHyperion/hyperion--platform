@@ -1,5 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import {
+  createR02OperationalDemoModel,
+  renderR02OperationalPage,
+} from "../../../web/src/dashboard/r02-operational-page";
+import {
   availabilityQuerySchema,
   cedcoR02IdParamsSchema,
   cedcoR02ParamsSchema,
@@ -22,6 +26,17 @@ export async function registerCedcoR02Routes(
   app: FastifyInstance,
   dependencies: RouteRegistryDependencies,
 ): Promise<void> {
+  app.get("/api/v1/tenants/:tenantId/r02/dashboard", async (request, reply) => {
+    const params = validateWithSchema(cedcoR02ParamsSchema, request.params);
+    getRequiredRequestContext(request, ["tenant:read", "agent:read", "voice:call:read"]);
+    const html = renderR02OperationalPage({
+      ...createR02OperationalDemoModel(),
+      tenantId: params.tenantId,
+    });
+    reply.type("text/html; charset=utf-8");
+    return html;
+  });
+
   app.post("/api/v1/tenants/:tenantId/r02/demo/seed", async (request) => {
     validateWithSchema(cedcoR02ParamsSchema, request.params);
     const context = getRequiredRequestContext(request, ["tenant:update", "agent:write"]);
