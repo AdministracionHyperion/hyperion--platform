@@ -401,12 +401,22 @@ export class InMemoryR02KnowledgeBase {
     if (input.sizeBytes > 1_000_000) {
       return fail(domainError("invalid_state", "document exceeds R02 baseline size"));
     }
-    if (sourceType === "pdf" || sourceType === "docx") {
-      return fail(domainError("invalid_state", "binary extractor is required before ingestion"));
+    if (sourceType === "extractor_required") {
+      return fail(
+        domainError("invalid_state", "unsupported source type for R02 knowledge ingestion"),
+      );
     }
     const documentId = validateSafeIdentifier(input.documentId, "documentId");
     if (!documentId.ok) return fail(documentId.error);
-    const metadata = createSafeMetadata(input.metadata);
+    const metadata = createSafeMetadata({
+      ...(input.metadata ?? {}),
+      binaryStored: false,
+      externalEmbeddingsUsed: false,
+      externalExtractorUsed: false,
+      extractionMode:
+        sourceType === "pdf" || sourceType === "docx" ? "operator_supplied_text" : "native_text",
+      originalSourceType: sourceType,
+    });
     if (!metadata.ok) return fail(metadata.error);
     const versionId = `${documentId.value}-v1`;
     const chunks = chunkKnowledgeText({
@@ -415,6 +425,9 @@ export class InMemoryR02KnowledgeBase {
       versionId,
       text: input.contentText,
     });
+    if (chunks.length === 0) {
+      return fail(domainError("invalid_state", "sanitized document content must not be empty"));
+    }
     const document: KnowledgeDocument = {
       documentId: documentId.value,
       versionId,

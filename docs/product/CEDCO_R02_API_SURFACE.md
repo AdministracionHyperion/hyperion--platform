@@ -35,6 +35,8 @@ Safety:
 - Accepted fields use safe references, never real numbers or provider identifiers.
 - External calendar sync-test stays disabled and returns a safe status.
 - Agent flow simulation does not call providers or access transcript/audio.
+- RAG upload accepts `txt`, `md`, `csv`, `json`, plus PDF/DOCX source names when the request body
+  contains operator-supplied extracted text. Binary PDF/DOCX content is not accepted or stored.
 - RAG search uses keyword retrieval only; no external embeddings are used.
 - Dashboard handoff target writes are internal refs only and set `realProviderMutation=false`.
 

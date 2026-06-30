@@ -172,6 +172,42 @@ describe("CEDCO R02 operational API", () => {
     });
   });
 
+  it("accepts pre-extracted PDF text without storing binary content", async () => {
+    const upload = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/knowledge-documents/upload`,
+      headers: adminHeaders,
+      payload: {
+        documentId: "doc-r02-api-pdf-text",
+        sourceName: "cedco-r02-source.pdf",
+        contentText: "Texto extraido por operador: orientacion inicial CEDCO sin datos sensibles.",
+        metadata: { source: "api-test" },
+      },
+    });
+
+    const body = upload.json<
+      Envelope<{
+        sourceType: string;
+        metadata: Record<string, unknown>;
+        chunks: unknown[];
+      }>
+    >();
+
+    expect(upload.statusCode).toBe(201);
+    expect(body.data).toMatchObject({
+      sourceType: "pdf",
+      metadata: {
+        binaryStored: false,
+        externalEmbeddingsUsed: false,
+        externalExtractorUsed: false,
+        extractionMode: "operator_supplied_text",
+        originalSourceType: "pdf",
+      },
+    });
+    expect(body.data?.chunks).toHaveLength(1);
+    expect(JSON.stringify(body.data)).not.toMatch(/%PDF|phoneNumber|rawTranscript/iu);
+  });
+
   it("creates and activates an agent version and simulates a scheduling flow", async () => {
     await createAvailability("slot-r02-flow-001", "2026-07-04T14:00:00.000Z");
     const agent = await app.inject({
