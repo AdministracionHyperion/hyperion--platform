@@ -32,6 +32,21 @@ afterEach(async () => {
 });
 
 describe("CEDCO R02 operational API", () => {
+  it("serves the R02 dashboard route without external provider fields", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/dashboard`,
+      headers: adminHeaders,
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/html");
+    expect(response.body).toContain("CEDCO R02 Operations");
+    expect(response.body).toContain("cedco-r02-test");
+    expect(response.body).not.toMatch(
+      /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript/iu,
+    );
+  });
+
   it("creates availability, books, reschedules, cancels and audits an appointment", async () => {
     const firstSlot = await createAvailability("slot-r02-api-001", "2026-07-03T14:00:00.000Z");
     const secondSlot = await createAvailability("slot-r02-api-002", "2026-07-03T15:00:00.000Z");

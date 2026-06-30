@@ -22,3 +22,10 @@ Runtime boundaries:
 
 The UI is intentionally read-oriented and does not include active controls for real calls, provider
 egress, production deploy, transcript/audio access or external provider mutation.
+
+Staging:
+
+- `GET /api/v1/tenants/:tenantId/r02/dashboard` renders the safe R02 dashboard HTML.
+- The route was validated with tenant `cedco-demo`.
+- The response contains no API keys, raw provider IDs, phone numbers, transcript payload or audio
+  references.

@@ -2,6 +2,8 @@
 
 Implemented tenant-scoped API surface:
 
+- `GET /api/v1/tenants/:tenantId/r02/dashboard`
+- `POST /api/v1/tenants/:tenantId/r02/demo/seed`
 - `GET /api/v1/tenants/:tenantId/r02/calendar/availability`
 - `POST /api/v1/tenants/:tenantId/r02/calendar/availability`
 - `GET /api/v1/tenants/:tenantId/r02/appointments`
@@ -29,3 +31,9 @@ Safety:
 - External calendar sync-test stays disabled and returns a safe status.
 - Agent flow simulation does not call providers or access transcript/audio.
 - RAG search uses keyword retrieval only; no external embeddings are used.
+
+Staging validation:
+
+- `scripts/r02-staging-operational-validation.mjs` seeds synthetic CEDCO data and exercises the
+  operational API surface against the staging API.
+- The script must print `R02_STAGING_OPERATIONAL_VALIDATION_PASSED`.
