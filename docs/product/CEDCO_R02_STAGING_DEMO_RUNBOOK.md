@@ -27,8 +27,9 @@ R02_STAGING_OPERATIONAL_VALIDATION_PASSED
 The validation seeds demo data and checks:
 
 - dashboard route loads;
+- seed reports `storageMode=prisma` and is idempotent;
 - availability can be created and listed;
-- appointment create, reschedule and cancel work;
+- appointment create, reschedule and cancel work and are read back from persisted state;
 - Google Calendar adapter remains disabled;
 - demo RAG document can be uploaded, activated and searched;
 - agent demo/version activation works;

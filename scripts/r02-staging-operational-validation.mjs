@@ -31,12 +31,17 @@ const result = {
   base_url_loopback:
     baseUrl.startsWith("http://127.0.0.1") || baseUrl.startsWith("http://localhost"),
   tenant_ref: tenantId,
+  db_backed_storage: false,
   dashboard_route_loaded: false,
   seed_created: false,
+  seed_idempotent: false,
   availability_listed: false,
   appointment_created: false,
+  appointment_create_read: false,
   appointment_rescheduled: false,
+  appointment_reschedule_read: false,
   appointment_cancelled: false,
+  appointment_cancel_read: false,
   google_adapter_disabled: false,
   rag_document_created: false,
   rag_search_returned_source: false,
@@ -65,8 +70,10 @@ const dashboard = await request("GET", `${basePath}/dashboard`, undefined, 200, 
 result.dashboard_route_loaded =
   dashboard.text.includes("CEDCO R02 Operations") && !blockedEvidencePattern.test(dashboard.text);
 
-await request("POST", `${basePath}/demo/seed`, {}, 200);
-result.seed_created = true;
+const seed = await request("POST", `${basePath}/demo/seed`, {}, 200);
+result.seed_created = seed.json.data?.seeded === true;
+result.seed_idempotent = seed.json.data?.idempotent === true;
+result.db_backed_storage = seed.json.data?.storageMode === "prisma";
 
 await createAvailability(slotOne, "2026-07-06T14:00:00.000Z");
 await createAvailability(slotTwo, "2026-07-06T15:00:00.000Z");
@@ -93,6 +100,10 @@ const appointment = await request(
   201,
 );
 result.appointment_created = appointment.json.data?.status === "scheduled";
+let appointments = await request("GET", `${basePath}/appointments`, undefined, 200);
+result.appointment_create_read = appointments.json.data?.some(
+  (item) => item.appointmentId === appointmentId && item.status === "scheduled",
+);
 
 const google = await request(
   "POST",
@@ -110,6 +121,10 @@ const rescheduled = await request(
   200,
 );
 result.appointment_rescheduled = rescheduled.json.data?.status === "rescheduled";
+appointments = await request("GET", `${basePath}/appointments`, undefined, 200);
+result.appointment_reschedule_read = appointments.json.data?.some(
+  (item) => item.appointmentId === appointmentId && item.status === "rescheduled",
+);
 
 const cancelled = await request(
   "POST",
@@ -118,6 +133,10 @@ const cancelled = await request(
   200,
 );
 result.appointment_cancelled = cancelled.json.data?.status === "cancelled";
+appointments = await request("GET", `${basePath}/appointments`, undefined, 200);
+result.appointment_cancel_read = appointments.json.data?.some(
+  (item) => item.appointmentId === appointmentId && item.status === "cancelled",
+);
 
 await request(
   "POST",
@@ -224,11 +243,16 @@ assertNoBlockedEvidence(JSON.stringify(audit.json));
 
 const requiredTrue = [
   "dashboard_route_loaded",
+  "db_backed_storage",
   "seed_created",
+  "seed_idempotent",
   "availability_listed",
   "appointment_created",
+  "appointment_create_read",
   "appointment_rescheduled",
+  "appointment_reschedule_read",
   "appointment_cancelled",
+  "appointment_cancel_read",
   "google_adapter_disabled",
   "rag_document_created",
   "rag_search_returned_source",

@@ -28,10 +28,23 @@ export async function registerCedcoR02Routes(
 ): Promise<void> {
   app.get("/api/v1/tenants/:tenantId/r02/dashboard", async (request, reply) => {
     const params = validateWithSchema(cedcoR02ParamsSchema, request.params);
-    getRequiredRequestContext(request, ["tenant:read", "agent:read", "voice:call:read"]);
+    const context = getRequiredRequestContext(request, [
+      "tenant:read",
+      "agent:read",
+      "voice:call:read",
+    ]);
+    const [appointments, availability, audit] = await Promise.all([
+      dependencies.services.cedcoR02.listAppointments(context),
+      dependencies.services.cedcoR02.listAvailability(context, {}),
+      dependencies.services.cedcoR02.listAudit(context),
+    ]);
+    const demoModel = createR02OperationalDemoModel();
     const html = renderR02OperationalPage({
-      ...createR02OperationalDemoModel(),
+      ...demoModel,
       tenantId: params.tenantId,
+      appointments: toDashboardAppointments(appointments),
+      availability: toDashboardAvailability(availability),
+      auditCount: Array.isArray(audit) ? audit.length : demoModel.auditCount,
     });
     reply.type("text/html; charset=utf-8");
     return html;
@@ -190,4 +203,51 @@ export async function registerCedcoR02Routes(
     const context = getRequiredRequestContext(request, ["tenant:read", "audit:read"]);
     return ok(await dependencies.services.cedcoR02.listAudit(context), context);
   });
+}
+
+function toDashboardAppointments(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, 8).map((item) => {
+    const record = asRecord(item);
+    return {
+      appointmentId: String(record.appointmentId ?? "appointment-ref"),
+      status: String(record.status ?? "unknown"),
+      syncStatus: String(record.syncStatus ?? "unknown"),
+      serviceTypeId: String(record.serviceTypeId ?? "service-ref"),
+      startsAt: toIsoString(record.startsAt),
+    };
+  });
+}
+
+function toDashboardAvailability(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.slice(0, 8).map((item) => {
+    const record = asRecord(item);
+    const capacity = Number(record.capacity ?? 0);
+    const booked = Number(record.booked ?? 0);
+    return {
+      slotId: String(record.slotId ?? "slot-ref"),
+      serviceTypeId: String(record.serviceTypeId ?? "service-ref"),
+      startsAt: toIsoString(record.startsAt),
+      capacityRemaining: Math.max(0, capacity - booked),
+    };
+  });
+}
+
+function asRecord(value: unknown): Readonly<Record<string, unknown>> {
+  return value && typeof value === "object" ? (value as Readonly<Record<string, unknown>>) : {};
+}
+
+function toIsoString(value: unknown): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  return "";
 }
