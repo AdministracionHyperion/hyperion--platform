@@ -20,3 +20,9 @@ Data policy:
 - No calls are made.
 - No transcript/audio is accessed.
 - No raw provider payload is persisted.
+
+Staging result:
+
+- Appointment create, reschedule and cancel were validated against staging with synthetic data.
+- RAG search returned an approved source/version reference.
+- Agent flow simulation created an internal appointment intent and did not use external providers.
