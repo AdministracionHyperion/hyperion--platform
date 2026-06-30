@@ -181,6 +181,24 @@ export async function registerCedcoR02Routes(
     );
   });
 
+  app.post("/api/v1/tenants/:tenantId/r02/external-calendar/:id/sync-test", async (request) => {
+    const params = validateWithSchema(cedcoR02IdParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:update", "voice:call:write"]);
+    return ok(
+      await dependencies.services.cedcoR02.runCalendarSyncTest(context, params.id),
+      context,
+    );
+  });
+
+  app.post("/api/v1/tenants/:tenantId/r02/external-calendar/:id/sync-dry-run", async (request) => {
+    const params = validateWithSchema(cedcoR02IdParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, ["tenant:update", "voice:call:write"]);
+    return ok(
+      await dependencies.services.cedcoR02.runCalendarSyncDryRun(context, params.id),
+      context,
+    );
+  });
+
   app.post("/api/v1/tenants/:tenantId/r02/knowledge-bases", async (request, reply) => {
     validateWithSchema(cedcoR02ParamsSchema, request.params);
     const body = validateWithSchema(createKnowledgeBaseBodySchema, request.body);
@@ -437,22 +455,22 @@ function buildR02Readiness(input: {
       "Falta crear disponibilidad y una cita interna de demo.",
     ),
     readinessItem(
-      "RAG activo",
+      "Base de conocimiento",
       activeKnowledgeDocuments > 0,
       "Hay conocimiento aprobado y activo para busqueda por fuente/version.",
       "Falta cargar, aprobar y activar documentos CEDCO sanitizados.",
     ),
     readinessItem(
-      "Agente activo",
+      "Asistente activo",
       activeAgents > 0,
       "Hay agente R02 activo con version operativa.",
       "Falta activar una version de agente R02.",
     ),
     readinessItem(
-      "Handoff interno",
+      "Derivacion interna",
       activeHandoffTargets > 0,
-      "Hay target interno de handoff sin mutacion provider.",
-      "Falta guardar target interno de handoff.",
+      "Hay destino interno de derivacion sin mutacion externa.",
+      "Falta guardar destino interno de derivacion.",
     ),
     readinessItem(
       "Auditoria",
@@ -461,24 +479,25 @@ function buildR02Readiness(input: {
       "Falta actividad auditada en el tenant.",
     ),
     {
-      label: "Google Calendar real",
+      label: "Calendario externo",
       status: "pending",
-      detail: "Dry-run operativo; faltan OAuth/secret refs, calendario destino y politica de sync.",
+      detail:
+        "Validacion sin conexion real operativa; faltan credenciales, calendario destino y politica de sync.",
     },
     {
-      label: "Piloto inbound real",
+      label: "Piloto de atencion entrante",
       status: "pending",
-      detail: "Inbound validado; falta ventana aprobada y reglas de piloto operativo.",
+      detail: "Canal validado; falta ventana aprobada y reglas de piloto operativo.",
     },
     {
-      label: "PBX real",
+      label: "Enrutador interno",
       status: "blocked",
-      detail: "PBX sigue fuera del runtime real hasta un loop de refactor staging.",
+      detail: "Sigue fuera del runtime operativo hasta un refactor de staging separado.",
     },
     {
-      label: "Transcript/audio",
+      label: "Grabacion y transcripcion",
       status: "blocked",
-      detail: "Permanece bloqueado salvo aprobacion compliance especifica.",
+      detail: "Permanece bloqueado salvo aprobacion de control de calidad especifica.",
     },
   ];
 
@@ -505,20 +524,20 @@ function buildR02Readiness(input: {
       : "blocked") as R02OperationalPanelModel["overallStatus"],
     readinessItems,
     finalOperatorInputs: [
-      "Documentos CEDCO sanitizados para cargar RAG desde este dashboard.",
-      "Credenciales y mapeo Google Calendar para staging.",
+      "Documentos CEDCO sanitizados para cargar la base de conocimiento desde este dashboard.",
+      "Credenciales y mapeo del calendario externo para staging.",
       "Destino humano aprobado si se habilita handoff persistente.",
       "Ventana y numero llamante autorizado para piloto inbound.",
-      "Decision PBX: mantener fuera o abrir refactor staging.",
-      "Aprobacion compliance para cualquier transcript/audio adicional.",
+      "Decision sobre enrutador interno: mantener fuera o abrir refactor staging.",
+      "Aprobacion compliance para cualquier transcripcion o audio adicional.",
     ],
     futureGates: [
-      "APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT",
-      "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
-      "APPROVE_PROVIDER_HANDOFF_TARGET_PERSISTENT_ENABLEMENT",
-      "APPROVE_PBX_STAGING_RUNTIME_REFACTOR",
-      "APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT",
-      "APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT",
+      "Activar piloto entrante controlado",
+      "Conectar calendario externo de staging",
+      "Habilitar destino humano persistente",
+      "Refactor de enrutador interno en staging",
+      "Control de calidad con transcripcion redactada",
+      "Captura de audio controlada",
     ],
     integrationStatus,
     counts: {

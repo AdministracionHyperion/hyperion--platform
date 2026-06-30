@@ -40,10 +40,11 @@ describe("CEDCO R02 operational API", () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.headers["content-type"]).toContain("text/html");
-    expect(response.body).toContain("CEDCO R02 Operations");
-    expect(response.body).toContain("Cargar RAG");
+    expect(response.body).toContain("Centro operativo CEDCO");
+    expect(response.body).toContain("Cargar documento");
     expect(response.body).toContain('data-r02-action="handoff-target"');
     expect(response.body).toContain("cedco-r02-test");
+    expect(response.body).not.toMatch(/Google|Twilio|ElevenLabs|11labs|Knowledge base/iu);
     expect(response.body).not.toMatch(
       /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript/iu,
     );
@@ -81,7 +82,7 @@ describe("CEDCO R02 operational API", () => {
 
     const sync = await app.inject({
       method: "POST",
-      url: `${baseUrl}/google-calendar/appointment-r02-api-001/sync-test`,
+      url: `${baseUrl}/external-calendar/appointment-r02-api-001/sync-test`,
       headers: adminHeaders,
     });
     expect(sync.statusCode).toBe(200);
@@ -92,7 +93,7 @@ describe("CEDCO R02 operational API", () => {
 
     const dryRun = await app.inject({
       method: "POST",
-      url: `${baseUrl}/google-calendar/appointment-r02-api-001/sync-dry-run`,
+      url: `${baseUrl}/external-calendar/appointment-r02-api-001/sync-dry-run`,
       headers: adminHeaders,
     });
     expect(dryRun.statusCode).toBe(200);
@@ -415,9 +416,9 @@ describe("CEDCO R02 operational API", () => {
     });
     expect(body.data?.readinessItems).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "RAG activo", status: "done" }),
-        expect.objectContaining({ label: "Google Calendar real", status: "pending" }),
-        expect.objectContaining({ label: "PBX real", status: "blocked" }),
+        expect.objectContaining({ label: "Base de conocimiento", status: "done" }),
+        expect.objectContaining({ label: "Calendario externo", status: "pending" }),
+        expect.objectContaining({ label: "Enrutador interno", status: "blocked" }),
       ]),
     );
     expect(body.data).toMatchObject({
@@ -426,6 +427,9 @@ describe("CEDCO R02 operational API", () => {
       transcriptAudioAccessed: false,
     });
     expect(JSON.stringify(body)).not.toMatch(/phoneNumber|providerId|rawTranscript|audioUrl/iu);
+    expect(JSON.stringify(body.data?.readinessItems)).not.toMatch(
+      /Google|Twilio|ElevenLabs|11labs/iu,
+    );
   });
 
   it("denies write routes to viewer roles and blocks sensitive payload fields", async () => {
