@@ -40,6 +40,8 @@ Safety:
 - Agent flow simulation does not call providers or access transcript/audio.
 - RAG upload accepts `txt`, `md`, `csv`, `json`, plus PDF/DOCX source names when the request body
   contains operator-supplied extracted text. Binary PDF/DOCX content is not accepted or stored.
+- The dashboard local text-file reader is client-side only; the API still receives `sourceName` and
+  `contentText`, never a binary upload.
 - RAG search uses keyword retrieval only; no external embeddings are used.
 - Dashboard handoff target writes are internal refs only and set `realProviderMutation=false`.
 

@@ -8,6 +8,8 @@ describe("CEDCO R02 operational page", () => {
     expect(html).toContain("Calendario y citas");
     expect(html).toContain("RAG / Knowledge base");
     expect(html).toContain('data-r02-action="upload-knowledge"');
+    expect(html).toContain("data-r02-local-text-file");
+    expect(html).toContain('accept=".txt,.md,.csv,.json');
     expect(html).toContain("Cargar RAG");
     expect(html).toContain('data-r02-action="google-sync-dry-run"');
     expect(html).toContain("Validar Google dry-run");
@@ -25,5 +27,6 @@ describe("CEDCO R02 operational page", () => {
     expect(html).not.toMatch(/phoneNumber|rawTranscript|audioUrl|recordingUrl|token|secret/iu);
     expect(html).toContain("fetch(apiBase");
     expect(html).not.toMatch(/outbound-call|dispatch\s*\(|providerMutation:\s*true/iu);
+    expect(html).not.toMatch(/accept="[^"]*pdf|accept="[^"]*docx/iu);
   });
 });
