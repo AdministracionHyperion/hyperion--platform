@@ -18,6 +18,7 @@ The page also provides same-origin operator actions:
 - Create internal availability.
 - Create an internal appointment.
 - Upload a RAG document from the dashboard.
+- Upload operator-supplied extracted text from PDF/DOCX sources without storing the binary file.
 - Process, approve and activate RAG content.
 - Run keyword RAG search-test.
 - Create an agent version.

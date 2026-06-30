@@ -412,16 +412,20 @@ class PrismaCedcoR02Services {
 
   async uploadKnowledgeDocument(context: RequestContext, input: UploadKnowledgeDocumentBody) {
     const sourceType = classifySourceType(input.sourceName);
-    if (sourceType === "pdf" || sourceType === "docx" || sourceType === "extractor_required") {
-      throw validationError("binary or unknown extractor is required before ingestion");
+    if (sourceType === "extractor_required") {
+      throw validationError("unsupported source type for R02 knowledge ingestion");
     }
     const knowledgeBaseId = await this.ensureKnowledgeBase(context);
     const versionId = `${input.documentId}-v1`;
+    const documentMetadata = buildKnowledgeDocumentMetadata(input.metadata, sourceType);
     const chunks = chunkKnowledgeText(input.contentText).map((text, index) => ({
       id: `${input.documentId}-chunk-${index + 1}`,
       ordinal: index,
       textSafe: text,
     }));
+    if (chunks.length === 0) {
+      throw validationError("sanitized document content must not be empty");
+    }
 
     const row = await this.prisma.$transaction(async (tx) => {
       const document = await tx.cedcoR02KnowledgeDocument.upsert({
@@ -433,7 +437,7 @@ class PrismaCedcoR02Services {
           sourceName: sanitizeSourceName(input.sourceName),
           sourceType,
           status: "ready_for_review",
-          metadata: toPrismaJson(input.metadata ?? {}),
+          metadata: toPrismaJson(documentMetadata),
         },
         update: {
           tenantId: context.tenantId,
@@ -441,7 +445,7 @@ class PrismaCedcoR02Services {
           sourceName: sanitizeSourceName(input.sourceName),
           sourceType,
           status: "ready_for_review",
-          metadata: toPrismaJson(input.metadata ?? {}),
+          metadata: toPrismaJson(documentMetadata),
         },
       });
       await tx.cedcoR02KnowledgeDocumentVersion.upsert({
@@ -458,13 +462,13 @@ class PrismaCedcoR02Services {
           documentId: input.documentId,
           version: 1,
           status: "ready_for_review",
-          metadata: toPrismaJson({ externalEmbeddingsUsed: false }),
+          metadata: toPrismaJson(documentMetadata),
         },
         update: {
           status: "ready_for_review",
           approvedBy: null,
           approvedAt: null,
-          metadata: toPrismaJson({ externalEmbeddingsUsed: false }),
+          metadata: toPrismaJson(documentMetadata),
         },
       });
       await tx.cedcoR02KnowledgeChunk.deleteMany({ where: { versionId } });
@@ -477,7 +481,10 @@ class PrismaCedcoR02Services {
             versionId,
             ordinal: chunk.ordinal,
             textSafe: chunk.textSafe,
-            metadata: toPrismaJson({ sourceVersion: versionId }),
+            metadata: toPrismaJson({
+              sourceVersion: versionId,
+              extractionMode: documentMetadata.extractionMode,
+            }),
           },
         });
       }
@@ -487,7 +494,7 @@ class PrismaCedcoR02Services {
           tenantId: context.tenantId,
           documentId: input.documentId,
           status: "ready_for_review",
-          metadata: toPrismaJson({ chunks: chunks.length, externalEmbeddingsUsed: false }),
+          metadata: toPrismaJson({ ...documentMetadata, chunks: chunks.length }),
           startedAt: context.occurredAt,
           endedAt: new Date(),
         },
@@ -1269,6 +1276,21 @@ function classifySourceType(
 
 function sanitizeSourceName(sourceName: string): string {
   return sourceName.replace(/[^a-zA-Z0-9._-]/gu, "_").slice(0, 120);
+}
+
+function buildKnowledgeDocumentMetadata(
+  metadata: UploadKnowledgeDocumentBody["metadata"],
+  sourceType: ReturnType<typeof classifySourceType>,
+) {
+  const preExtractedSource = sourceType === "pdf" || sourceType === "docx";
+  return sanitizeMetadata({
+    ...(metadata ?? {}),
+    binaryStored: false,
+    externalEmbeddingsUsed: false,
+    externalExtractorUsed: false,
+    extractionMode: preExtractedSource ? "operator_supplied_text" : "native_text",
+    originalSourceType: sourceType,
+  });
 }
 
 function chunkKnowledgeText(text: string): string[] {

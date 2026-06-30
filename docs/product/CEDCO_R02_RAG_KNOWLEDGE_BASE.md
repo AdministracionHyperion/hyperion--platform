@@ -6,7 +6,8 @@ Implemented baseline:
 
 - Dashboard upload through `GET /api/v1/tenants/:tenantId/r02/dashboard`.
 - Knowledge document upload for text-like formats: `txt`, `md`, `csv`, `json`.
-- `pdf` and `docx` return `extractor_required` until a safe extractor is approved.
+- `pdf` and `docx` sources are accepted only as operator-supplied extracted text; the binary file is
+  not uploaded or stored.
 - Size validation.
 - Basic sanitizer for phone-like values, email-like values and provider references.
 - Chunking into sanitized text chunks.
@@ -21,7 +22,8 @@ No raw transcripts, audio, phone numbers, DDI, provider IDs or API keys are vali
 Operator flow:
 
 1. Open the R02 dashboard for the tenant.
-2. Use `Cargar RAG` to submit a text-like source and sanitized content.
+2. Use `Cargar RAG` to submit a text-like source and sanitized content. For PDF/DOCX material, paste
+   only extracted/sanitized text and keep the binary file outside the platform.
 3. Process, approve and activate the document from the dashboard.
 4. Use `Probar busqueda` to confirm source/version results.
 5. Bind the active knowledge base to the active R02 agent version through the agent version flow.

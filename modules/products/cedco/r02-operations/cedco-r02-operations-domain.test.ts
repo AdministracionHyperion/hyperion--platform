@@ -160,6 +160,31 @@ describe("CEDCO R02 operations foundation", () => {
     expect(embedding.ok).toBe(false);
   });
 
+  it("accepts operator-supplied text extracted from PDF sources", () => {
+    const context = testContext();
+    const knowledge = new InMemoryR02KnowledgeBase();
+    const uploaded = knowledge.uploadDocument({
+      context,
+      documentId: "doc-r02-domain-pdf-text",
+      sourceName: "cedco-r02-domain.pdf",
+      contentText: "Texto pre extraido para programacion de cita CEDCO.",
+      sizeBytes: 128,
+      metadata: { source: "domain-test" },
+    });
+
+    expect(uploaded.ok).toBe(true);
+    if (!uploaded.ok) return;
+    expect(uploaded.value.sourceType).toBe("pdf");
+    expect(uploaded.value.metadata).toMatchObject({
+      binaryStored: false,
+      externalEmbeddingsUsed: false,
+      externalExtractorUsed: false,
+      extractionMode: "operator_supplied_text",
+      originalSourceType: "pdf",
+    });
+    expect(uploaded.value.chunks.length).toBeGreaterThan(0);
+  });
+
   it("creates and activates the initial CEDCO R02 agent without provider mutation", () => {
     const context = testContext();
     const repository = new InMemoryR02AgentRepository();

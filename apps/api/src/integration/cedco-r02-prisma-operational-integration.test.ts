@@ -149,6 +149,29 @@ runWhenDatabaseExists("CEDCO R02 Prisma-backed operational surface", () => {
       versionId: "doc-r02-prisma-v1",
     });
 
+    const pdfTextUpload = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/knowledge-documents/upload`,
+      headers: adminHeaders,
+      payload: {
+        documentId: "doc-r02-prisma-pdf-text",
+        sourceName: "cedco-r02-prisma.pdf",
+        contentText: "Texto pre extraido del documento CEDCO para orientacion inicial.",
+      },
+    });
+    expect(pdfTextUpload.statusCode).toBe(201);
+    expect(
+      pdfTextUpload.json<Envelope<{ metadata: Record<string, unknown> }>>().data,
+    ).toMatchObject({
+      metadata: {
+        binaryStored: false,
+        externalEmbeddingsUsed: false,
+        externalExtractorUsed: false,
+        extractionMode: "operator_supplied_text",
+        originalSourceType: "pdf",
+      },
+    });
+
     await app.inject({
       method: "POST",
       url: `${baseUrl}/agents/cedco-r02-recepcion-agendamiento/versions`,
