@@ -6,17 +6,17 @@ enabled by this document.
 
 ## Current State
 
-| Control                    | State                 |
-| -------------------------- | --------------------- |
-| Private synthetic endpoint | Implemented in dialer |
-| VM loopback validation     | Passed                |
-| Public provider webhook    | Not exposed           |
-| Real provider webhook      | Not connected         |
-| Provider capability review | Completed             |
-| Provider egress            | Disabled              |
-| Live calls                 | Disabled              |
-| Transcript/audio           | Not accessed          |
-| Real provider payloads     | Not processed         |
+| Control                    | State                       |
+| -------------------------- | --------------------------- |
+| Private synthetic endpoint | Implemented in dialer       |
+| VM loopback validation     | Passed                      |
+| Public provider webhook    | Exposed for staging route   |
+| Real provider webhook      | Failure-event metadata only |
+| Provider capability review | Completed                   |
+| Provider egress            | Disabled                    |
+| Live calls                 | Disabled                    |
+| Transcript/audio           | Not accessed                |
+| Real provider payloads     | Not processed               |
 
 ## Platform Boundary
 
@@ -29,19 +29,15 @@ D02-AUTO-18B validated it on the Contabo staging VM through loopback/internal ac
 authorize a public route, provider callback configuration, transcript QA, audio capture, or pilot
 traffic.
 
-D02-AUTO-19 reviewed real provider webhook readiness and kept provider webhook staging NO-GO.
-Provider callbacks require a reachable URL, agent-level-only scope is unconfirmed, and metadata-only
-filtering without transcript/audio risk is unconfirmed.
+D02-AUTO-22 connected one real provider webhook through the staging agent override for
+`call_initiation_failure` only. This does not authorize transcript/audio handling, successful
+post-call transcript delivery, provider egress, live calls, or pilot traffic.
 
 ## Required Future Gates
 
 Public staging exposure requires:
 
 `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`
-
-Private metadata-only provider webhook staging requires:
-
-`APPROVE_PRIVATE_METADATA_ONLY_PROVIDER_WEBHOOK_STAGING`
 
 Pilot calls require a separate pilot window approval with allowed numbers, rate limits, operator,
 stop owner, and rollback owner.

@@ -7,6 +7,11 @@ The D02 public staging webhook route is active through Traefik for synthetic sig
 This does not connect ElevenLabs, does not approve real provider callbacks, does not enable provider
 egress, and does not enable live calls.
 
+## D02-AUTO-22 Update
+
+D02-AUTO-22 connected real provider failure-event metadata only through the staging agent override.
+This does not enable provider egress, live calls, transcript QA, audio access, or pilot traffic.
+
 ## Product Boundary
 
 Platform may treat this as infrastructure readiness for a future metadata-only provider webhook
@@ -14,8 +19,7 @@ gate. Platform must not treat it as pilot readiness.
 
 The following remain blocked:
 
-- real provider webhook registration;
-- real provider payload processing;
+- successful post-call transcript delivery;
 - transcript QA;
 - audio capture or review;
 - provider egress for calls;
@@ -33,6 +37,5 @@ endpoint. The route was then restored for the approved synthetic staging state.
 
 ## Next Gate
 
-Real provider metadata-only processing requires:
-
-`APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`
+Next provider work must define durable metadata-only event handling and pilot readiness without
+enabling transcript/audio or provider egress.

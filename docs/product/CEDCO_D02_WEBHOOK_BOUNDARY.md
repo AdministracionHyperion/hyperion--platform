@@ -2,22 +2,24 @@
 
 D02-AUTO-16 validates webhook behavior through synthetic dialer-side fixtures. D02-AUTO-17 adds a
 private dialer-side staging endpoint for synthetic signed payloads only. D02-AUTO-18B validates that
-endpoint on the Contabo staging VM through loopback/internal access. Platform remains metadata-only
-and does not expose a public provider webhook.
+endpoint on the Contabo staging VM through loopback/internal access. D02-AUTO-21A exposes the public
+Traefik staging route, and D02-AUTO-22 connects one real provider webhook for failure-event metadata
+only.
 
 ## Current Boundary
 
-| Control                     | State                 |
-| --------------------------- | --------------------- |
-| Public webhook              | Not enabled           |
-| Provider egress             | Disabled              |
-| Live calls                  | Disabled              |
-| Real provider payload       | Not processed         |
-| Transcript/audio            | Not accessed          |
-| Synthetic webhook rehearsal | Passed in dialer      |
-| Private synthetic endpoint  | Implemented in dialer |
-| VM private endpoint         | Passed                |
-| Provider capability review  | Completed             |
+| Control                     | State                       |
+| --------------------------- | --------------------------- |
+| Public webhook              | Enabled for staging route   |
+| Provider egress             | Disabled                    |
+| Live calls                  | Disabled                    |
+| Real provider payload       | Not processed               |
+| Transcript/audio            | Not accessed                |
+| Synthetic webhook rehearsal | Passed in dialer            |
+| Private synthetic endpoint  | Implemented in dialer       |
+| VM private endpoint         | Passed                      |
+| Provider capability review  | Completed                   |
+| Real provider webhook       | Failure-event metadata only |
 
 ## Required Future Controls
 
@@ -31,14 +33,10 @@ A future private webhook staging loop must keep the same controls before any pub
 - Transcript/audio/raw payload rejection or private quarantine.
 - Sanitized evidence only.
 
-Public webhook exposure requires a separate approval loop. That loop must define route exposure,
-rollback, replay storage, idempotency persistence, rate limits, observability and incident owner.
+Public webhook exposure was approved and executed in D02-AUTO-21A. Any further expansion must define
+route exposure, rollback, replay storage, idempotency persistence, rate limits, observability and
+incident owner.
 
-D02-AUTO-19 keeps real provider webhook staging blocked. Capability discovery did not prove a safe
-private loopback/internal callback path, did not prove agent-level-only scope, and did not prove
-metadata-only delivery without transcript/audio risk. Platform must continue to treat real provider
-callbacks as not connected.
-
-The private endpoint does not authorize real provider callbacks. Private metadata-only provider
-webhook staging requires `APPROVE_PRIVATE_METADATA_ONLY_PROVIDER_WEBHOOK_STAGING`. Public exposure
-requires `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`.
+D02-AUTO-22 limits real provider callbacks to the staging agent `call_initiation_failure` event.
+Platform must continue to treat successful post-call transcript delivery, transcript QA, audio
+capture, provider egress, live calls, and pilot traffic as blocked.

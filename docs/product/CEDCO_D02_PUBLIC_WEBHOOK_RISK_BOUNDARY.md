@@ -2,11 +2,11 @@
 
 ## Scope
 
-D02-AUTO-20 defines a future public staging webhook exposure blueprint. Platform does not expose a
-public route, does not connect a real provider webhook, does not process real provider payloads, and
-does not enable provider egress or live calls.
+D02-AUTO-20 defined the public staging webhook exposure blueprint. D02-AUTO-21A exposed the Traefik
+staging route, and D02-AUTO-22 connected real provider failure-event metadata only. Platform does
+not process transcript/audio, does not enable provider egress, and does not enable live calls.
 
-## Required Future Public Route Controls
+## Required Public Route Controls
 
 - One exact webhook route only.
 - TLS required before exposure.
@@ -24,13 +24,11 @@ does not enable provider egress or live calls.
 
 ## Platform Constraints
 
-Platform must not use public webhook readiness as pilot readiness. Public exposure, real provider
-callback configuration, transcript QA, audio capture, and additional calls are separate gates.
+Platform must not use public webhook readiness as pilot readiness. Transcript QA, audio capture,
+provider egress, live calls, and additional calls are separate gates.
 
 ## Future Gates
 
-- Public staging exposure: `APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`.
-- Real provider metadata-only webhook: `APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`.
 - Transcript QA: `APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT`.
 - Audio capture: `APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT`.
 - Additional controlled call: `APPROVE_SINGLE_CONTROLLED_PILOT_CALL`.

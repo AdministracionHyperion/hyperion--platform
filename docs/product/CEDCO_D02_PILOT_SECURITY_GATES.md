@@ -2,9 +2,9 @@
 
 The D02 pilot remains NO-GO. D02-AUTO-16 proves synthetic webhook controls in the dialer repo,
 D02-AUTO-17 adds a private synthetic endpoint contract, and D02-AUTO-18B validates that endpoint on
-the Contabo staging VM through loopback/internal access. D02-AUTO-21A exposes a Traefik public route
-for synthetic signed payloads only. These loops do not approve real provider callbacks or pilot
-traffic.
+the Contabo staging VM through loopback/internal access. D02-AUTO-21A exposes a Traefik public
+route, and D02-AUTO-22 connects failure-event provider metadata only. These loops do not approve
+pilot traffic.
 
 ## D02-AUTO-19 Update
 
@@ -14,23 +14,24 @@ approval and design review before pilot traffic can be considered.
 
 ## D02-AUTO-20 Update
 
-Public webhook exposure remains inactive. The new blueprint defines route, TLS, POST-only, HMAC,
-replay, idempotency, sanitizer, metadata-only, logging, rate-limit, rollback and kill-switch
-requirements, but does not expose a route or connect the provider.
+Public webhook exposure was inactive in D02-AUTO-20. The blueprint defined route, TLS, POST-only,
+HMAC, replay, idempotency, sanitizer, metadata-only, logging, rate-limit, rollback and kill-switch
+requirements, but did not expose a route or connect the provider.
 
 ## D02-AUTO-21A Update
 
-Public webhook exposure is active for synthetic signed payloads only through Traefik. Wrong webhook
-paths, unsigned requests, invalid signatures, replayed events, idempotency conflicts, transcript and
-audio fields, PII/provider IDs, and oversized bodies were rejected or stripped as expected.
+Public webhook exposure is active through Traefik. Wrong webhook paths, unsigned requests, invalid
+signatures, replayed events, idempotency conflicts, transcript and audio fields, PII/provider IDs,
+and oversized bodies were rejected or stripped as expected.
 
-Real provider webhook remains disconnected.
+Real provider webhook remained disconnected during D02-AUTO-21A.
 
 ## D02-AUTO-22 Update
 
-The real-provider webhook approval phrase was received, but the loop stopped before mutation on
-`workspace_scope_risk_blocker`. The public route remains synthetic-only and no webhook secret was
-installed for real provider callbacks.
+The real-provider webhook approval phrase was received. One real provider webhook is now attached
+through the staging agent override for `call_initiation_failure` only. The webhook secret is
+VM-only. No real provider payload, transcript, audio, call, provider egress, or live dispatch was
+used.
 
 ## Gates Before Pilot
 
@@ -38,11 +39,9 @@ installed for real provider callbacks.
 - Provider egress and live calls remain disabled by default.
 - Private webhook staging must pass with synthetic fixtures and remain non-public. Loopback/internal
   synthetic VM validation is complete.
-- Public webhook must remain synthetic-only until real provider metadata-only processing is
-  separately approved.
-- Real metadata-only provider webhook callbacks must remain blocked until workspace scoping is
-  resolved and separately approved again.
-- Public webhook route must remain on the approved synthetic staging path only.
+- Real provider webhook handling is limited to failure-event metadata; it does not authorize
+  successful post-call transcript handling or pilot traffic.
+- Public webhook route must remain on the approved staging path only.
 - Transcript QA must remain blocked until separately approved.
 - Audio capture/review must remain blocked until separately approved.
 - Pilot scope, call count, numbers, operator, rate limits and stop owner must be approved.
@@ -51,7 +50,6 @@ installed for real provider callbacks.
 
 - Transcript QA: `APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT`.
 - Audio capture/review: `APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT`.
-- Real metadata-only webhook staging: `APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`.
 - Pilot calls: `APPROVE_SINGLE_CONTROLLED_PILOT_CALL` scoped to the pilot window and allowed
   numbers.
 
