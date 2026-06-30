@@ -43,7 +43,8 @@ describe("CEDCO R02 operational API", () => {
     expect(response.body).toContain("Centro operativo CEDCO");
     expect(response.body).toContain("Cargar documento");
     expect(response.body).toContain('data-r02-action="handoff-target"');
-    expect(response.body).toContain("cedco-r02-test");
+    expect(response.body).toContain("Aun no hay citas registradas.");
+    expect(response.body).not.toMatch(/demo|Sembrar demo|seed-demo|cedco-demo/iu);
     expect(response.body).not.toMatch(/Google|Twilio|ElevenLabs|11labs|Knowledge base/iu);
     expect(response.body).not.toMatch(
       /api[_-]?key|phone_number_id|agent_id|audio_url|raw_transcript/iu,

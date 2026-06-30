@@ -61,6 +61,18 @@ describe("CEDCO R02 local staging auth hardening", () => {
 
   it("denies viewer writes with DB-backed-role semantics", async () => {
     const sessionToken = await login("reports-viewer");
+    const dashboard = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/dashboard`,
+      headers: { authorization: `Bearer ${sessionToken}` },
+    });
+    expect(dashboard.statusCode).toBe(200);
+    expect(dashboard.body).toContain("Consulta y reportes");
+    expect(dashboard.body).toContain("Restringido");
+    expect(dashboard.body).not.toContain('data-r02-action="availability"');
+    expect(dashboard.body).not.toContain('data-r02-action="appointment"');
+    expect(dashboard.body).not.toContain('data-r02-action="upload-knowledge"');
+
     const denied = await app.inject({
       method: "POST",
       url: `${baseUrl}/calendar/availability`,
