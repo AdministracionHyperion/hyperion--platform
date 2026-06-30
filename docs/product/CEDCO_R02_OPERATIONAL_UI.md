@@ -19,6 +19,7 @@ The page also provides same-origin operator actions:
 - Create an internal appointment.
 - Run Google Calendar sync dry-run for an internal appointment.
 - Upload a RAG document from the dashboard.
+- Load a local text-like RAG source into the dashboard form before upload.
 - Upload operator-supplied extracted text from PDF/DOCX sources without storing the binary file.
 - Process, approve and activate RAG content.
 - Run keyword RAG search-test.
@@ -36,6 +37,7 @@ Runtime boundaries:
 - External inbound provider: not connected.
 - PBX real route: not connected.
 - Transcript/audio: not accessed.
+- Binary RAG file storage: disabled.
 
 The UI intentionally does not include active controls for real calls, provider egress, production
 deploy, transcript/audio access or external provider mutation. Handoff targets stored from the
@@ -47,3 +49,5 @@ Staging:
 - The route was validated with tenant `cedco-demo`.
 - The response contains no API keys, raw provider IDs, phone numbers, transcript payload or audio
   references.
+- Local RAG file reading is browser-side only for `txt`, `md`, `csv` and `json`; PDF/DOCX binaries
+  are not selected by the dashboard reader.

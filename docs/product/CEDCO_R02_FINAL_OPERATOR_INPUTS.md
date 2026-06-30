@@ -24,6 +24,7 @@ integration work can be completed. Do not put these values in Git, chat, PR bodi
 ## Knowledge/RAG Inputs
 
 - Sanitized CEDCO source documents for dashboard upload.
+- Text-like sources can be selected from the dashboard as `txt`, `md`, `csv` or `json`.
 - For PDF/DOCX sources, provide extracted/sanitized text; the platform does not store binary files.
 - Approval owner for RAG activation.
 - Confirmation that no source contains phone numbers, IDs, medical records, financial data, raw

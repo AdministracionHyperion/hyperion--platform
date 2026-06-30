@@ -258,6 +258,7 @@ function renderKnowledge(model: R02OperationalPanelModel): string {
     <form class="action-form" data-r02-action="upload-knowledge">
       <label>Documento<input name="documentId" value="doc-r02-dashboard" /></label>
       <label>Archivo<input name="sourceName" value="cedco-r02-dashboard.md" /></label>
+      <label>Fuente local<input name="ragTextFile" type="file" accept=".txt,.md,.csv,.json,text/plain,text/markdown,text/csv,application/json" data-r02-local-text-file /></label>
       <label class="action-form__wide">Contenido<textarea name="contentText">CEDCO agenda orientacion inicial y programacion de cita con calendario interno.</textarea></label>
       <button type="submit">Cargar RAG</button>
     </form>
@@ -455,6 +456,40 @@ function renderR02DashboardScript(): string {
   };
   const formData = (form) => Object.fromEntries(new FormData(form).entries());
   const isoPlusMinutes = (value, minutes) => new Date(new Date(value).getTime() + minutes * 60000).toISOString();
+  const textSourceNamePattern = /\\.(txt|md|csv|json)$/i;
+  const maxKnowledgeTextBytes = 20000;
+
+  document.querySelectorAll("[data-r02-local-text-file]").forEach((input) => {
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const form = input.closest("form");
+      try {
+        if (!textSourceNamePattern.test(file.name)) {
+          input.value = "";
+          write("error: fuente local no soportada");
+          return;
+        }
+        if (file.size > maxKnowledgeTextBytes) {
+          input.value = "";
+          write("error: fuente local supera 20KB");
+          return;
+        }
+        const text = await file.text();
+        if (new Blob([text]).size > maxKnowledgeTextBytes) {
+          input.value = "";
+          write("error: contenido local supera 20KB");
+          return;
+        }
+        if (form?.elements?.sourceName) form.elements.sourceName.value = file.name;
+        if (form?.elements?.contentText) form.elements.contentText.value = text;
+        write("fuente local lista");
+      } catch (error) {
+        input.value = "";
+        write("error: " + (error instanceof Error ? error.message : "fallo al leer fuente local"));
+      }
+    });
+  });
 
   document.querySelectorAll("form[data-r02-action]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
