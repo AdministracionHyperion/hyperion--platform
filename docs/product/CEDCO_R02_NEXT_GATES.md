@@ -14,15 +14,19 @@ R02 operational persistence state:
 - One single controlled inbound call answered with the expected Spanish CEDCO R02 agent behavior.
 - One single functional inbound appointment-flow call passed with warnings after redacted transcript
   QA.
+- One controlled handoff/redirection call succeeded, and the temporary transfer tool was rolled back
+  afterward.
+- R02 dashboard now exposes internal operator actions for calendar, RAG upload, agent versioning,
+  flow simulation, handoff refs and audit visibility.
 
 Future gates:
 
-- `APPROVE_SINGLE_CONTROLLED_R02_HANDOFF_AND_AVAILABILITY_CALL`
 - `APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
 - `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`
 - `APPROVE_PBX_STAGING_RUNTIME_REFACTOR`
 - `APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT`
+- `APPROVE_PROVIDER_HANDOFF_TARGET_PERSISTENT_ENABLEMENT`
 
 Gate rules:
 

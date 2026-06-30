@@ -583,6 +583,17 @@ export class InMemoryR02AgentRepository {
     return this.agents.get(agentId);
   }
 
+  listAgents(tenantId: string): readonly VoiceAgent[] {
+    return [...this.agents.values()].filter((agent) => agent.tenantId === tenantId);
+  }
+
+  listVersions(tenantId: string): readonly VoiceAgentVersion[] {
+    return [...this.versions.values()].filter((version) => {
+      const agent = this.agents.get(version.agentId);
+      return agent?.tenantId === tenantId;
+    });
+  }
+
   private transitionVersion(
     context: OperationContext,
     versionId: string,
@@ -820,8 +831,9 @@ export interface R02HandoffTarget {
   readonly tenantId: string;
   readonly targetType: InboundHandoffTarget;
   readonly displayName: string;
-  readonly enabled: boolean;
-  readonly refKind: "human_queue" | "pbx_route" | "external_inbound";
+  readonly routeRef: string;
+  readonly status: "active" | "disabled";
+  readonly metadata?: SafeMetadata;
 }
 
 export interface R02OperationalAuditEvent {
@@ -879,8 +891,9 @@ export class R02OperationalWorkspace {
       tenantId: context.tenantId,
       targetType: "human",
       displayName: "Recepcion humana CEDCO",
-      enabled: true,
-      refKind: "human_queue",
+      routeRef: "human_queue_demo",
+      status: "active",
+      metadata: {},
     });
     const agent = this.agents.createInitialAgent(context);
     if (agent.ok) {
@@ -907,8 +920,17 @@ export class R02OperationalWorkspace {
   }
 
   upsertHandoffTarget(target: R02HandoffTarget): R02HandoffTarget {
-    this.handoffTargets.set(`${target.tenantId}:${target.targetId}`, target);
-    return target;
+    const sanitized: R02HandoffTarget = {
+      targetId: safeReference(target.targetId, "handoff-target"),
+      tenantId: target.tenantId,
+      targetType: target.targetType,
+      displayName: target.displayName,
+      routeRef: safeReference(target.routeRef, "handoff-route"),
+      status: target.status,
+      metadata: target.metadata ?? {},
+    };
+    this.handoffTargets.set(`${sanitized.tenantId}:${sanitized.targetId}`, sanitized);
+    return sanitized;
   }
 
   createAvailability(input: {
@@ -1116,6 +1138,10 @@ export class R02OperationalWorkspace {
     return this.knowledge.retrieve(input);
   }
 
+  listKnowledgeDocuments(tenantId: string): readonly KnowledgeDocument[] {
+    return [...this.documents.values()].filter((document) => document.tenantId === tenantId);
+  }
+
   createAgent(context: OperationContext): Result<VoiceAgentVersion, DomainError> {
     const version = this.agents.createInitialAgent(context);
     if (version.ok) {
@@ -1123,6 +1149,21 @@ export class R02OperationalWorkspace {
       this.recordFromContext(context, "agent_created", "voice_agent", version.value.agentId);
     }
     return version;
+  }
+
+  listAgents(tenantId: string) {
+    const versions = this.agents.listVersions(tenantId);
+    return this.agents.listAgents(tenantId).map((agent) => ({
+      agentId: agent.agentId,
+      tenantId: agent.tenantId,
+      displayName: agent.name,
+      locale: agent.locale,
+      status: agent.status,
+      activeVersionId: agent.activeVersionId ?? "none",
+      providerMutationExecuted: false,
+      versions: versions.filter((version) => version.agentId === agent.agentId),
+      metadata: agent.metadata,
+    }));
   }
 
   createAgentVersion(input: {

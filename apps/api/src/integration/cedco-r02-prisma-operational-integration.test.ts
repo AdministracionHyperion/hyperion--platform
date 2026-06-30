@@ -239,6 +239,42 @@ runWhenDatabaseExists("CEDCO R02 Prisma-backed operational surface", () => {
     });
     expect(otherTenant.json<Envelope<unknown[]>>().data).toHaveLength(0);
   });
+
+  it("does not let another tenant overwrite an existing handoff target", async () => {
+    await seedDemo();
+    const created = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/handoff-targets`,
+      headers: adminHeaders,
+      payload: {
+        targetId: "handoff-prisma-isolation",
+        targetType: "human",
+        displayName: "Recepcion humana CEDCO",
+        routeRef: "human_queue_isolation",
+        status: "active",
+      },
+    });
+    expect(created.statusCode).toBe(201);
+
+    const takeover = await app.inject({
+      method: "POST",
+      url: `${otherTenantUrl}/handoff-targets`,
+      headers: adminHeaders,
+      payload: {
+        targetId: "handoff-prisma-isolation",
+        targetType: "pbx",
+        displayName: "Other tenant target",
+        routeRef: "other_queue",
+        status: "active",
+      },
+    });
+    expect(takeover.statusCode).toBe(409);
+
+    const row = await harness.prisma.cedcoR02HandoffTarget.findUnique({
+      where: { id: "handoff-prisma-isolation" },
+    });
+    expect(row).toMatchObject({ tenantId: "cedco-test", targetType: "human" });
+  });
 });
 
 async function seedDemo() {
