@@ -90,6 +90,24 @@ describe("CEDCO R02 operational API", () => {
       errorClass: "disabled",
     });
 
+    const dryRun = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/google-calendar/appointment-r02-api-001/sync-dry-run`,
+      headers: adminHeaders,
+    });
+    expect(dryRun.statusCode).toBe(200);
+    expect(dryRun.json<Envelope<Record<string, unknown>>>().data).toMatchObject({
+      attempted: false,
+      adapterMode: "disabled-google-calendar",
+      plannedOperation: "create_event",
+      externalRequestMade: false,
+      realCredentialsUsed: false,
+      providerMutation: false,
+    });
+    expect(JSON.stringify(dryRun.json<Envelope>())).toContain(
+      "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
+    );
+
     const rescheduled = await app.inject({
       method: "POST",
       url: `${baseUrl}/appointments/appointment-r02-api-001/reschedule`,

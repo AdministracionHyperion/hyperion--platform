@@ -83,6 +83,26 @@ runWhenDatabaseExists("CEDCO R02 Prisma-backed operational surface", () => {
     expect(sync.json<Envelope>().data).toMatchObject({ attempted: false, errorClass: "disabled" });
     expect(await harness.prisma.cedcoR02CalendarSyncState.count()).toBe(1);
 
+    const dryRun = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/google-calendar/appointment-r02-prisma/sync-dry-run`,
+      headers: adminHeaders,
+    });
+    expect(dryRun.json<Envelope>().data).toMatchObject({
+      attempted: false,
+      adapterMode: "disabled-google-calendar",
+      plannedOperation: "create_event",
+      externalRequestMade: false,
+      realCredentialsUsed: false,
+      providerMutation: false,
+    });
+    expect(await harness.prisma.cedcoR02CalendarSyncState.count()).toBe(1);
+    await expect(
+      harness.prisma.cedcoR02AuditEvent.findFirst({
+        where: { tenantId: "cedco-test", action: "calendar_sync_dry_run" },
+      }),
+    ).resolves.toBeTruthy();
+
     await app.inject({
       method: "POST",
       url: `${baseUrl}/appointments/appointment-r02-prisma/reschedule`,

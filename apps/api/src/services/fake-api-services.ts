@@ -588,6 +588,36 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
         });
         return unwrapDomainResult(result);
       },
+      async runCalendarSyncDryRun(context, appointmentId) {
+        const result = await r02Workspace.syncAppointmentTest({
+          context: toOperationContext(context),
+          appointmentId,
+        });
+        const audit = unwrapDomainResult(result) as unknown as Record<string, unknown>;
+        return {
+          ...audit,
+          adapterMode: "disabled-google-calendar",
+          plannedOperation: "create_event",
+          externalRequestMade: false,
+          realCredentialsUsed: false,
+          externalCredentialsUsed: false,
+          providerMutation: false,
+          requiredInputs: [
+            "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
+            "google_calendar_target_ref",
+            "oauth_or_service_account_secret_ref",
+            "calendar_sync_policy",
+          ],
+          metadata: {
+            ...((audit.metadata as Record<string, unknown> | undefined) ?? {}),
+            adapterMode: "disabled-google-calendar",
+            externalRequestMade: false,
+            realCredentialsUsed: false,
+            providerMutation: false,
+            plannedOperation: "create_event",
+          },
+        };
+      },
       async createKnowledgeBase(context, input: CreateKnowledgeBaseBody) {
         const result = r02Workspace.createKnowledgeBase(toOperationContext(context), input);
         return unwrapDomainResult(result);

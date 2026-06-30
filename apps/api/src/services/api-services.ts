@@ -98,6 +98,7 @@ export interface ApiServices {
       appointmentId: string,
       input: RescheduleAppointmentBody,
     ): Promise<unknown>;
+    runCalendarSyncDryRun(context: RequestContext, appointmentId: string): Promise<unknown>;
     runCalendarSyncTest(context: RequestContext, appointmentId: string): Promise<unknown>;
     createKnowledgeBase(context: RequestContext, input: CreateKnowledgeBaseBody): Promise<unknown>;
     listKnowledgeBases(context: RequestContext): Promise<unknown>;

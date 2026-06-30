@@ -9,6 +9,8 @@ describe("CEDCO R02 operational page", () => {
     expect(html).toContain("RAG / Knowledge base");
     expect(html).toContain('data-r02-action="upload-knowledge"');
     expect(html).toContain("Cargar RAG");
+    expect(html).toContain('data-r02-action="google-sync-dry-run"');
+    expect(html).toContain("Validar Google dry-run");
     expect(html).toContain("Agentes");
     expect(html).toContain("Handoff");
     expect(html).toContain("Integraciones");

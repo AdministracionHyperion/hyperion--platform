@@ -67,6 +67,8 @@ export function createPrismaCedcoR02Services(prisma: HyperionPrismaClient): Cedc
       service.cancelAppointment(context, appointmentId),
     rescheduleAppointment: (context, appointmentId, input) =>
       service.rescheduleAppointment(context, appointmentId, input),
+    runCalendarSyncDryRun: (context, appointmentId) =>
+      service.runCalendarSyncDryRun(context, appointmentId),
     runCalendarSyncTest: (context, appointmentId) =>
       service.runCalendarSyncTest(context, appointmentId),
     createKnowledgeBase: (context, input) => service.createKnowledgeBase(context, input),
@@ -377,6 +379,72 @@ class PrismaCedcoR02Services {
       status: "not_required",
       errorClass: "disabled",
       metadata: { externalCredentialsUsed: false, adapterMode: "disabled-google-calendar" },
+    };
+  }
+
+  async runCalendarSyncDryRun(context: RequestContext, appointmentId: string) {
+    const appointment = await this.prisma.cedcoR02Appointment.findFirst({
+      where: { tenantId: context.tenantId, id: appointmentId },
+    });
+    if (!appointment) {
+      throw notFoundError("appointment not found");
+    }
+
+    const plannedOperation = googleCalendarPlannedOperation(appointment.status);
+    const metadata = {
+      adapterMode: "disabled-google-calendar",
+      externalCredentialsUsed: false,
+      externalRequestMade: false,
+      realCredentialsUsed: false,
+      providerMutation: false,
+      plannedOperation,
+    };
+    await this.prisma.cedcoR02CalendarSyncState.upsert({
+      where: {
+        tenantId_appointmentId_adapterMode: {
+          tenantId: context.tenantId,
+          appointmentId,
+          adapterMode: "disabled-google-calendar",
+        },
+      },
+      create: {
+        id: `sync-${appointmentId}-disabled-google-calendar`,
+        tenantId: context.tenantId,
+        appointmentId,
+        adapterMode: "disabled-google-calendar",
+        status: "not_required",
+        errorClass: "disabled",
+        metadata: toPrismaJson(metadata),
+      },
+      update: {
+        status: "not_required",
+        errorClass: "disabled",
+        metadata: toPrismaJson(metadata),
+      },
+    });
+    await this.recordAudit(context, "calendar_sync_dry_run", "appointment", appointmentId, {
+      plannedOperation,
+      externalRequestMade: false,
+      realCredentialsUsed: false,
+    });
+    return {
+      appointmentId,
+      attempted: false,
+      status: "not_required",
+      errorClass: "disabled",
+      adapterMode: "disabled-google-calendar",
+      plannedOperation,
+      externalRequestMade: false,
+      realCredentialsUsed: false,
+      externalCredentialsUsed: false,
+      providerMutation: false,
+      requiredInputs: [
+        "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
+        "google_calendar_target_ref",
+        "oauth_or_service_account_secret_ref",
+        "calendar_sync_policy",
+      ],
+      metadata,
     };
   }
 
@@ -1255,6 +1323,14 @@ function safeMetadata(value: unknown) {
   return sanitizeMetadata(
     value && typeof value === "object" ? (value as Readonly<Record<string, unknown>>) : {},
   );
+}
+
+function googleCalendarPlannedOperation(
+  status: string,
+): "create_event" | "update_event" | "cancel_event" {
+  if (status === "cancelled") return "cancel_event";
+  if (status === "rescheduled") return "update_event";
+  return "create_event";
 }
 
 function stringArray(value: unknown): string[] {

@@ -349,6 +349,10 @@ function renderOperatorActions(model: R02OperationalPanelModel): string {
       <label>Paciente ref<input name="patientRef" value="patient-demo-dashboard" /></label>
       <button type="submit">Crear cita</button>
     </form>
+    <form class="inline-actions" data-r02-action="google-sync-dry-run">
+      <input name="appointmentId" value="${escapeHtml(model.appointments[0]?.appointmentId ?? "appointment-r02-dashboard")}" />
+      <button type="submit">Validar Google dry-run</button>
+    </form>
     <output class="action-log" data-r02-output="global"></output>
   </section>`;
 }
@@ -480,6 +484,9 @@ function renderR02DashboardScript(): string {
             patientRef: data.patientRef,
             metadata: { source: "r02-dashboard" },
           });
+        }
+        if (action === "google-sync-dry-run") {
+          await postJson("/google-calendar/" + encodeURIComponent(data.appointmentId) + "/sync-dry-run", {});
         }
         if (action === "upload-knowledge") {
           await postJson("/knowledge-documents/upload", {
