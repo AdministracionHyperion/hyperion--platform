@@ -137,7 +137,7 @@ export async function registerCedcoR02Routes(
 
   app.post("/api/v1/tenants/:tenantId/r02/knowledge-documents/:id/approve", async (request) => {
     const params = validateWithSchema(cedcoR02IdParamsSchema, request.params);
-    const context = getRequiredRequestContext(request, ["tenant:update", "agent:write"]);
+    const context = getRequiredRequestContext(request, ["version:activate"]);
     return ok(
       await dependencies.services.cedcoR02.approveKnowledgeDocument(context, params.id),
       context,

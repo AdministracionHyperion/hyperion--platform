@@ -35,6 +35,7 @@ import type {
 } from "../contracts";
 
 export interface ApiServices {
+  readonly auth?: ApiAuthServices;
   readonly observability?: ApiObservabilityServices;
   readonly security?: ApiSecurityServices;
   readonly core: {
@@ -127,6 +128,35 @@ export interface ApiServices {
     getReadiness(context: RequestContext): Promise<unknown>;
     dryRun(context: RequestContext, input: InternalDialerDryRunBody): Promise<unknown>;
   };
+}
+
+export interface LocalAuthLoginInput {
+  readonly tenantId: string;
+  readonly loginRef: string;
+  readonly credential: string;
+  readonly userAgent?: string;
+}
+
+export interface LocalAuthPrincipal {
+  readonly tenantId: string;
+  readonly actorId: string;
+  readonly displayName?: string;
+  readonly roles: string[];
+  readonly loginRef: string;
+  readonly resetRequired: boolean;
+  readonly sessionId?: string;
+  readonly expiresAt?: Date;
+}
+
+export interface LocalAuthLoginResult {
+  readonly sessionToken: string;
+  readonly principal: LocalAuthPrincipal;
+}
+
+export interface ApiAuthServices {
+  login(input: LocalAuthLoginInput): Promise<LocalAuthLoginResult>;
+  resolveSession(sessionToken: string, tenantId?: string): Promise<LocalAuthPrincipal | undefined>;
+  logout(sessionToken: string): Promise<{ revoked: boolean }>;
 }
 
 export interface ApiRateLimitRuleInput {

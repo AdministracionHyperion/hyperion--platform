@@ -86,6 +86,7 @@ import type {
   InternalDialerDryRunBody,
 } from "../contracts";
 import type { ApiAuditRecord, ApiServices } from "./api-services";
+import { createLocalStagingAuthService } from "./local-staging-auth-service";
 import { createPrismaCedcoR02Services } from "./prisma-cedco-r02-services";
 
 export interface PrismaBackedApiServicesInput {
@@ -106,6 +107,7 @@ export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInpu
 
 class PrismaBackedApiServices implements ApiServices {
   public readonly observability: NonNullable<ApiServices["observability"]>;
+  public readonly auth: NonNullable<ApiServices["auth"]>;
   public readonly security: NonNullable<ApiServices["security"]>;
   public readonly core: ApiServices["core"];
   public readonly agentPlatform: ApiServices["agentPlatform"];
@@ -125,6 +127,7 @@ class PrismaBackedApiServices implements ApiServices {
     metrics: MetricsRegistryPort = new InMemoryMetricsRegistry(),
     private readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort,
   ) {
+    this.auth = createLocalStagingAuthService(this.prisma);
     this.cedcoR02 = createPrismaCedcoR02Services(this.prisma);
     this.internalDialerAdapter = new BlockedInternalDialerAdapter({
       hardeningStatus: defaultDialerHardeningStatus,

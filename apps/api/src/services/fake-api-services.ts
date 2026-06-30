@@ -1,4 +1,5 @@
 import { createOperationContext, sanitizeMetadata } from "../../../../packages/shared/src/core";
+import { randomBytes } from "node:crypto";
 import { R02OperationalWorkspace } from "../../../../modules/products/cedco/r02-operations/src";
 import { classifyCedcoCallIntent } from "../../../../modules/products/cedco/d02-calls/src/use-cases/classify-cedco-call-intent";
 import { evaluateCedcoCallReadiness } from "../../../../modules/products/cedco/d02-calls/src/use-cases/evaluate-cedco-call-readiness";
@@ -137,9 +138,50 @@ export function createFakeApiServices(options: FakeApiServicesInput = {}): ApiSe
   const auditEvents: ApiAuditRecord[] = [];
   const rateLimitStore = new InMemoryRateLimitStore();
   const r02Workspace = new R02OperationalWorkspace();
+  const fakeAuthSessions = new Map<
+    string,
+    {
+      readonly tenantId: string;
+      readonly actorId: string;
+      readonly loginRef: string;
+      readonly roles: string[];
+      readonly expiresAt: Date;
+      readonly resetRequired: boolean;
+    }
+  >();
   let testRateLimitRule: RateLimitRule | undefined;
 
   return {
+    auth: {
+      async login(input) {
+        if (input.credential.trim().length < 8) {
+          throw validationError("synthetic credential is invalid");
+        }
+        const roles = rolesForSyntheticLogin(input.loginRef);
+        const sessionToken = `synthetic-session-${randomBytes(12).toString("hex")}`;
+        const principal = {
+          tenantId: input.tenantId,
+          actorId: input.loginRef.replace(/[^a-z0-9-]/giu, "-").toLowerCase(),
+          loginRef: input.loginRef,
+          roles,
+          resetRequired: false,
+          sessionId: `synthetic-${randomBytes(6).toString("hex")}`,
+          expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
+        };
+        fakeAuthSessions.set(sessionToken, principal);
+        return { sessionToken, principal };
+      },
+      async resolveSession(sessionToken, tenantId) {
+        const principal = fakeAuthSessions.get(sessionToken);
+        if (!principal || (tenantId && principal.tenantId !== tenantId)) {
+          return undefined;
+        }
+        return principal;
+      },
+      async logout(sessionToken) {
+        return { revoked: fakeAuthSessions.delete(sessionToken) };
+      },
+    },
     observability: {
       logger,
       metrics,
@@ -800,6 +842,16 @@ function throwApiErrorForProviderEvent(message: string, code: string): never {
     throw policyBlockedError(message);
   }
   throw validationError(message);
+}
+
+function rolesForSyntheticLogin(loginRef: string): string[] {
+  const normalized = loginRef.toLowerCase();
+  if (normalized.includes("viewer")) return ["reports_viewer"];
+  if (normalized.includes("operator")) return ["r02_operator"];
+  if (normalized.includes("compliance")) return ["compliance_auditor"];
+  if (normalized.includes("handoff")) return ["human_handoff_agent"];
+  if (normalized.includes("integration")) return ["integration_admin"];
+  return ["cedco_admin"];
 }
 
 function unwrapDomainResult<T>(

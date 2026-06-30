@@ -92,6 +92,7 @@ describe("API runtime composition", () => {
       NODE_ENV: "test",
       API_SERVICES_MODE: "fake",
       AUTH_MODE: "header-dev",
+      ALLOW_HEADER_DEV_AUTH: "true",
     } as NodeJS.ProcessEnv);
 
     expect(config.servicesMode).toBe("fake");

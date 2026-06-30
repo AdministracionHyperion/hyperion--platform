@@ -19,7 +19,9 @@ const allPermissions: readonly Permission[] = [
   "version:activate",
 ];
 
-const rolePermissions: Readonly<Record<Exclude<Role, "super-admin">, readonly Permission[]>> = {
+const rolePermissions: Readonly<
+  Record<Exclude<Role, "super-admin" | "super_admin_hyperion">, readonly Permission[]>
+> = {
   "tenant-admin": [
     "tenant:read",
     "tenant:update",
@@ -35,6 +37,53 @@ const rolePermissions: Readonly<Record<Exclude<Role, "super-admin">, readonly Pe
     "version:read",
     "version:write",
     "version:activate",
+  ],
+  cedco_admin: [
+    "tenant:read",
+    "tenant:update",
+    "agent:read",
+    "agent:write",
+    "voice:call:read",
+    "voice:call:write",
+    "voice:handoff:manage",
+    "audit:read",
+    "feedback:read",
+    "feedback:write",
+    "version:read",
+    "version:write",
+    "version:activate",
+  ],
+  r02_operator: [
+    "tenant:read",
+    "tenant:update",
+    "agent:read",
+    "agent:write",
+    "voice:call:read",
+    "voice:call:write",
+    "voice:handoff:manage",
+    "feedback:read",
+    "feedback:write",
+    "version:read",
+    "version:write",
+  ],
+  compliance_auditor: [
+    "tenant:read",
+    "agent:read",
+    "agent:write",
+    "voice:call:read",
+    "audit:read",
+    "feedback:read",
+    "version:read",
+    "version:activate",
+  ],
+  reports_viewer: ["tenant:read", "agent:read", "voice:call:read", "feedback:read", "version:read"],
+  integration_admin: ["tenant:read", "agent:read", "voice:call:read", "audit:read", "version:read"],
+  human_handoff_agent: [
+    "tenant:read",
+    "voice:call:read",
+    "voice:handoff:manage",
+    "feedback:read",
+    "feedback:write",
   ],
   "voice-manager": [
     "agent:read",
@@ -73,7 +122,7 @@ const rolePermissions: Readonly<Record<Exclude<Role, "super-admin">, readonly Pe
 };
 
 export function roleAllows(role: Role, permission: Permission): boolean {
-  if (role === "super-admin") {
+  if (role === "super-admin" || role === "super_admin_hyperion") {
     return allPermissions.includes(permission);
   }
 

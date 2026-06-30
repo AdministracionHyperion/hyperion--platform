@@ -24,7 +24,7 @@ export async function createApiApp(
 
   await registerApiObservabilityPlugin(app, services);
   await registerRequestContextPlugin(app);
-  await registerApiAuthModePlugin(app, dependencies.authMode ?? "header-dev");
+  await registerApiAuthModePlugin(app, dependencies.authMode ?? "header-dev", services.auth);
   await registerApiPolicyGatesPlugin(app, services);
 
   app.setErrorHandler((error, request, reply) => {

@@ -1,22 +1,26 @@
 # CEDCO R02 Auth Boundary
 
-Current staging auth mode: header-based development auth.
+Current staging auth mode: Prisma-backed local staging auth.
 
 Boundary:
 
-- API routes require `x-actor-id` and `x-actor-roles`.
+- API routes require a local staging session in `AUTH_MODE=local-staging`.
+- The auth plugin resolves actor and roles from `User`, `TenantMembership`, and `LocalAuthSession`.
 - R02 write routes require tenant update, voice write, agent write or version activation
   permissions.
 - Viewer roles can read selected surfaces but cannot create availability, appointments, knowledge or
   agents.
 - Tenant ID remains path-scoped and all Prisma R02 queries filter by tenant.
-- Staging demo users must not use real emails, passwords or personal data.
+- Staging demo users must not use real personal data or committed credentials.
 
-Open blocker:
+Header-dev exception:
 
-- Production auth/OIDC is not enabled for R02 staging yet.
-- A future loop must replace header-dev auth before pilot use.
+- `header-dev` is local/test only.
+- It requires `AUTH_MODE=header-dev` and `ALLOW_HEADER_DEV_AUTH=true`.
+- It is not the staging operator path.
 
 Next gate:
 
-- `APPROVE_R02_STAGING_AUTH_HARDENING`
+- `APPROVE_TWILIO_INBOUND_NUMBER_CONNECTION`
+- `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
+- `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`

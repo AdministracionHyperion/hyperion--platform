@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export type ApiServicesMode = "fake" | "prisma";
-export type ApiAuthMode = "header-dev" | "jwt-required";
+export type ApiAuthMode = "header-dev" | "local-staging" | "jwt-required";
 
 const apiConfigSchema = z.object({
   API_HOST: z.string().default("127.0.0.1"),
@@ -9,7 +9,8 @@ const apiConfigSchema = z.object({
   DATABASE_URL: z.string().min(1).optional(),
   NODE_ENV: z.string().default("development"),
   API_SERVICES_MODE: z.enum(["fake", "prisma"]).optional(),
-  AUTH_MODE: z.enum(["header-dev", "jwt-required"]).optional(),
+  AUTH_MODE: z.enum(["header-dev", "local-staging", "jwt-required"]).optional(),
+  ALLOW_HEADER_DEV_AUTH: z.enum(["true", "false"]).optional(),
   AUTH_JWKS_URL: z.string().min(1).optional(),
   AUTH_JWT_PUBLIC_KEY_REF: z.string().min(1).optional(),
   AUTH_PROVIDER_REF: z.string().min(1).optional(),
@@ -46,6 +47,7 @@ export function loadApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   validateAuthMode({
     nodeEnv,
     authMode,
+    allowHeaderDevAuth: parsed.ALLOW_HEADER_DEV_AUTH === "true",
     hasAuthReference:
       parsed.AUTH_JWKS_URL !== undefined ||
       parsed.AUTH_JWT_PUBLIC_KEY_REF !== undefined ||
@@ -99,10 +101,14 @@ function resolveAuthMode(parsed: z.infer<typeof apiConfigSchema>): ApiAuthMode {
   }
 
   if (parsed.NODE_ENV === "production") {
-    throw new Error("AUTH_MODE=jwt-required is required in production.");
+    throw new Error("AUTH_MODE=local-staging or AUTH_MODE=jwt-required is required in production.");
   }
 
-  return "header-dev";
+  if (parsed.ALLOW_HEADER_DEV_AUTH === "true") {
+    return "header-dev";
+  }
+
+  return "local-staging";
 }
 
 function validateServicesMode(input: {
@@ -127,15 +133,24 @@ function validateServicesMode(input: {
 function validateAuthMode(input: {
   readonly nodeEnv: string;
   readonly authMode: ApiAuthMode;
+  readonly allowHeaderDevAuth: boolean;
   readonly hasAuthReference: boolean;
   readonly explicitlyConfigured: boolean;
 }): void {
   if (input.nodeEnv === "production" && !input.explicitlyConfigured) {
-    throw new Error("AUTH_MODE=jwt-required is required in production.");
+    throw new Error("AUTH_MODE=local-staging or AUTH_MODE=jwt-required is required in production.");
   }
 
   if (input.nodeEnv === "production" && input.authMode === "header-dev") {
     throw new Error("AUTH_MODE=header-dev is not allowed in production.");
+  }
+
+  if (input.authMode === "header-dev" && !input.allowHeaderDevAuth) {
+    throw new Error("AUTH_MODE=header-dev requires ALLOW_HEADER_DEV_AUTH=true.");
+  }
+
+  if (input.authMode === "header-dev" && !["development", "test"].includes(input.nodeEnv)) {
+    throw new Error("AUTH_MODE=header-dev is allowed only in local development or tests.");
   }
 
   if (input.authMode === "jwt-required" && !input.hasAuthReference) {

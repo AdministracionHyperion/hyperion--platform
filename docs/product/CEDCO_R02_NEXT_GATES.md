@@ -1,16 +1,17 @@
 # CEDCO R02 Next Gates
 
-Current state: staging demo is operational with synthetic data only.
+Current state: staging demo is operational with synthetic data only and `local-staging` operator
+auth is the intended staging boundary.
 
 R02 operational persistence state:
 
 - Calendar, appointments, RAG, agents, handoff targets and R02 audit are Prisma-backed in staging.
-- Header-dev auth remains a staging-only boundary.
+- Header-dev auth is local/test only and requires `ALLOW_HEADER_DEV_AUTH=true`.
+- Local staging auth is Prisma-backed through users, memberships and sessions.
 - External providers remain disabled.
 
 Future gates:
 
-- `APPROVE_R02_STAGING_AUTH_HARDENING`
 - `APPROVE_TWILIO_INBOUND_NUMBER_CONNECTION`
 - `APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING`
 - `APPROVE_SINGLE_CONTROLLED_WEBHOOK_METADATA_CALL`
