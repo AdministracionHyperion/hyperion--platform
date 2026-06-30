@@ -244,6 +244,24 @@ runWhenDatabaseExists("CEDCO R02 Prisma-backed operational surface", () => {
       },
     });
     expect(handoff.json<Envelope>().data).toMatchObject({ handoffCreated: true });
+
+    const readiness = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/readiness`,
+      headers: adminHeaders,
+    });
+    expect(readiness.statusCode).toBe(200);
+    expect(
+      readiness.json<Envelope<{ counts: Record<string, number>; providerEgressEnabled: boolean }>>()
+        .data,
+    ).toMatchObject({
+      counts: {
+        activeKnowledgeDocuments: 1,
+        activeAgents: 1,
+        activeHandoffTargets: 1,
+      },
+      providerEgressEnabled: false,
+    });
   });
 
   it("keeps RBAC and tenant isolation on persisted R02 records", async () => {

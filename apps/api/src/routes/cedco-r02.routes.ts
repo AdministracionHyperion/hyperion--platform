@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import {
   createR02OperationalDemoModel,
   renderR02OperationalPage,
+  type R02OperationalPanelModel,
 } from "../../../web/src/dashboard/r02-operational-page";
 import {
   availabilityQuerySchema,
@@ -45,18 +46,70 @@ export async function registerCedcoR02Routes(
       dependencies.services.cedcoR02.listHandoffTargets(context),
     ]);
     const demoModel = createR02OperationalDemoModel();
+    const dashboardAppointments = toDashboardAppointments(appointments);
+    const dashboardAvailability = toDashboardAvailability(availability);
+    const dashboardKnowledgeDocuments = toDashboardKnowledgeDocuments(knowledgeDocuments);
+    const dashboardAgents = toDashboardAgents(agents);
+    const dashboardHandoffTargets = toDashboardHandoffTargets(handoffTargets);
+    const readiness = buildR02Readiness({
+      appointments: dashboardAppointments,
+      availability: dashboardAvailability,
+      knowledgeDocuments: dashboardKnowledgeDocuments,
+      agents: dashboardAgents,
+      handoffTargets: dashboardHandoffTargets,
+      auditCount: Array.isArray(audit) ? audit.length : demoModel.auditCount,
+    });
     const html = renderR02OperationalPage({
       ...demoModel,
       tenantId: params.tenantId,
-      appointments: toDashboardAppointments(appointments),
-      availability: toDashboardAvailability(availability),
-      knowledgeDocuments: toDashboardKnowledgeDocuments(knowledgeDocuments),
-      agents: toDashboardAgents(agents),
-      handoffTargets: toDashboardHandoffTargets(handoffTargets),
-      auditCount: Array.isArray(audit) ? audit.length : demoModel.auditCount,
+      appointments: dashboardAppointments,
+      availability: dashboardAvailability,
+      knowledgeDocuments: dashboardKnowledgeDocuments,
+      agents: dashboardAgents,
+      handoffTargets: dashboardHandoffTargets,
+      overallStatus: readiness.overallStatus,
+      readinessItems: readiness.readinessItems,
+      finalOperatorInputs: readiness.finalOperatorInputs,
+      futureGates: readiness.futureGates,
+      integrationStatus: readiness.integrationStatus,
+      auditCount: readiness.auditCount,
     });
     reply.type("text/html; charset=utf-8");
     return html;
+  });
+
+  app.get("/api/v1/tenants/:tenantId/r02/readiness", async (request) => {
+    const params = validateWithSchema(cedcoR02ParamsSchema, request.params);
+    const context = getRequiredRequestContext(request, [
+      "tenant:read",
+      "agent:read",
+      "voice:call:read",
+    ]);
+    const [appointments, availability, audit] = await Promise.all([
+      dependencies.services.cedcoR02.listAppointments(context),
+      dependencies.services.cedcoR02.listAvailability(context, {}),
+      dependencies.services.cedcoR02.listAudit(context),
+    ]);
+    const [knowledgeDocuments, agents, handoffTargets] = await Promise.all([
+      dependencies.services.cedcoR02.listKnowledgeDocuments(context),
+      dependencies.services.cedcoR02.listAgents(context),
+      dependencies.services.cedcoR02.listHandoffTargets(context),
+    ]);
+
+    return ok(
+      {
+        tenantId: params.tenantId,
+        ...buildR02Readiness({
+          appointments: toDashboardAppointments(appointments),
+          availability: toDashboardAvailability(availability),
+          knowledgeDocuments: toDashboardKnowledgeDocuments(knowledgeDocuments),
+          agents: toDashboardAgents(agents),
+          handoffTargets: toDashboardHandoffTargets(handoffTargets),
+          auditCount: Array.isArray(audit) ? audit.length : 0,
+        }),
+      },
+      context,
+    );
   });
 
   app.post("/api/v1/tenants/:tenantId/r02/demo/seed", async (request) => {
@@ -309,13 +362,25 @@ function toDashboardAgents(value: unknown) {
   }
   return value.slice(0, 8).map((item) => {
     const record = asRecord(item);
+    const activeVersionId = toActiveVersionId(record);
     return {
       agentId: String(record.agentId ?? "agent-ref"),
       displayName: String(record.displayName ?? record.name ?? "CEDCO R02 agent"),
-      activeVersionId: String(record.activeVersionId ?? "none"),
-      status: String(record.status ?? "unknown"),
+      activeVersionId,
+      status: String(record.status ?? (activeVersionId === "none" ? "unknown" : "active")),
     };
   });
+}
+
+function toActiveVersionId(record: Readonly<Record<string, unknown>>): string {
+  if (typeof record.activeVersionId === "string" && record.activeVersionId.length > 0) {
+    return record.activeVersionId;
+  }
+  const versions = Array.isArray(record.versions) ? record.versions : [];
+  const activeVersion = versions
+    .map(asRecord)
+    .find((version) => version.status === "active" && typeof version.versionId === "string");
+  return typeof activeVersion?.versionId === "string" ? activeVersion.versionId : "none";
 }
 
 function toDashboardHandoffTargets(value: unknown) {
@@ -331,6 +396,158 @@ function toDashboardHandoffTargets(value: unknown) {
       status: String(record.status ?? "unknown"),
     };
   });
+}
+
+type DashboardAppointments = R02OperationalPanelModel["appointments"];
+type DashboardAvailability = R02OperationalPanelModel["availability"];
+type DashboardKnowledgeDocuments = R02OperationalPanelModel["knowledgeDocuments"];
+type DashboardAgents = R02OperationalPanelModel["agents"];
+type DashboardHandoffTargets = R02OperationalPanelModel["handoffTargets"];
+type DashboardReadinessItem = R02OperationalPanelModel["readinessItems"][number];
+
+function buildR02Readiness(input: {
+  readonly appointments: DashboardAppointments;
+  readonly availability: DashboardAvailability;
+  readonly knowledgeDocuments: DashboardKnowledgeDocuments;
+  readonly agents: DashboardAgents;
+  readonly handoffTargets: DashboardHandoffTargets;
+  readonly auditCount: number;
+}) {
+  const activeKnowledgeDocuments = input.knowledgeDocuments.filter(
+    (item) => item.status === "active",
+  ).length;
+  const activeAgents = input.agents.filter(
+    (item) => item.status === "active" || item.activeVersionId !== "none",
+  ).length;
+  const activeHandoffTargets = input.handoffTargets.filter(
+    (item) => item.status === "active",
+  ).length;
+  const openAvailabilitySlots = input.availability.filter(
+    (item) => item.capacityRemaining > 0,
+  ).length;
+  const scheduledAppointments = input.appointments.filter((item) =>
+    ["scheduled", "rescheduled"].includes(item.status),
+  ).length;
+
+  const readinessItems: DashboardReadinessItem[] = [
+    readinessItem(
+      "Calendario interno",
+      openAvailabilitySlots > 0 && scheduledAppointments > 0,
+      "Disponibilidad y citas internas leidas desde Prisma.",
+      "Falta crear disponibilidad y una cita interna de demo.",
+    ),
+    readinessItem(
+      "RAG activo",
+      activeKnowledgeDocuments > 0,
+      "Hay conocimiento aprobado y activo para busqueda por fuente/version.",
+      "Falta cargar, aprobar y activar documentos CEDCO sanitizados.",
+    ),
+    readinessItem(
+      "Agente activo",
+      activeAgents > 0,
+      "Hay agente R02 activo con version operativa.",
+      "Falta activar una version de agente R02.",
+    ),
+    readinessItem(
+      "Handoff interno",
+      activeHandoffTargets > 0,
+      "Hay target interno de handoff sin mutacion provider.",
+      "Falta guardar target interno de handoff.",
+    ),
+    readinessItem(
+      "Auditoria",
+      input.auditCount > 0,
+      "Writes operativos generan eventos de auditoria sanitizados.",
+      "Falta actividad auditada en el tenant.",
+    ),
+    {
+      label: "Google Calendar real",
+      status: "pending",
+      detail: "Dry-run operativo; faltan OAuth/secret refs, calendario destino y politica de sync.",
+    },
+    {
+      label: "Piloto inbound real",
+      status: "pending",
+      detail: "Inbound validado; falta ventana aprobada y reglas de piloto operativo.",
+    },
+    {
+      label: "PBX real",
+      status: "blocked",
+      detail: "PBX sigue fuera del runtime real hasta un loop de refactor staging.",
+    },
+    {
+      label: "Transcript/audio",
+      status: "blocked",
+      detail: "Permanece bloqueado salvo aprobacion compliance especifica.",
+    },
+  ];
+
+  const coreReady = readinessItems.slice(0, 5).every((item) => item.status === "done");
+  const hasAnyCoreData =
+    input.appointments.length > 0 ||
+    input.availability.length > 0 ||
+    input.knowledgeDocuments.length > 0 ||
+    input.agents.length > 0 ||
+    input.handoffTargets.length > 0;
+
+  const integrationStatus: R02OperationalPanelModel["integrationStatus"] = {
+    externalCalendar: "pending",
+    externalInbound: "pending",
+    pbx: "disabled",
+    realCallsEnabled: false,
+    providerEgressEnabled: false,
+    transcriptAudioEnabled: false,
+  };
+
+  return {
+    overallStatus: (coreReady || hasAnyCoreData
+      ? "partial"
+      : "blocked") as R02OperationalPanelModel["overallStatus"],
+    readinessItems,
+    finalOperatorInputs: [
+      "Documentos CEDCO sanitizados para cargar RAG desde este dashboard.",
+      "Credenciales y mapeo Google Calendar para staging.",
+      "Destino humano aprobado si se habilita handoff persistente.",
+      "Ventana y numero llamante autorizado para piloto inbound.",
+      "Decision PBX: mantener fuera o abrir refactor staging.",
+      "Aprobacion compliance para cualquier transcript/audio adicional.",
+    ],
+    futureGates: [
+      "APPROVE_TWILIO_INBOUND_NUMBER_OPERATIONAL_PILOT",
+      "APPROVE_GOOGLE_CALENDAR_OAUTH_STAGING",
+      "APPROVE_PROVIDER_HANDOFF_TARGET_PERSISTENT_ENABLEMENT",
+      "APPROVE_PBX_STAGING_RUNTIME_REFACTOR",
+      "APPROVE_TRANSCRIPT_QA_FOR_CONTROLLED_PILOT",
+      "APPROVE_AUDIO_CAPTURE_FOR_CONTROLLED_PILOT",
+    ],
+    integrationStatus,
+    counts: {
+      appointments: input.appointments.length,
+      openAvailabilitySlots,
+      activeKnowledgeDocuments,
+      activeAgents,
+      activeHandoffTargets,
+      auditEvents: input.auditCount,
+    },
+    auditCount: input.auditCount,
+    externalProvidersUsed: false,
+    providerEgressEnabled: false,
+    liveCallsEnabled: false,
+    transcriptAudioAccessed: false,
+  };
+}
+
+function readinessItem(
+  label: string,
+  passed: boolean,
+  doneDetail: string,
+  pendingDetail: string,
+): DashboardReadinessItem {
+  return {
+    label,
+    status: passed ? "done" : "pending",
+    detail: passed ? doneDetail : pendingDetail,
+  };
 }
 
 function asRecord(value: unknown): Readonly<Record<string, unknown>> {

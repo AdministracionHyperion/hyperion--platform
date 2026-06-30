@@ -323,6 +323,111 @@ describe("CEDCO R02 operational API", () => {
     expect(targets.json<Envelope<unknown[]>>().data).toHaveLength(1);
   });
 
+  it("reports DB-backed readiness without enabling providers", async () => {
+    await createAvailability("slot-r02-readiness-open", "2026-07-07T14:00:00.000Z");
+    await createAvailability("slot-r02-readiness-booked", "2026-07-07T15:00:00.000Z");
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/appointments`,
+      headers: adminHeaders,
+      payload: {
+        appointmentId: "appointment-r02-readiness",
+        slotId: "slot-r02-readiness-booked",
+        patientRef: "patient-ref-readiness",
+      },
+    });
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/knowledge-documents/upload`,
+      headers: adminHeaders,
+      payload: {
+        documentId: "doc-r02-readiness",
+        sourceName: "cedco-r02-readiness.md",
+        contentText: "CEDCO readiness consulta general y orientacion inicial.",
+      },
+    });
+    for (const action of ["process", "approve", "activate"] as const) {
+      await app.inject({
+        method: "POST",
+        url: `${baseUrl}/knowledge-documents/doc-r02-readiness/${action}`,
+        headers: adminHeaders,
+      });
+    }
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/agents`,
+      headers: adminHeaders,
+      payload: { seedDemo: true },
+    });
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/agents/cedco-r02-recepcion-agendamiento/versions`,
+      headers: adminHeaders,
+      payload: {
+        versionId: "cedco-r02-readiness-v1",
+        greeting: "Hola, gracias por comunicarte con CEDCO.",
+        prompt: "Consulta RAG y calendario interno antes de confirmar citas.",
+      },
+    });
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/agents/cedco-r02-readiness-v1/approve`,
+      headers: adminHeaders,
+    });
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/agents/cedco-r02-readiness-v1/activate`,
+      headers: adminHeaders,
+    });
+    await app.inject({
+      method: "POST",
+      url: `${baseUrl}/handoff-targets`,
+      headers: adminHeaders,
+      payload: {
+        targetId: "handoff-readiness",
+        targetType: "human",
+        displayName: "Recepcion humana CEDCO",
+        routeRef: "human_queue_readiness",
+        status: "active",
+      },
+    });
+
+    const readiness = await app.inject({
+      method: "GET",
+      url: `${baseUrl}/readiness`,
+      headers: adminHeaders,
+    });
+    const body = readiness.json<
+      Envelope<{
+        counts: Record<string, number>;
+        readinessItems: Array<{ label: string; status: string }>;
+        providerEgressEnabled: boolean;
+        liveCallsEnabled: boolean;
+        transcriptAudioAccessed: boolean;
+      }>
+    >();
+
+    expect(readiness.statusCode).toBe(200);
+    expect(body.data?.counts).toMatchObject({
+      appointments: 1,
+      activeKnowledgeDocuments: 1,
+      activeHandoffTargets: 1,
+    });
+    expect(body.data?.readinessItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "RAG activo", status: "done" }),
+        expect.objectContaining({ label: "Google Calendar real", status: "pending" }),
+        expect.objectContaining({ label: "PBX real", status: "blocked" }),
+      ]),
+    );
+    expect(body.data).toMatchObject({
+      providerEgressEnabled: false,
+      liveCallsEnabled: false,
+      transcriptAudioAccessed: false,
+    });
+    expect(JSON.stringify(body)).not.toMatch(/phoneNumber|providerId|rawTranscript|audioUrl/iu);
+  });
+
   it("denies write routes to viewer roles and blocks sensitive payload fields", async () => {
     const denied = await app.inject({
       method: "POST",

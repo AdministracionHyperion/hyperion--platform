@@ -20,6 +20,8 @@ R02 operational persistence state:
   flow simulation, handoff refs and audit visibility.
 - Google Calendar sync dry-run is operator-ready from API/UI and remains disabled for real OAuth
   until a separate gate is approved.
+- R02 readiness is DB-backed from tenant appointments, availability, RAG, agents, handoff targets
+  and audit events; provider gates remain pending/blocked separately.
 
 Future gates:
 
