@@ -1,6 +1,6 @@
 # CEDCO R02 ElevenLabs Agent Configuration
 
-Controlled provider sync evidence: `2026-06-30T08:41:16Z`.
+Controlled provider sync evidence: `2026-06-30T09:05:33Z`.
 
 ## Agent Status
 
@@ -18,6 +18,9 @@ Controlled provider sync evidence: `2026-06-30T08:41:16Z`.
 
 The agent is configured for Spanish Colombia reception and scheduling behavior. No real calendar,
 RAG, transfer endpoint, transcript/audio, or call tooling was activated by this loop.
+
+The Twilio Colombia number import retry used the official ElevenLabs schema and final read-only
+verification showed the number visible and bound to this agent.
 
 ## Safety
 
