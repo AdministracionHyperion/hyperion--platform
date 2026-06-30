@@ -21,25 +21,27 @@ metadata-only status in a future approved integration, but must not store, rende
 - provider IDs;
 - API keys, webhook secrets, or SIP credentials.
 
+## D02-AUTO-21A Update
+
+Public staging exposure is now active through Traefik for synthetic signed payloads only. This
+changes only the staging ingress readiness boundary; real ElevenLabs webhook registration remains
+NO-GO.
+
 ## Current State
 
-| Control                            | State           |
-| ---------------------------------- | --------------- |
-| Private synthetic webhook endpoint | Validated on VM |
-| Public exposure blueprint          | Created only    |
-| Real provider webhook              | Not connected   |
-| Public webhook                     | Not exposed     |
-| Provider config attempted          | No              |
-| API key used                       | No              |
-| Transcript/audio accessed          | No              |
-| Provider egress                    | Disabled        |
-| Live calls                         | Disabled        |
+| Control                            | State                                      |
+| ---------------------------------- | ------------------------------------------ |
+| Private synthetic webhook endpoint | Validated on VM                            |
+| Public exposure blueprint          | Implemented for synthetic staging          |
+| Real provider webhook              | Not connected                              |
+| Public webhook                     | Exposed for synthetic signed payloads only |
+| Provider config attempted          | No                                         |
+| API key used                       | No                                         |
+| Transcript/audio accessed          | No                                         |
+| Provider egress                    | Disabled                                   |
+| Live calls                         | Disabled                                   |
 
 ## Next Gate
-
-Public staging exposure requires a separate loop and this exact phrase:
-
-`APPROVE_PUBLIC_WEBHOOK_STAGING_EXPOSURE`
 
 Real provider webhook metadata-only processing requires a later loop:
 
