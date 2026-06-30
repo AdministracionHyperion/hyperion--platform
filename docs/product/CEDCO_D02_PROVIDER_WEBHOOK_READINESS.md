@@ -2,7 +2,7 @@
 
 ## D02-AUTO-19 Decision
 
-Real provider metadata-only webhook staging remains NO-GO.
+Real provider metadata-only webhook staging was NO-GO in D02-AUTO-19.
 
 Provider capability discovery found that safe private staging is not confirmed: provider callbacks
 require a reachable webhook URL, agent-level-only scope is not proven, and metadata-only delivery
@@ -10,9 +10,9 @@ without transcript/audio risk is not proven.
 
 ## Platform Boundary
 
-Platform must not assume that a real ElevenLabs webhook is connected. The only validated runtime is
-the dialer private synthetic endpoint on loopback/internal staging. Platform may consume sanitized
-metadata-only status in a future approved integration, but must not store, render, or forward:
+Platform may assume only failure-event provider metadata is staged after D02-AUTO-22. Platform must
+not assume successful post-call transcript delivery or pilot readiness. It must not store, render,
+or forward:
 
 - transcript text;
 - audio or audio URLs;
@@ -23,35 +23,32 @@ metadata-only status in a future approved integration, but must not store, rende
 
 ## D02-AUTO-21A Update
 
-Public staging exposure is now active through Traefik for synthetic signed payloads only. This
-changes only the staging ingress readiness boundary; real ElevenLabs webhook registration remains
-NO-GO.
+Public staging exposure is active through Traefik. D02-AUTO-22 uses that route for the staging agent
+failure-event provider webhook while keeping transcript/audio and pilot traffic blocked.
 
 ## D02-AUTO-22 Update
 
-The exact real-provider webhook approval was received, but configuration stopped before provider
-mutation with `workspace_scope_risk_blocker`. No real provider webhook was connected, no webhook
-secret was created in VM config, and no real provider payload, transcript, or audio was accessed.
+The exact real-provider webhook approval was received. D02-AUTO-22 created one real provider HMAC
+webhook and attached it through the staging agent override with only the `call_initiation_failure`
+event enabled. The webhook secret exists only on the VM. No real provider payload, transcript, or
+audio was accessed.
 
 ## Current State
 
-| Control                            | State                                      |
-| ---------------------------------- | ------------------------------------------ |
-| Private synthetic webhook endpoint | Validated on VM                            |
-| Public exposure blueprint          | Implemented for synthetic staging          |
-| Real provider webhook              | Not connected                              |
-| Public webhook                     | Exposed for synthetic signed payloads only |
-| Provider config attempted          | No                                         |
-| API key used                       | In memory only for read-only discovery     |
-| Transcript/audio accessed          | No                                         |
-| Provider egress                    | Disabled                                   |
-| Live calls                         | Disabled                                   |
+| Control                            | State                                     |
+| ---------------------------------- | ----------------------------------------- |
+| Private synthetic webhook endpoint | Validated on VM                           |
+| Public exposure blueprint          | Implemented for synthetic staging         |
+| Real provider webhook              | Connected for failure-event metadata only |
+| Public webhook                     | Exposed for signed staging payloads       |
+| Provider config attempted          | Yes                                       |
+| API key used                       | In memory only                            |
+| Transcript/audio accessed          | No                                        |
+| Provider egress                    | Disabled                                  |
+| Live calls                         | Disabled                                  |
 
 ## Next Gate
 
-Real provider webhook metadata-only processing requires a later loop:
-
-`APPROVE_REAL_PROVIDER_WEBHOOK_METADATA_ONLY`
-
-That approval is not sufficient by itself until workspace scope is resolved or agent-level scoping
-is proven.
+Next work should focus on durable metadata-only event handling, rollback ownership, and pilot
+readiness. Transcript QA, audio access, provider egress, live calls, and pilot calls still require
+separate approval.

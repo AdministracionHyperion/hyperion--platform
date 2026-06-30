@@ -12,8 +12,10 @@ For public webhook staging, the kill switch must disable the Traefik public rout
 provider webhook processing disconnected until separately approved, keep transcript/audio disabled,
 and confirm provider egress and live calls remain disabled.
 
-D02-AUTO-22 did not connect the real provider webhook. Current stop posture remains synthetic-only
-public route plus disabled provider egress/live calls.
+D02-AUTO-22 connected the real provider webhook only for the staging agent's
+`call_initiation_failure` event. Current stop posture is to keep provider egress and live calls
+disabled, keep transcript/audio disabled, and use provider webhook rollback if failure-event
+callbacks behave unexpectedly.
 
 ## Stop Conditions
 
@@ -33,13 +35,16 @@ Stop the pilot immediately if any of the following occurs:
 
 1. Do not start another call.
 2. Keep platform provider egress and live calls disabled.
-3. Keep public webhook synthetic-only unless the route is being disabled.
+3. Keep public webhook scoped to the approved staging path unless the route is being disabled.
 4. Disable the Traefik public route if public webhook behavior is unsafe.
-5. Preserve only private raw evidence in local private storage if it already exists.
-6. Record sanitized status only.
-7. Run platform-to-dialer and staging health checks before resuming any gate.
+5. Disable the real provider webhook or remove the staging agent webhook override if provider
+   callback behavior is unsafe.
+6. Preserve only private raw evidence in local private storage if it already exists.
+7. Record sanitized status only.
+8. Run platform-to-dialer and staging health checks before resuming any gate.
 
 ## Rollback Boundary
 
 Rollback for this phase means returning to metadata-only evidence and no further provider calls. It
-does not require firewall, Nginx, VM service restart, or provider resource deletion.
+does not require firewall or Nginx changes. Provider webhook rollback must be scoped to the single
+D02 staging webhook and staging agent override.

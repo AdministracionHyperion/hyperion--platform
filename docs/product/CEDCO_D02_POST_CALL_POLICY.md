@@ -11,11 +11,12 @@ the product boundary for post-call handling after validation.
 | Controlled Spanish voice path | Validated by sanitized provider evidence |
 | Platform provider egress      | Disabled                                 |
 | Platform live calls           | Disabled                                 |
-| Public webhook                | Not enabled                              |
+| Public webhook                | Enabled for staging route                |
+| Real provider webhook         | Failure-event metadata only              |
 | Recording                     | Not enabled                              |
 | Transcript access             | Not approved                             |
 | Audio access                  | Not approved                             |
-| Synthetic webhook rehearsal   | Passed in dialer; public webhook blocked |
+| Synthetic webhook rehearsal   | Passed in dialer                         |
 
 ## Metadata-Only Default
 
