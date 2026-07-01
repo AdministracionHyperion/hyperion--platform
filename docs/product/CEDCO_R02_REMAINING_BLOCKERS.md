@@ -1,8 +1,10 @@
 # CEDCO R02 Remaining Blockers
 
 R02 is usable in staging for operator-authenticated platform operations, dashboard RAG loading,
-calendar/cita flows, agent simulation, and controlled inbound validation. These blockers remain
-before an operational pilot:
+calendar/cita flows, agent simulation, D02 reporting and controlled validation. The non-provider
+pilot closeout package is documented in `docs/product/CEDCO_R02_R10_PILOT_CLOSEOUT_PACKAGE.md`.
+
+These blockers remain before any provider/live expansion:
 
 - External calendar OAuth credentials are not approved.
 - Persistent provider-side handoff target enablement is not approved.
