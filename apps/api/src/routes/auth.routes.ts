@@ -144,77 +144,103 @@ function renderLoginPage(): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Acceso CEDCO</title>
   <style>
-    :root{color-scheme:light;--ink:#16202a;--muted:#5f6b7a;--line:#d7dee8;--panel:#ffffff;--canvas:#eef2f6;--accent:#0b5cad;--accent-strong:#084a8c;--ok:#0f766e;--warn:#8a4b0b}
+    :root{color-scheme:light;--ink:#111827;--muted:#5b6575;--soft:#eef3f7;--line:#d8e1ea;--panel:#ffffff;--canvas:#f6f8fb;--primary:#0a5f9f;--primary-strong:#084978;--teal:#0f766e;--amber:#b45309;--danger:#b42318;--ring:rgba(10,95,159,.22)}
     *{box-sizing:border-box}
-    body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;margin:0;min-height:100vh;background:linear-gradient(135deg,#eef2f6 0%,#f8fafc 52%,#e7edf4 100%);color:var(--ink)}
-    body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 18% 12%,rgba(11,92,173,.12),transparent 30%),radial-gradient(circle at 82% 22%,rgba(15,118,110,.10),transparent 28%);pointer-events:none}
-    main{position:relative;display:grid;grid-template-columns:minmax(320px,1fr) minmax(340px,440px);gap:28px;align-items:stretch;width:min(1080px,calc(100% - 32px));margin:8vh auto}
-    .intro,.card{background:rgba(255,255,255,.92);border:1px solid rgba(215,222,232,.95);box-shadow:0 18px 54px rgba(22,32,42,.12)}
-    .intro{padding:38px;border-radius:10px;display:flex;flex-direction:column;justify-content:space-between;min-height:520px}
-    .brand{display:flex;align-items:center;gap:14px;margin-bottom:34px}
-    .mark{display:grid;place-items:center;width:46px;height:46px;border-radius:8px;background:#0b5cad;color:white;font-weight:800;letter-spacing:.02em}
+    html{min-height:100%}
+    body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;margin:0;min-height:100vh;background:linear-gradient(180deg,#eaf1f7 0%,#f6f8fb 42%,#ffffff 100%);color:var(--ink)}
+    main{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,460px)}
+    .workspace{display:flex;flex-direction:column;justify-content:space-between;padding:48px clamp(28px,6vw,84px);border-right:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:14px;margin-bottom:72px}
+    .mark{display:grid;place-items:center;width:48px;height:48px;border-radius:8px;background:var(--ink);color:#fff;font-weight:850;font-size:22px}
     .brand strong{display:block;font-size:18px;line-height:1.1}.brand span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
-    h1{font-size:clamp(34px,5vw,58px);line-height:.98;margin:0 0 18px;letter-spacing:0}
-    .lead{max-width:560px;color:#394656;font-size:18px;line-height:1.55;margin:0}
-    .status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:40px}
-    .status{border:1px solid var(--line);border-radius:8px;padding:12px;background:#f8fafc}.status small{display:block;color:var(--muted);font-size:12px}.status strong{display:block;margin-top:5px;font-size:14px}
-    .card{border-radius:10px;padding:30px;align-self:center}
-    .card h2{margin:0;font-size:24px}.subtitle{margin:8px 0 26px;color:var(--muted);line-height:1.45}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;width:max-content;border:1px solid #b8d8d4;background:#effaf8;color:#075f59;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800;text-transform:uppercase}
+    .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal)}
+    h1{max-width:680px;font-size:clamp(40px,5.8vw,74px);line-height:.96;margin:18px 0 20px;letter-spacing:0}
+    .lead{max-width:640px;color:#334155;font-size:19px;line-height:1.58;margin:0}
+    .ops-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:54px;max-width:760px}
+    .ops-item{border-top:3px solid var(--primary);padding-top:14px}
+    .ops-item:nth-child(2){border-color:var(--teal)}.ops-item:nth-child(3){border-color:var(--amber)}
+    .ops-item small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800}.ops-item strong{display:block;margin-top:8px;font-size:15px}.ops-item span{display:block;margin-top:6px;color:#536173;font-size:13px;line-height:1.45}
+    .session-note{max-width:720px;color:#526070;font-size:13px;line-height:1.5;margin-top:56px}
+    .login-area{display:flex;align-items:center;justify-content:center;padding:36px;background:rgba(255,255,255,.78)}
+    .login-card{width:min(100%,410px)}
+    .panel-kicker{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:28px}
+    .panel-kicker span{color:var(--muted);font-size:13px;font-weight:700}.status-chip{border:1px solid #c7e4d8;color:#0f6b54;background:#f0fbf6;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800}
+    .login-card h2{margin:0;font-size:32px;line-height:1.08}.subtitle{margin:10px 0 30px;color:var(--muted);line-height:1.5}
     form{display:grid;gap:16px}
-    label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#2d3845}
-    input{width:100%;padding:13px 14px;border:1px solid #b9c4d2;border-radius:7px;background:#fff;color:var(--ink);font:inherit;outline:none}
-    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(11,92,173,.15)}
-    button{margin-top:4px;width:100%;padding:13px 16px;border:0;border-radius:7px;background:var(--accent);color:white;font-weight:800;font:inherit;cursor:pointer}
-    button:hover{background:var(--accent-strong)}button:disabled{background:#8aa8c8;cursor:wait}
-    .help{border:1px solid #d7e6f7;background:#f4f8fd;border-radius:8px;padding:12px 14px;color:#37506b;font-size:13px;line-height:1.45}
-    .error{min-height:20px;margin:0;color:#9a3412;font-weight:700;font-size:13px}
+    label{display:grid;gap:8px;font-size:13px;font-weight:800;color:#263241}
+    input{width:100%;min-height:48px;padding:13px 14px;border:1px solid #b9c6d6;border-radius:8px;background:#fff;color:var(--ink);font:inherit;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+    input:hover{border-color:#8ea0b5}input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+    .password-row{position:relative}.password-row input{padding-right:54px}
+    .reveal{position:absolute;right:8px;bottom:8px;width:36px;height:32px;border:0;border-radius:6px;background:#eef3f7;color:#334155;font-size:12px;font-weight:800;cursor:pointer}
+    .reveal:hover{background:#dfe8f1}.reveal:focus-visible{outline:3px solid var(--ring)}
+    .submit{margin-top:4px;width:100%;min-height:50px;border:0;border-radius:8px;background:var(--primary);color:white;font-weight:850;font:inherit;cursor:pointer;transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+    .submit:hover{background:var(--primary-strong);box-shadow:0 10px 24px rgba(10,95,159,.22)}.submit:focus-visible{outline:3px solid var(--ring);outline-offset:2px}.submit:active{transform:translateY(1px)}.submit:disabled{background:#8ca9c1;box-shadow:none;cursor:wait;transform:none}
+    .error{min-height:22px;margin:0;color:var(--danger);font-weight:800;font-size:13px}
+    .help{margin-top:24px;border-left:3px solid var(--teal);background:#f6fbfa;padding:13px 14px;color:#36545f;font-size:13px;line-height:1.48}
     .footer-note{margin-top:18px;color:var(--muted);font-size:12px;line-height:1.45}
-    @media (max-width:820px){main{grid-template-columns:1fr;margin:18px auto}.intro{min-height:auto;padding:26px}.status-grid{grid-template-columns:1fr}.card{padding:24px}h1{font-size:36px}}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    @media (max-width:900px){main{grid-template-columns:1fr}.workspace{padding:30px 22px 24px;border-right:0;border-bottom:1px solid var(--line)}.brand{margin-bottom:34px}.ops-list{grid-template-columns:1fr;gap:16px;margin-top:34px}.session-note{margin-top:28px}.login-area{padding:26px 18px 36px}.login-card h2{font-size:28px}h1{font-size:42px}}
   </style>
 </head>
 <body>
   <main>
-    <section class="intro" aria-labelledby="login-title">
+    <section class="workspace" aria-labelledby="login-title">
       <div>
         <div class="brand" aria-label="CEDCO">
           <div class="mark">C</div>
-          <div><strong>CEDCO</strong><span>Centro operativo</span></div>
+          <div><strong>CEDCO</strong><span>Operacion R02</span></div>
         </div>
-        <h1 id="login-title">Acceso al panel operativo</h1>
-        <p class="lead">Gestiona agenda, conocimiento, asistentes y derivaciones desde un espacio privado para el equipo autorizado.</p>
+        <span class="eyebrow">Staging privado</span>
+        <h1 id="login-title">Centro operativo CEDCO</h1>
+        <p class="lead">Acceso controlado para revisar agenda, conocimiento y derivaciones del flujo R02 sin activar llamadas reales ni proveedores externos.</p>
+        <div class="ops-list" aria-label="Estado operativo">
+          <div class="ops-item"><small>Ambiente</small><strong>Staging R02</strong><span>Validacion funcional antes de paso productivo.</span></div>
+          <div class="ops-item"><small>Sesion</small><strong>8 horas</strong><span>Cookie segura cuando entras por HTTPS publico.</span></div>
+          <div class="ops-item"><small>Alcance</small><strong>Sin PBX live</strong><span>Solo operaciones permitidas del panel autorizado.</span></div>
+        </div>
       </div>
-      <div class="status-grid" aria-label="Estado del acceso">
-        <div class="status"><small>Ambiente</small><strong>Staging operativo</strong></div>
-        <div class="status"><small>Acceso</small><strong>Roles autorizados</strong></div>
-        <div class="status"><small>Actividad</small><strong>Auditada</strong></div>
-      </div>
+      <p class="session-note">Las acciones quedan auditadas por tenant y actor. Usa solamente el usuario asignado para tu rol.</p>
     </section>
-    <section class="card" aria-label="Inicio de sesion">
+    <section class="login-area" aria-label="Inicio de sesion">
+      <div class="login-card">
+      <div class="panel-kicker"><span>Acceso al panel operativo</span><strong class="status-chip">TLS publico</strong></div>
       <h2>Iniciar sesion</h2>
-      <p class="subtitle">Usa el usuario asignado y tu credencial temporal para entrar al panel operativo.</p>
+      <p class="subtitle">Ingresa con tu usuario CEDCO y credencial temporal.</p>
       <form id="login" method="post" action="/api/v1/auth/login" autocomplete="on">
         <input id="tenantId" name="tenantId" type="hidden" value="cedco-demo" autocomplete="organization" />
-        <label for="username">Usuario
-          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" required />
+        <label for="username">Usuario asignado
+          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" required aria-describedby="error" />
         </label>
-        <label for="password">Credencial
-          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <label class="password-row" for="password">Credencial temporal
+          <input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="error" />
+          <button class="reveal" type="button" id="reveal" aria-controls="password" aria-label="Mostrar credencial">Ver</button>
         </label>
-        <button id="submit" type="submit">Entrar al panel</button>
+        <button class="submit" id="submit" type="submit">Entrar al panel</button>
         <p id="error" class="error" role="alert" aria-live="polite"></p>
       </form>
-      <div class="help">Por seguridad, las credenciales no se muestran en esta pantalla. Si tu credencial temporal vence, solicita una nueva al administrador.</div>
-      <p class="footer-note">Este acceso no conecta proveedores externos ni ejecuta llamadas. Solo abre el panel operativo autorizado.</p>
+      <div class="help">Las credenciales no se muestran ni se guardan en esta pantalla. Si vencen, solicita una nueva al administrador.</div>
+      <p class="footer-note">Acceso limitado al tenant <strong>cedco-demo</strong>.</p>
+      </div>
     </section>
   </main>
   <script>
     const form = document.getElementById("login");
     const button = document.getElementById("submit");
     const error = document.getElementById("error");
+    const reveal = document.getElementById("reveal");
+    const authField = document.getElementById("password");
+    reveal.addEventListener("click", () => {
+      const visible = authField.getAttribute("type") === "text";
+      authField.setAttribute("type", visible ? "password" : "text");
+      reveal.textContent = visible ? "Ver" : "Ocultar";
+      reveal.setAttribute("aria-label", visible ? "Mostrar credencial" : "Ocultar credencial");
+    });
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       error.textContent = "";
       button.disabled = true;
+      button.textContent = "Validando...";
       const formData = new FormData(event.currentTarget);
       const tenantId = String(formData.get("tenantId") || "cedco-demo");
       const username = String(formData.get("username") || "").trim();
@@ -241,6 +267,7 @@ function renderLoginPage(): string {
         error.textContent = "No fue posible iniciar sesion. Intenta de nuevo.";
       } finally {
         button.disabled = false;
+        button.textContent = "Entrar al panel";
       }
     });
   </script>
