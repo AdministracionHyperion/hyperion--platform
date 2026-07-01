@@ -3,18 +3,19 @@
 ## Estado
 
 El modelo Prisma contiene sesiones, eventos de llamada, eventos provider, post-call y metricas. El
-flujo staging actual valida dry-run y dispatch blocked, pero no ingiere eventos reales de proveedor.
+flujo staging actual valida dry-run, dispatch blocked, ingestion mock sanitizada, replay safety,
+post-call y dashboard/reporte operacional sin eventos reales de proveedor.
 
 ## Gaps
 
-| Area                     | Estado      | Cierre requerido                                            |
-| ------------------------ | ----------- | ----------------------------------------------------------- |
-| Provider event ingestion | NOT STARTED | Fixtures sanitizados antes de webhook real.                 |
-| Sanitizer provider       | PARTIAL     | Debe cubrir payloads ElevenLabs reales sin copiar raw logs. |
-| Post-call result         | PARTIAL     | Persistir resumen sintético y handoff result.               |
-| Metrics rollup           | PARTIAL     | Generar metricas desde eventos persistidos.                 |
-| Audit linkage            | PARTIAL     | Correlacionar session, event, actor y tenant.               |
-| Replay safety            | PARTIAL     | Validar idempotencia de eventos provider.                   |
+| Area                     | Estado       | Cierre requerido                                          |
+| ------------------------ | ------------ | --------------------------------------------------------- |
+| Provider event ingestion | STAGING DONE | Fixtures mock sanitizados antes de webhook real.          |
+| Sanitizer provider       | STAGING DONE | Cubre mock provider payloads sin copiar logs crudos.      |
+| Post-call result         | STAGING DONE | Persiste resumen sintetico, outcome y handoff result.     |
+| Metrics rollup           | STAGING DONE | Genera metricas desde eventos persistidos y mock flow.    |
+| Audit linkage            | STAGING DONE | Correlaciona session, event, actor, tenant y correlation. |
+| Replay safety            | STAGING DONE | Valida replay/idempotencia en ingestion mock provider.    |
 
 ## Reglas
 
@@ -27,5 +28,5 @@ flujo staging actual valida dry-run y dispatch blocked, pero no ingiere eventos 
 
 ## Siguiente paso recomendado
 
-Implementar `STAGING-AUTO-3` con fixtures provider sanitizados, ingestion mock y dashboard minimo
-sobre Prisma staging.
+Mantener proveedor real bloqueado hasta abrir un gate separado para webhook metadata-only real con
+payload sanitizado, sin audio, sin transcript raw y sin IDs reales en docs.

@@ -8,6 +8,9 @@ La API de dashboard operacional expone endpoints GET solo lectura bajo el tenant
 - `GET /api/v1/tenants/:tenantId/operations/dashboard/mock-call-flows`
 - `GET /api/v1/tenants/:tenantId/operations/dashboard/provider-events`
 - `GET /api/v1/tenants/:tenantId/operations/dashboard/evals`
+- `GET /api/v1/tenants/:tenantId/products/cedco/d02/dashboard`
+- `GET /api/v1/tenants/:tenantId/products/cedco/d02/styles/operational-dashboard.css`
+- `GET /api/v1/tenants/:tenantId/products/cedco/d02/reports/operational-summary`
 
 Todas las rutas requieren `x-actor-id` y `x-actor-roles`. Preservan o generan `correlationId` y
 responden con el envelope estandar de la API.
@@ -20,6 +23,7 @@ Los reads usan permisos existentes de lectura operacional:
 - `audit:read`
 - `voice:call:read`
 - `agent:read`
+- `feedback:read` para el reporte operacional CEDCO D02.
 
 No hay endpoints POST, PUT o DELETE para acciones de dashboard.
 
@@ -34,6 +38,11 @@ Las respuestas pueden incluir:
 - Eval summary deterministico.
 - Audit preview sanitizado.
 - Metrics snapshot sanitizado.
+- HTML operacional CEDCO D02 renderizado desde el mismo read model seguro.
+- Reporte operacional CEDCO D02 con KPIs, blockers y scope explicito: mock-only, sin llamadas
+  reales, sin llamadas continuas, sin provider egress, sin PBX y sin activos fijos.
+- Matriz de controles D02 para auth staging, consentimiento, elegibilidad/contactabilidad, intencion
+  segura, handoff, provider egress, PBX, activos fijos y bloqueo de media/texto crudo.
 
 ## Campos prohibidos
 
