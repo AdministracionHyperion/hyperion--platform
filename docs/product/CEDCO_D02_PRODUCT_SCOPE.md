@@ -13,7 +13,7 @@ Incluye:
 - Transferencia a humano por reglas.
 - Registro completo de llamadas, conversaciones y eventos en forma sanitizada.
 - Gobernanza, auditoria, observabilidad y versionado.
-- Dashboard operativo futuro.
+- Dashboard operativo seguro.
 - Roadmap tecnico de integracion.
 - Seguridad y habeas data.
 
@@ -23,16 +23,15 @@ Incluye:
 - ElevenLabs: managed voice agent runtime.
 - SIP trunk / proveedor DID: numeros, DIDs y transporte telefonico.
 
-## No objetivos de este loop
+## No objetivos del cierre actual
 
-- No CEDCO R03 activos fijos.
+- No CEDCO inventario/activos.
 - No Hospital R01.
 - No REDMIA R04.
 - No Coopfuturo.
 - No WhatsApp.
 - No produccion.
-- No deploy.
-- No llamadas reales.
+- No llamadas reales continuas.
 - No proveedor real activo.
 - No API key real.
 - No agent_id real.
@@ -42,11 +41,11 @@ Incluye:
 - No secretos.
 - No `.env` con secretos.
 - No repo viejo.
-- No smoke-first.
 - No PBX propio por ahora.
-- No inbound por ahora.
+- No telefonia/PBX real en este cierre.
 
 ## Resultado esperado del loop
 
-Un baseline limpio y documentacion de arquitectura que permita iniciar desarrollo posterior sin
-improvisar como se lanzan llamadas outbound.
+Un baseline operativo staging con dashboard/reporte, mock runtime, post-call/eventos sanitizados,
+metricas, auditoria, evals, policy gates y roadmap/propuesta formal para avanzar sin improvisar las
+integraciones futuras.

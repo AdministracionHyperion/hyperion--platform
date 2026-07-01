@@ -95,6 +95,7 @@ como referencia local. CEDCO D03 fixed assets tiene contratos iniciales de domin
 
 ## Producto
 
+- [CEDCO R02/R10 - Paquete de cierre de piloto](product/CEDCO_R02_R10_PILOT_CLOSEOUT_PACKAGE.md)
 - [CEDCO D02 - Alcance de producto](product/CEDCO_D02_PRODUCT_SCOPE.md)
 - [CEDCO D02 - Flujo de lanzamiento outbound](product/CEDCO_D02_CALL_LAUNCH_FLOW.md)
 - [CEDCO D02 - Estados de llamada outbound](product/CEDCO_D02_OUTBOUND_CALL_STATES.md)

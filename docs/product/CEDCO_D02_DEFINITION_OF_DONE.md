@@ -1,20 +1,22 @@
 # CEDCO D02 - Definition of Done
 
-## DoD de este loop
+## DoD del cierre staging seguro
 
-- Repo Git limpio inicializado o verificado contra el remoto oficial.
-- `_private/` ignorado por Git.
-- Word fuente locales usados solo como referencia.
+- Repo Git verificado contra remoto oficial y PRs mergeados con CI verde.
+- `_private/` ignorado por Git y Word fuente usados solo como referencia local.
 - Documentacion sanitizada creada en `docs/`.
-- Decision Ruta B documentada: ElevenLabs + SIP Trunk.
-- Hyperion documentado como control plane.
-- `CallProviderPort` documentado como puerto conceptual.
-- Estados y razones de bloqueo documentados.
-- Limites de datos, habeas data y sanitizer de webhook documentados.
-- Runbooks previos a primera llamada real documentados.
-- Sin runtime, apps, modules, tests, installs, llamadas reales ni push.
+- Hyperion documentado y desplegado como control plane staging.
+- API CEDCO D02 y mock runtime disponibles.
+- Dashboard D02 HTML/API read-only disponible.
+- Reporte operacional D02 disponible con matriz de controles.
+- Persistencia Prisma para configuracion, metricas y evidencia operacional.
+- Mock provider/event/post-call implementado y validado.
+- Evals D02 deterministicas pasando.
+- Policy gates bloquean llamadas reales, provider egress, media cruda y export peligroso.
+- Validacion publica HTTPS de dashboard/reporte sin secretos ni PII.
+- Sin telefonia/PBX real, sin llamadas reales continuas y sin vertical de inventario/activos.
 
-## DoD futuro antes de integracion real
+## DoD futuro antes de integracion real adicional
 
 - Modelo de dominio aprobado.
 - Contratos internos definidos.

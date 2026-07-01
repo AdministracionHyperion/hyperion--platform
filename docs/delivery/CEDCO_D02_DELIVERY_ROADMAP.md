@@ -21,6 +21,7 @@ El orden de delivery sigue la decision no smoke-first:
 - Limites de datos.
 - Estados de llamada.
 - Runbooks iniciales.
+- Estado: DONE.
 
 ## Fase 1 - Dominio y contratos
 
@@ -30,6 +31,7 @@ El orden de delivery sigue la decision no smoke-first:
 - `CallProviderPort`.
 - `ContactResolver` conceptual.
 - Politicas de consentimiento, opt-out, horario y rate limit.
+- Estado: DONE.
 
 ## Fase 2 - Persistencia y auditoria
 
@@ -37,12 +39,14 @@ El orden de delivery sigue la decision no smoke-first:
 - Audit log por `tenantId` y `correlationId`.
 - Referencias sanitizadas de proveedor.
 - No persistencia de telefonos reales en claro.
+- Estado: DONE.
 
 ## Fase 3 - Adapters locales
 
 - `MockCallProviderAdapter`.
 - Simulacion de provider events.
 - Simulacion de post-call webhook sanitizado.
+- Estado: DONE.
 
 ## Fase 4 - Seguridad y observabilidad
 
@@ -51,14 +55,32 @@ El orden de delivery sigue la decision no smoke-first:
 - Logs estructurados sin PII.
 - Metricas por tenant.
 - Alertas de fallos y bloqueos.
+- Estado: DONE para staging seguro.
 
 ## Fase 5 - Evals e integracion
 
 - Evals de intencion, contexto, handoff y seguridad.
-- Spike de conectividad ElevenLabs SIP.
-- `ElevenLabsSipTrunkAdapter` cuando contratos y seguridad esten aprobados.
+- Dashboard/reporte operacional D02.
+- Matriz de controles y policy gates.
+- Estado: DONE para staging seguro.
 
-## Fase 6 - Smoke final y primera llamada controlada
+## Fase 6 - Integraciones controladas no telefonicas
+
+- Google Calendar OAuth staging.
+- CRM/ERP sandbox contracts.
+- EPS/convenios sandbox.
+- Document source connector.
+- Estado: GATED por aprobacion, credenciales runtime, rollback y datos sanitizados.
+
+## Fase 7 - Provider metadata-only
+
+- Webhook metadata-only real si se aprueba.
+- Sin audio raw.
+- Sin transcript raw.
+- Sin llamadas continuas.
+- Estado: GATED por aprobacion explicita.
+
+## Fase 8 - Primera llamada controlada futura
 
 - Smoke local.
 - Runbook revisado.
@@ -66,3 +88,4 @@ El orden de delivery sigue la decision no smoke-first:
 - Flags manuales.
 - Aprobacion humana.
 - Una llamada de prueba autorizada.
+- Estado: fuera del cierre actual.
