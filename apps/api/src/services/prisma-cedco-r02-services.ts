@@ -55,6 +55,16 @@ const defaultBlockedTools = [
   "access_transcript_audio_without_approval",
 ] as const;
 
+function assertTenantOwnership(
+  existing: { readonly tenantId: string } | null | undefined,
+  context: RequestContext,
+  resourceLabel: string,
+): void {
+  if (existing && existing.tenantId !== context.tenantId) {
+    throw conflictError(`${resourceLabel} already belongs to another tenant`);
+  }
+}
+
 export function createPrismaCedcoR02Services(prisma: HyperionPrismaClient): CedcoR02Services {
   const service = new PrismaCedcoR02Services(prisma);
   return {
@@ -189,6 +199,12 @@ class PrismaCedcoR02Services {
     }
 
     await this.ensureBaseRecords(this.prisma, context);
+    const existing = await this.prisma.cedcoR02AvailabilitySlot.findUnique({
+      where: { id: input.slotId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existing, context, "availability slot");
+
     const row = await this.prisma.cedcoR02AvailabilitySlot.upsert({
       where: { id: input.slotId },
       create: {
@@ -205,7 +221,6 @@ class PrismaCedcoR02Services {
         metadata: toPrismaJson(input.metadata ?? {}),
       },
       update: {
-        tenantId: context.tenantId,
         resourceId: input.resourceId,
         siteRef: input.siteId,
         serviceTypeId: input.serviceTypeId,
@@ -449,6 +464,12 @@ class PrismaCedcoR02Services {
   }
 
   async createKnowledgeBase(context: RequestContext, input: CreateKnowledgeBaseBody) {
+    const existing = await this.prisma.cedcoR02KnowledgeBase.findUnique({
+      where: { id: input.knowledgeBaseId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existing, context, "knowledge base");
+
     const row = await this.prisma.cedcoR02KnowledgeBase.upsert({
       where: { id: input.knowledgeBaseId },
       create: {
@@ -460,7 +481,6 @@ class PrismaCedcoR02Services {
         metadata: toPrismaJson({ externalEmbeddingsUsed: false }),
       },
       update: {
-        tenantId: context.tenantId,
         name: input.name,
         status: "draft",
         metadata: toPrismaJson({ externalEmbeddingsUsed: false }),
@@ -485,6 +505,19 @@ class PrismaCedcoR02Services {
     }
     const knowledgeBaseId = await this.ensureKnowledgeBase(context);
     const versionId = `${input.documentId}-v1`;
+    const [existingDocument, existingVersion] = await Promise.all([
+      this.prisma.cedcoR02KnowledgeDocument.findUnique({
+        where: { id: input.documentId },
+        select: { tenantId: true },
+      }),
+      this.prisma.cedcoR02KnowledgeDocumentVersion.findUnique({
+        where: { id: versionId },
+        select: { tenantId: true },
+      }),
+    ]);
+    assertTenantOwnership(existingDocument, context, "knowledge document");
+    assertTenantOwnership(existingVersion, context, "knowledge document version");
+
     const documentMetadata = buildKnowledgeDocumentMetadata(input.metadata, sourceType);
     const chunks = chunkKnowledgeText(input.contentText).map((text, index) => ({
       id: `${input.documentId}-chunk-${index + 1}`,
@@ -508,7 +541,6 @@ class PrismaCedcoR02Services {
           metadata: toPrismaJson(documentMetadata),
         },
         update: {
-          tenantId: context.tenantId,
           knowledgeBaseId,
           sourceName: sanitizeSourceName(input.sourceName),
           sourceType,
@@ -539,7 +571,9 @@ class PrismaCedcoR02Services {
           metadata: toPrismaJson(documentMetadata),
         },
       });
-      await tx.cedcoR02KnowledgeChunk.deleteMany({ where: { versionId } });
+      await tx.cedcoR02KnowledgeChunk.deleteMany({
+        where: { tenantId: context.tenantId, versionId },
+      });
       for (const chunk of chunks) {
         await tx.cedcoR02KnowledgeChunk.create({
           data: {
@@ -708,9 +742,16 @@ class PrismaCedcoR02Services {
     agentId: string,
     input: CreateAgentVersionBodyR02,
   ) {
+    const existingVersion = await this.prisma.cedcoR02VoiceAgentVersion.findUnique({
+      where: { id: input.versionId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existingVersion, context, "voice agent version");
+
     await this.ensureDefaultAgent(this.prisma, context, agentId);
     const nextVersion = await this.nextAgentVersionNumber(context.tenantId, agentId);
     const allowedTools = input.allowedTools ?? [...defaultAllowedTools];
+
     const row = await this.prisma.cedcoR02VoiceAgentVersion.upsert({
       where: { id: input.versionId },
       create: {
@@ -727,7 +768,6 @@ class PrismaCedcoR02Services {
         metadata: toPrismaJson({ source: "r02-operational-api" }),
       },
       update: {
-        tenantId: context.tenantId,
         agentId,
         status: "draft",
         promptSafe: sanitizeKnowledgeText(input.prompt),
@@ -898,6 +938,24 @@ class PrismaCedcoR02Services {
   }
 
   private async ensureBaseRecords(store: R02Store, context: RequestContext): Promise<void> {
+    const [existingServiceType, existingResource, existingHandoffTarget] = await Promise.all([
+      store.cedcoR02ServiceType.findUnique({
+        where: { id: "consulta-general" },
+        select: { tenantId: true },
+      }),
+      store.cedcoR02CalendarResource.findUnique({
+        where: { id: "cedco-r02-recepcion" },
+        select: { tenantId: true },
+      }),
+      store.cedcoR02HandoffTarget.findUnique({
+        where: { id: "handoff-human-queue" },
+        select: { tenantId: true },
+      }),
+    ]);
+    assertTenantOwnership(existingServiceType, context, "service type");
+    assertTenantOwnership(existingResource, context, "calendar resource");
+    assertTenantOwnership(existingHandoffTarget, context, "handoff target");
+
     await store.cedcoR02ServiceType.upsert({
       where: { id: "consulta-general" },
       create: {
@@ -981,6 +1039,19 @@ class PrismaCedcoR02Services {
     context: RequestContext,
     agentId = "cedco-r02-recepcion-agendamiento",
   ) {
+    const [existingAgent, existingVersion] = await Promise.all([
+      store.cedcoR02VoiceAgent.findUnique({
+        where: { id: agentId },
+        select: { tenantId: true },
+      }),
+      store.cedcoR02VoiceAgentVersion.findUnique({
+        where: { id: "cedco-r02-recepcion-v1" },
+        select: { tenantId: true },
+      }),
+    ]);
+    assertTenantOwnership(existingAgent, context, "voice agent");
+    assertTenantOwnership(existingVersion, context, "voice agent version");
+
     await store.cedcoR02VoiceAgent.upsert({
       where: { id: agentId },
       create: {
@@ -1036,10 +1107,38 @@ class PrismaCedcoR02Services {
     versionId: string,
     allowedTools: readonly string[],
   ): Promise<void> {
+    const toolPolicyId = `${versionId}-tool-policy`;
+    const knowledgeBindingId = `${versionId}-knowledge-binding`;
+    const calendarBindingId = `${versionId}-calendar-binding`;
+    const flowId = `${versionId}-flow`;
+    const [existingToolPolicy, existingKnowledgeBinding, existingCalendarBinding, existingFlow] =
+      await Promise.all([
+        this.prisma.cedcoR02AgentToolPolicy.findUnique({
+          where: { id: toolPolicyId },
+          select: { tenantId: true },
+        }),
+        this.prisma.cedcoR02AgentKnowledgeBinding.findUnique({
+          where: { id: knowledgeBindingId },
+          select: { tenantId: true },
+        }),
+        this.prisma.cedcoR02AgentCalendarBinding.findUnique({
+          where: { id: calendarBindingId },
+          select: { tenantId: true },
+        }),
+        this.prisma.cedcoR02AgentFlow.findUnique({
+          where: { id: flowId },
+          select: { tenantId: true },
+        }),
+      ]);
+    assertTenantOwnership(existingToolPolicy, context, "agent tool policy");
+    assertTenantOwnership(existingKnowledgeBinding, context, "agent knowledge binding");
+    assertTenantOwnership(existingCalendarBinding, context, "agent calendar binding");
+    assertTenantOwnership(existingFlow, context, "agent flow");
+
     await this.prisma.cedcoR02AgentToolPolicy.upsert({
-      where: { id: `${versionId}-tool-policy` },
+      where: { id: toolPolicyId },
       create: {
-        id: `${versionId}-tool-policy`,
+        id: toolPolicyId,
         tenantId: context.tenantId,
         agentId,
         versionId,
@@ -1056,9 +1155,9 @@ class PrismaCedcoR02Services {
     });
     const kbId = await this.ensureKnowledgeBase(context);
     await this.prisma.cedcoR02AgentKnowledgeBinding.upsert({
-      where: { id: `${versionId}-knowledge-binding` },
+      where: { id: knowledgeBindingId },
       create: {
-        id: `${versionId}-knowledge-binding`,
+        id: knowledgeBindingId,
         tenantId: context.tenantId,
         agentId,
         versionId,
@@ -1069,9 +1168,9 @@ class PrismaCedcoR02Services {
       update: { knowledgeBaseId: kbId, status: "active" },
     });
     await this.prisma.cedcoR02AgentCalendarBinding.upsert({
-      where: { id: `${versionId}-calendar-binding` },
+      where: { id: calendarBindingId },
       create: {
-        id: `${versionId}-calendar-binding`,
+        id: calendarBindingId,
         tenantId: context.tenantId,
         agentId,
         versionId,
@@ -1082,9 +1181,9 @@ class PrismaCedcoR02Services {
       update: { resourceId: "cedco-r02-recepcion", status: "active" },
     });
     await this.prisma.cedcoR02AgentFlow.upsert({
-      where: { id: `${versionId}-flow` },
+      where: { id: flowId },
       create: {
-        id: `${versionId}-flow`,
+        id: flowId,
         tenantId: context.tenantId,
         agentId,
         versionId,

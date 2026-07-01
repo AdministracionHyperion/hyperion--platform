@@ -96,6 +96,9 @@ describe("CEDCO R02 operational API", () => {
     expect(response.headers["content-type"]).toContain("text/css");
     expect(response.body).toContain(".dashboard-shell");
     expect(response.body).toContain(".summary-grid");
+    expect(response.body).toContain(".voice-orb");
+    expect(response.body).toContain(".signal-wave");
+    expect(response.body).toContain("prefers-reduced-motion");
     expect(response.body).not.toMatch(/Google|Twilio|ElevenLabs|11labs/iu);
   });
 

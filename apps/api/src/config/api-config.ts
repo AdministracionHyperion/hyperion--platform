@@ -3,6 +3,12 @@ import { z } from "zod";
 export type ApiServicesMode = "fake" | "prisma";
 export type ApiAuthMode = "header-dev" | "local-staging" | "jwt-required";
 
+export interface ApiAuthReference {
+  readonly jwksUrl?: string;
+  readonly jwtPublicKeyRef?: string;
+  readonly providerRef?: string;
+}
+
 const apiConfigSchema = z.object({
   API_HOST: z.string().default("127.0.0.1"),
   API_PORT: z.coerce.number().int().positive().default(3000),
@@ -24,11 +30,7 @@ export interface ApiConfig {
   readonly nodeEnv: string;
   readonly servicesMode: ApiServicesMode;
   readonly authMode: ApiAuthMode;
-  readonly authReference?: {
-    readonly jwksUrl?: string;
-    readonly jwtPublicKeyRef?: string;
-    readonly providerRef?: string;
-  };
+  readonly authReference?: ApiAuthReference;
   readonly internalDialerBaseUrl?: string;
 }
 
@@ -48,10 +50,8 @@ export function loadApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     nodeEnv,
     authMode,
     allowHeaderDevAuth: parsed.ALLOW_HEADER_DEV_AUTH === "true",
-    hasAuthReference:
-      parsed.AUTH_JWKS_URL !== undefined ||
-      parsed.AUTH_JWT_PUBLIC_KEY_REF !== undefined ||
-      parsed.AUTH_PROVIDER_REF !== undefined,
+    hasJwtVerifierReference:
+      parsed.AUTH_JWKS_URL !== undefined || parsed.AUTH_JWT_PUBLIC_KEY_REF !== undefined,
     explicitlyConfigured: parsed.AUTH_MODE !== undefined,
   });
 
@@ -134,7 +134,7 @@ function validateAuthMode(input: {
   readonly nodeEnv: string;
   readonly authMode: ApiAuthMode;
   readonly allowHeaderDevAuth: boolean;
-  readonly hasAuthReference: boolean;
+  readonly hasJwtVerifierReference: boolean;
   readonly explicitlyConfigured: boolean;
 }): void {
   if (input.nodeEnv === "production" && !input.explicitlyConfigured) {
@@ -153,9 +153,9 @@ function validateAuthMode(input: {
     throw new Error("AUTH_MODE=header-dev is allowed only in local development or tests.");
   }
 
-  if (input.authMode === "jwt-required" && !input.hasAuthReference) {
+  if (input.authMode === "jwt-required" && !input.hasJwtVerifierReference) {
     throw new Error(
-      "AUTH_JWKS_URL, AUTH_JWT_PUBLIC_KEY_REF, or AUTH_PROVIDER_REF is required when AUTH_MODE=jwt-required.",
+      "AUTH_JWKS_URL or AUTH_JWT_PUBLIC_KEY_REF is required when AUTH_MODE=jwt-required.",
     );
   }
 }

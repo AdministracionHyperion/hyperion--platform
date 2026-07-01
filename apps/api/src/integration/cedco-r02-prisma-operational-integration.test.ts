@@ -336,6 +336,140 @@ runWhenDatabaseExists("CEDCO R02 Prisma-backed operational surface", () => {
     });
     expect(row).toMatchObject({ tenantId: "cedco-test", targetType: "human" });
   });
+
+  it("does not let tenant-scoped R02 upserts take over existing ids", async () => {
+    await harness.prisma.cedcoR02AvailabilitySlot.create({
+      data: {
+        id: "slot-r02-owned-by-other",
+        tenantId: "other-tenant",
+        resourceId: "other-resource",
+        siteRef: "other-site",
+        serviceTypeId: "other-service",
+        startsAt: new Date("2026-07-12T14:00:00.000Z"),
+        endsAt: new Date("2026-07-12T14:30:00.000Z"),
+        capacity: 1,
+        booked: 0,
+        status: "active",
+      },
+    });
+
+    const availability = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/calendar/availability`,
+      headers: adminHeaders,
+      payload: {
+        slotId: "slot-r02-owned-by-other",
+        resourceId: "cedco-r02-recepcion",
+        siteId: "cedco-main-site",
+        serviceTypeId: "consulta-general",
+        startsAt: "2026-07-12T15:00:00.000Z",
+        endsAt: "2026-07-12T15:30:00.000Z",
+        capacity: 1,
+      },
+    });
+    expect(availability.statusCode).toBe(409);
+    await expect(
+      harness.prisma.cedcoR02AvailabilitySlot.findUnique({
+        where: { id: "slot-r02-owned-by-other" },
+      }),
+    ).resolves.toMatchObject({ tenantId: "other-tenant", resourceId: "other-resource" });
+
+    await harness.prisma.cedcoR02KnowledgeBase.create({
+      data: {
+        id: "kb-r02-owned-by-other",
+        tenantId: "other-tenant",
+        name: "Other tenant KB",
+        status: "draft",
+      },
+    });
+    const knowledgeBase = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/knowledge-bases`,
+      headers: adminHeaders,
+      payload: { knowledgeBaseId: "kb-r02-owned-by-other", name: "CEDCO takeover attempt" },
+    });
+    expect(knowledgeBase.statusCode).toBe(409);
+    await expect(
+      harness.prisma.cedcoR02KnowledgeBase.findUnique({
+        where: { id: "kb-r02-owned-by-other" },
+      }),
+    ).resolves.toMatchObject({ tenantId: "other-tenant", name: "Other tenant KB" });
+
+    await harness.prisma.cedcoR02KnowledgeBase.create({
+      data: {
+        id: "kb-r02-doc-owner",
+        tenantId: "other-tenant",
+        name: "Other tenant document owner",
+        status: "draft",
+      },
+    });
+    await harness.prisma.cedcoR02KnowledgeDocument.create({
+      data: {
+        id: "doc-r02-owned-by-other",
+        tenantId: "other-tenant",
+        knowledgeBaseId: "kb-r02-doc-owner",
+        sourceName: "other.md",
+        sourceType: "markdown",
+        status: "ready_for_review",
+      },
+    });
+    await harness.prisma.cedcoR02KnowledgeDocumentVersion.create({
+      data: {
+        id: "doc-r02-owned-by-other-v1",
+        tenantId: "other-tenant",
+        documentId: "doc-r02-owned-by-other",
+        version: 1,
+        status: "ready_for_review",
+      },
+    });
+    const documentUpload = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/knowledge-documents/upload`,
+      headers: adminHeaders,
+      payload: {
+        documentId: "doc-r02-owned-by-other",
+        sourceName: "cedco.md",
+        contentText: "Contenido CEDCO aprobado para intento de aislamiento.",
+      },
+    });
+    expect(documentUpload.statusCode).toBe(409);
+    await expect(
+      harness.prisma.cedcoR02KnowledgeDocument.findUnique({
+        where: { id: "doc-r02-owned-by-other" },
+      }),
+    ).resolves.toMatchObject({ tenantId: "other-tenant", sourceName: "other.md" });
+
+    await harness.prisma.cedcoR02VoiceAgentVersion.create({
+      data: {
+        id: "voice-version-owned-by-other",
+        tenantId: "other-tenant",
+        agentId: "other-agent",
+        version: 1,
+        status: "draft",
+        promptSafe: "Other tenant prompt",
+        greetingSafe: "Other tenant greeting",
+        allowedTools: [],
+        blockedTools: [],
+        providerMutation: false,
+      },
+    });
+    const agentVersion = await app.inject({
+      method: "POST",
+      url: `${baseUrl}/agents/cedco-agent-isolation/versions`,
+      headers: adminHeaders,
+      payload: {
+        versionId: "voice-version-owned-by-other",
+        greeting: "Hola, gracias por comunicarte con CEDCO.",
+        prompt: "Consulta fuentes aprobadas antes de confirmar.",
+      },
+    });
+    expect(agentVersion.statusCode).toBe(409);
+    await expect(
+      harness.prisma.cedcoR02VoiceAgentVersion.findUnique({
+        where: { id: "voice-version-owned-by-other" },
+      }),
+    ).resolves.toMatchObject({ tenantId: "other-tenant", promptSafe: "Other tenant prompt" });
+  });
 });
 
 async function seedDemo() {

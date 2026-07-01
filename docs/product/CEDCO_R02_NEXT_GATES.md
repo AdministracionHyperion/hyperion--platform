@@ -1,13 +1,16 @@
 # CEDCO R02 Next Gates
 
-Current state: staging demo is operational with synthetic data only and `local-staging` operator
-auth is the intended staging boundary.
+Current state: staging operator surface is operational with controlled/synthetic platform data.
+`local-staging` remains the intended staging boundary, and `jwt-required` now validates signed RS256
+JWTs when a public key or JWKS URL is configured.
 
 R02 operational persistence state:
 
 - Calendar, appointments, RAG, agents, handoff targets and R02 audit are Prisma-backed in staging.
 - Header-dev auth is local/test only and requires `ALLOW_HEADER_DEV_AUTH=true`.
 - Local staging auth is Prisma-backed through users, memberships and sessions.
+- JWT-required auth no longer unlocks routes by headers; it requires a signed bearer token with
+  tenant and role claims.
 - External providers remain disabled for calls.
 - The ElevenLabs CEDCO R02 agent configuration is complete.
 - The exact Twilio Colombia phone number is imported and bound in ElevenLabs.
@@ -17,11 +20,14 @@ R02 operational persistence state:
 - One controlled handoff/redirection call succeeded, and the temporary transfer tool was rolled back
   afterward.
 - R02 dashboard now exposes internal operator actions for calendar, RAG upload, agent versioning,
-  flow simulation, handoff refs and audit visibility.
+  flow simulation and handoff refs.
+- R02 dashboard now uses the premium voice-cockpit interface with local opt-in sound feedback,
+  motion-reduction CSS, and no external media source.
 - Google Calendar sync dry-run is operator-ready from API/UI and remains disabled for real OAuth
   until a separate gate is approved.
 - R02 readiness is DB-backed from tenant appointments, availability, RAG, agents, handoff targets
   and audit events; provider gates remain pending/blocked separately.
+- PBX remains deferred and should not be treated as part of the current R02 dashboard closeout.
 
 Future gates:
 

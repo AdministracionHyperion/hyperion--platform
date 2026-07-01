@@ -7,7 +7,7 @@ before an operational pilot:
 - External calendar OAuth credentials are not approved.
 - Persistent provider-side handoff target enablement is not approved.
 - Operational Twilio inbound pilot traffic is not approved.
-- PBX real routing is not connected.
+- PBX real routing is deferred outside the current R02 dashboard closeout.
 - Transcript/audio remain NO-GO beyond the one approved redacted transcript QA pass.
 - Provider egress for additional calls remains NO-GO by default.
 - Public/provider webhook calls require separate controlled approval.
