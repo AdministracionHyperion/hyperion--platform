@@ -3,6 +3,7 @@ import {
   buildCedcoD02DashboardSummary,
   buildCedcoD02EvalDashboardSummary,
   buildCedcoD02MockFlowSummary,
+  buildCedcoD02OperationalReport,
 } from "./index";
 
 describe("CEDCO D02 dashboard summary", () => {
@@ -42,5 +43,32 @@ describe("CEDCO D02 dashboard summary", () => {
       ],
     });
     expect(JSON.stringify(dashboard)).not.toMatch(/rawPayload|token/u);
+  });
+
+  it("builds operational report with excluded live scope", () => {
+    const dashboard = buildCedcoD02DashboardSummary({
+      tenantId: "cedco-test",
+      correlationId: "corr-dashboard-001",
+    });
+    const report = buildCedcoD02OperationalReport(dashboard);
+    expect(report.reportStatus).toBe("ready_for_staging_demo");
+    expect(report.scope).toMatchObject({
+      realCallsEnabled: false,
+      continuousCallsEnabled: false,
+      providerEgressEnabled: false,
+      pbxRuntimeConnected: false,
+      inventoryVerticalIncluded: false,
+    });
+    expect(report.kpis.mockCallFlowsTotal).toBeGreaterThan(0);
+    expect(report.complianceMatrix.map((control) => control.key)).toEqual(
+      expect.arrayContaining([
+        "auth_staging_boundary",
+        "eligibility_contactability",
+        "provider_egress",
+        "pbx_runtime",
+        "inventory_vertical",
+      ]),
+    );
+    expect(JSON.stringify(report)).not.toMatch(/rawTranscript|audioUrl|phoneNumber|token/iu);
   });
 });

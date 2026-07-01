@@ -7,6 +7,10 @@ const headers = {
   "x-correlation-id": "corr-dashboard-api-001",
 };
 const baseUrl = "/api/v1/tenants/cedco-test/operations/dashboard";
+const d02DashboardUrl = "/api/v1/tenants/cedco-test/products/cedco/d02/dashboard";
+const d02DashboardCssUrl =
+  "/api/v1/tenants/cedco-test/products/cedco/d02/styles/operational-dashboard.css";
+const d02ReportUrl = "/api/v1/tenants/cedco-test/products/cedco/d02/reports/operational-summary";
 
 interface Envelope<T = Record<string, unknown>> {
   readonly ok: boolean;
@@ -76,6 +80,73 @@ describe("operations dashboard API", () => {
     expect(flows.statusCode).toBe(200);
     expect(events.statusCode).toBe(200);
     expect(evals.statusCode).toBe(200);
+    await app.close();
+  });
+
+  it("renders CEDCO D02 dashboard HTML as a safe operator surface", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({ method: "GET", url: d02DashboardUrl, headers });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/html");
+    expect(response.body).toContain("CEDCO D02 Operations");
+    expect(response.body).toContain("Mock-only environment");
+    expect(response.body).not.toMatch(/phoneNumber|rawTranscript|audioUrl|token|rawPayload/iu);
+    await app.close();
+  });
+
+  it("serves CEDCO D02 dashboard stylesheet without provider data", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({ method: "GET", url: d02DashboardCssUrl, headers });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/css");
+    expect(response.body).toContain("dashboard-shell");
+    expect(response.body).not.toMatch(/phoneNumber|rawTranscript|audioUrl|token|rawPayload/iu);
+    await app.close();
+  });
+
+  it("returns CEDCO D02 operational report with live providers and fixed assets excluded", async () => {
+    const app = await createApiApp();
+    const response = await app.inject({ method: "GET", url: d02ReportUrl, headers });
+    const body = response.json<Envelope>();
+    expect(response.statusCode).toBe(200);
+    expect(body.data?.scope).toMatchObject({
+      runtimeMode: "staging_safe_mock_only",
+      realCallsEnabled: false,
+      continuousCallsEnabled: false,
+      providerEgressEnabled: false,
+      pbxRuntimeConnected: false,
+      inventoryVerticalIncluded: false,
+    });
+    expect(body.data?.kpis).toBeDefined();
+    expect(JSON.stringify(body.data)).not.toMatch(/phoneNumber|rawTranscript|audioUrl|token/iu);
+    await app.close();
+  });
+
+  it("protects CEDCO D02 dashboard with local-staging session auth", async () => {
+    const app = await createApiApp({ authMode: "local-staging" });
+    const anonymous = await app.inject({ method: "GET", url: d02DashboardUrl });
+    expect(anonymous.statusCode).toBe(401);
+
+    const login = await app.inject({
+      method: "POST",
+      url: "/api/v1/auth/login",
+      payload: {
+        tenantId: "cedco-test",
+        loginRef: "cedco-admin",
+        credential: "valid-local-staging-credential",
+      },
+    });
+    const sessionToken = login.json<Envelope<{ sessionToken: string }>>().data?.sessionToken;
+    expect(login.statusCode).toBe(200);
+    expect(sessionToken).toBeDefined();
+
+    const dashboard = await app.inject({
+      method: "GET",
+      url: d02DashboardUrl,
+      headers: { authorization: `Bearer ${sessionToken}` },
+    });
+    expect(dashboard.statusCode).toBe(200);
+    expect(dashboard.body).toContain("CEDCO D02 Operations");
     await app.close();
   });
 });

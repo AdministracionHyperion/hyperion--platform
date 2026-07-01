@@ -19,7 +19,8 @@ La seguridad de este loop es contractual y orientada a tests. No reemplaza auten
 - Rate limits in-memory protegen rutas publicas y protegidas.
 - Errores no exponen stack traces.
 - `API_SERVICES_MODE` bloquea fake services en produccion.
-- `AUTH_MODE` bloquea `header-dev` en produccion.
+- `AUTH_MODE` bloquea `header-dev` en produccion y exige `local-staging` o `jwt-required`.
+- `jwt-required` valida Bearer JWT RS256 cuando hay JWKS o public key ref configurado.
 
 ## Datos prohibidos
 
@@ -28,7 +29,7 @@ proveedores. CEDCO D02 tampoco acepta historia clinica real ni datos de paciente
 
 ## Limites
 
-No hay auth real, sesiones, cookies, OAuth, rate limit distribuido ni mTLS. En produccion,
-`AUTH_MODE=jwt-required` bloquea rutas protegidas hasta implementar JWT real. Los integration tests
-usan PostgreSQL efimero y no conectan bases externas. Esos controles entran despues de que la
-superficie contractual este estable.
+No hay OAuth, rate limit distribuido ni mTLS. En produccion, `AUTH_MODE=jwt-required` requiere
+`AUTH_JWKS_URL` o `AUTH_JWT_PUBLIC_KEY_REF`; sin esa referencia el runtime bloquea rutas protegidas.
+Los integration tests usan PostgreSQL efimero y no conectan bases externas. Esos controles entran
+despues de que la superficie contractual este estable.

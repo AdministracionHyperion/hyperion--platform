@@ -2,19 +2,21 @@
 
 ## Estado
 
-El backend ya expone piezas de dominio, metricas y persistencia. Falta una experiencia operativa
-para supervisar el flujo D02 de forma segura y repetible.
+El backend ya expone piezas de dominio, metricas y persistencia. La experiencia operativa D02 queda
+expuesta como HTML/API de solo lectura y reporte operacional, sin llamadas reales, sin provider
+egress, sin PBX y sin activos fijos.
 
 ## Vistas minimas
 
-| Vista               | Estado      | Contenido minimo                                            |
-| ------------------- | ----------- | ----------------------------------------------------------- |
-| Health staging      | PARTIAL     | Estado platform, dialer, DB e idempotencia.                 |
-| Sesiones de llamada | NOT STARTED | Estado, intento, tenant, timestamps y resultado sanitizado. |
-| Eventos provider    | NOT STARTED | Eventos sanitizados, sin audio/transcript raw.              |
-| Post-call           | NOT STARTED | Resumen, resultado, handoff y metricas.                     |
-| Auditoria           | PARTIAL     | Actor, accion, resultado y correlacion.                     |
-| Errores             | NOT STARTED | Fallos por policy, provider, idempotencia y validacion.     |
+| Vista               | Estado       | Contenido minimo                                               |
+| ------------------- | ------------ | -------------------------------------------------------------- |
+| Health staging      | STAGING DONE | Runtime safety, dialer readiness, DB/idempotencia y gates.     |
+| Sesiones de llamada | STAGING DONE | Estado, intento, tenant, timestamps y resultado sanitizado.    |
+| Eventos provider    | STAGING DONE | Eventos mock sanitizados, sin audio/transcript raw ni egress.  |
+| Post-call           | STAGING DONE | Resumen, resultado, handoff y metricas desde mock flow seguro. |
+| Auditoria           | STAGING DONE | Actor, accion, resultado y correlacion sanitizada por tenant.  |
+| Errores             | STAGING DONE | Denials de policy, replay y estados degradados en read model.  |
+| Reporte CEDCO       | STAGING DONE | KPIs y exclusiones del alcance actual desde endpoint dedicado. |
 
 ## Reglas de seguridad
 
@@ -25,6 +27,11 @@ para supervisar el flujo D02 de forma segura y repetible.
 - No exponer `agent_id` o `phone_number_id` reales en vistas generales.
 - Mantener filtros por tenant.
 
-## Siguiente implementacion segura
+## Superficies disponibles
 
-Crear dashboard staging con datos sinteticos y Prisma staging antes de provider egress.
+- `GET /api/v1/tenants/:tenantId/products/cedco/d02/dashboard`
+- `GET /api/v1/tenants/:tenantId/products/cedco/d02/reports/operational-summary`
+- `GET /api/v1/tenants/:tenantId/operations/dashboard`
+- `GET /api/v1/tenants/:tenantId/operations/dashboard/mock-call-flows`
+- `GET /api/v1/tenants/:tenantId/operations/dashboard/provider-events`
+- `GET /api/v1/tenants/:tenantId/operations/dashboard/evals`
