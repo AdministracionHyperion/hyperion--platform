@@ -195,7 +195,7 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
           <div>
             <span class="dashboard-eyebrow">Recepcion y agendamiento</span>
             <h1>Centro operativo CEDCO</h1>
-            <p>Agenda, base de conocimiento, asistente y derivaciones en un solo lugar.</p>
+            <p>Agenda, fuentes aprobadas, asistente y derivaciones en un solo lugar.</p>
           </div>
           <div class="header-meta">
             <span>${escapeHtml(model.viewer.roleLabel)}</span>
@@ -206,6 +206,7 @@ export function renderR02OperationalPage(model: R02OperationalPanelModel): strin
             <button class="logout-button" type="button" data-r02-logout>Cerrar sesion</button>
           </div>
         </header>
+        ${renderVoiceExperience(model)}
         <section class="summary-grid">
           ${renderModuleSummary(model)}
         </section>
@@ -241,6 +242,70 @@ function renderSidebarNav(model: R02OperationalPanelModel): string {
         }>${link.label}</a>`,
     )
     .join("");
+}
+
+function renderVoiceExperience(model: R02OperationalPanelModel): string {
+  const moduleLabel = renderModuleTitle(model.activeModule);
+  const readySources = model.knowledgeDocuments.filter((item) => item.status === "active").length;
+  const activeAgents = model.agents.filter(
+    (item) => item.status === "active" || item.activeVersionId !== "none",
+  ).length;
+  const activeHandoffs = model.handoffTargets.filter((item) => item.status === "active").length;
+  const traceItems = [
+    "Entrada recibida",
+    model.appointments.length > 0 ? "Agenda verificada" : "Agenda lista para configurar",
+    readySources > 0 ? "Fuentes aprobadas listas" : "Fuentes pendientes",
+    activeHandoffs > 0 ? "Derivacion humana lista" : "Derivacion por configurar",
+  ];
+
+  return `<section class="voice-experience" aria-label="Estado del asistente CEDCO">
+    <div class="voice-experience__visual">
+      <div class="voice-orb" data-r02-voice-orb aria-hidden="true">
+        <span class="voice-orb__ring voice-orb__ring--outer"></span>
+        <span class="voice-orb__ring voice-orb__ring--middle"></span>
+        <span class="voice-orb__core"></span>
+      </div>
+      <div class="signal-wave" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="voice-experience__brief">
+      <span class="dashboard-eyebrow">Asistente de recepcion</span>
+      <h2>Operacion guiada por voz</h2>
+      <p>Respuestas, agenda y derivaciones avanzan desde controles seguros, con revision humana donde aplica.</p>
+      <div class="voice-metrics" aria-label="Resumen operativo">
+        ${renderSignalMetric("Modulo", moduleLabel, "Vista activa")}
+        ${renderSignalMetric("Asistente", activeAgents > 0 ? "Listo" : "Pendiente", "Version aprobada")}
+        ${renderSignalMetric("Fuentes", String(readySources), "Aprobadas")}
+      </div>
+      <button
+        class="sound-toggle"
+        type="button"
+        data-r02-sound-toggle
+        aria-pressed="false"
+        aria-label="Activar sonido local del panel"
+      >Sonido del panel</button>
+    </div>
+    <ol class="voice-trace" aria-label="Secuencia operativa">
+      ${traceItems
+        .map(
+          (item, index) => `<li${index === 0 ? ' class="voice-trace__item--active"' : ""}>
+        <span>${index + 1}</span>
+        <strong>${escapeHtml(item)}</strong>
+      </li>`,
+        )
+        .join("")}
+    </ol>
+  </section>`;
+}
+
+function renderSignalMetric(label: string, value: string, helperText: string): string {
+  return `<div class="voice-metric">
+    <span>${escapeHtml(label)}</span>
+    <strong>${escapeHtml(value)}</strong>
+    <small>${escapeHtml(helperText)}</small>
+  </div>`;
 }
 
 function renderModuleSummary(model: R02OperationalPanelModel): string {
@@ -324,6 +389,16 @@ function renderModuleHeader(model: R02OperationalPanelModel): string {
     <h2>${escapeHtml(current.title)}</h2>
     <p>${escapeHtml(current.detail)}</p>
   </header>`;
+}
+
+function renderModuleTitle(module: R02DashboardModule): string {
+  const labels: Record<R02DashboardModule, string> = {
+    agenda: "Agenda",
+    conocimiento: "Conocimiento",
+    asistente: "Asistente",
+    derivaciones: "Derivaciones",
+  };
+  return labels[module];
 }
 
 function renderActiveModule(model: R02OperationalPanelModel): string {
@@ -646,8 +721,42 @@ function renderR02DashboardScript(): string {
   const tenant = root.getAttribute("data-r02-tenant");
   const apiBase = "/api/v1/tenants/" + encodeURIComponent(tenant) + "/r02";
   const output = document.querySelector("[data-r02-output='global']");
-  const write = (message) => {
-    if (output) output.textContent = message;
+  const soundToggle = document.querySelector("[data-r02-sound-toggle]");
+  let soundEnabled = false;
+  let audioContext;
+  const write = (message, state = "idle") => {
+    if (output) {
+      output.textContent = message;
+      output.dataset.state = state;
+    }
+  };
+  const playTone = (kind = "success") => {
+    if (!soundEnabled) return;
+    try {
+      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) return;
+      audioContext = audioContext || new AudioContextCtor();
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const tones = {
+        on: [440, 660],
+        success: [520, 780],
+        error: [220, 165],
+      };
+      const pair = tones[kind] || tones.success;
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(pair[0], now);
+      oscillator.frequency.exponentialRampToValueAtTime(pair[1], now + 0.12);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.035, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.22);
+    } catch {
+      soundEnabled = false;
+    }
   };
   const jsonHeaders = { "content-type": "application/json" };
   const postJson = async (path, body) => {
@@ -661,10 +770,21 @@ function renderR02DashboardScript(): string {
     if (!response.ok || !payload.ok) throw new Error(payload.error?.message || "request failed");
     return payload.data;
   };
-  const formData = (form) => Object.fromEntries(new FormData(form).entries());
+  const formData = (form, submitter) =>
+    Object.fromEntries(new FormData(form, submitter || undefined).entries());
   const isoPlusMinutes = (value, minutes) => new Date(new Date(value).getTime() + minutes * 60000).toISOString();
   const textSourceNamePattern = /\\.(txt|md|csv|json)$/i;
   const maxKnowledgeTextBytes = 20000;
+
+  soundToggle?.addEventListener("click", async () => {
+    soundEnabled = !soundEnabled;
+    soundToggle.setAttribute("aria-pressed", String(soundEnabled));
+    soundToggle.textContent = soundEnabled ? "Sonido activo" : "Sonido del panel";
+    if (soundEnabled && audioContext?.state === "suspended") {
+      await audioContext.resume();
+    }
+    playTone("on");
+  });
 
   document.querySelector("[data-r02-logout]")?.addEventListener("click", async () => {
     try {
@@ -682,26 +802,31 @@ function renderR02DashboardScript(): string {
       try {
         if (!textSourceNamePattern.test(file.name)) {
           input.value = "";
-          write("error: fuente local no soportada");
+          write("error: fuente local no soportada", "error");
+          playTone("error");
           return;
         }
         if (file.size > maxKnowledgeTextBytes) {
           input.value = "";
-          write("error: fuente local supera 20KB");
+          write("error: fuente local supera 20KB", "error");
+          playTone("error");
           return;
         }
         const text = await file.text();
         if (new Blob([text]).size > maxKnowledgeTextBytes) {
           input.value = "";
-          write("error: contenido local supera 20KB");
+          write("error: contenido local supera 20KB", "error");
+          playTone("error");
           return;
         }
         if (form?.elements?.sourceName) form.elements.sourceName.value = file.name;
         if (form?.elements?.contentText) form.elements.contentText.value = text;
-        write("fuente local lista");
+        write("fuente local lista", "success");
+        playTone("success");
       } catch (error) {
         input.value = "";
-        write("error: " + (error instanceof Error ? error.message : "fallo al leer fuente local"));
+        write("error: " + (error instanceof Error ? error.message : "fallo al leer fuente local"), "error");
+        playTone("error");
       }
     });
   });
@@ -709,9 +834,17 @@ function renderR02DashboardScript(): string {
   document.querySelectorAll("form[data-r02-action]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const submitter = event.submitter instanceof HTMLButtonElement ? event.submitter : undefined;
       const action = form.getAttribute("data-r02-action");
-      const data = formData(form);
+      const data = formData(form, submitter);
+      const button = submitter || form.querySelector("button[type='submit']");
+      const previousButtonText = button?.textContent;
       try {
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Procesando";
+        }
+        write("procesando accion", "pending");
         if (action === "availability") {
           await postJson("/calendar/availability", {
             slotId: data.slotId,
@@ -776,9 +909,16 @@ function renderR02DashboardScript(): string {
             metadata: { source: "r02-dashboard", externalMutation: false },
           });
         }
-        write("accion completada");
+        write("accion completada", "success");
+        playTone("success");
       } catch (error) {
-        write("error: " + (error instanceof Error ? error.message : "fallo desconocido"));
+        write("error: " + (error instanceof Error ? error.message : "fallo desconocido"), "error");
+        playTone("error");
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = previousButtonText;
+        }
       }
     });
   });

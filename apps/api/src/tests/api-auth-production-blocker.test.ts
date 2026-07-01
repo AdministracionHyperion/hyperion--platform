@@ -56,12 +56,12 @@ describe("API auth production blocker", () => {
     expect(config.authMode).toBe("local-staging");
   });
 
-  it("rejects jwt-required without a future auth reference", () => {
+  it("rejects jwt-required without a JWT verifier reference", () => {
     expect(() =>
       loadApiConfig({
         NODE_ENV: "test",
         AUTH_MODE: "jwt-required",
       } as NodeJS.ProcessEnv),
-    ).toThrow("AUTH_JWKS_URL, AUTH_JWT_PUBLIC_KEY_REF, or AUTH_PROVIDER_REF is required");
+    ).toThrow("AUTH_JWKS_URL or AUTH_JWT_PUBLIC_KEY_REF is required");
   });
 });

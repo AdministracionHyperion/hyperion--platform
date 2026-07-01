@@ -24,24 +24,24 @@ llamada outbound segura:
 
 ## Estado actual
 
-| Area                         | Estado                 | Evidencia                                                                  |
-| ---------------------------- | ---------------------- | -------------------------------------------------------------------------- |
-| Consentimiento sintetico     | STAGING DONE           | Payload D02 dry-run exige `consent.granted=true` y `consent_ref`.          |
-| Elegibilidad/contactabilidad | PARTIAL                | Contratos y rutas existen; falta validacion con datos persistentes reales. |
-| Cumplimiento                 | PARTIAL                | Politicas y blockers existen; falta matriz final del tenant.               |
-| Intencion segura             | PARTIAL                | Evals y contratos existen; falta prueba end-to-end con guion aprobado.     |
-| Idempotencia                 | STAGING DONE           | Platform to dialer dry-run valida replay/conflict sin llamadas reales.     |
-| Dispatch                     | STAGING DONE           | Dispatch live queda bloqueado por policy gate.                             |
-| Eventos de proveedor         | NOT STARTED            | Solo mock/staging sin proveedor real.                                      |
-| Post-call                    | PARTIAL                | Modelo y persistencia existen; falta evento real sanitizado.               |
-| Auditoria                    | PARTIAL                | Prisma-backed audit existe; falta politica final de retencion.             |
-| Metricas                     | PARTIAL                | Modelo y resumen existen; falta dashboard operativo.                       |
-| Dashboard                    | NOT STARTED            | Se documenta gap separado.                                                 |
-| Reportes                     | NOT STARTED            | Requiere datos persistentes y criterios CEDCO.                             |
-| Provider activation          | BLOCKED BY HUMAN INPUT | Requiere inputs de ElevenLabs/Telyaco/DDI.                                 |
-| Telyaco/DDI                  | BLOCKED BY HUMAN INPUT | Requiere inventario de numeros y SIP.                                      |
-| ElevenLabs agent             | BLOCKED BY HUMAN INPUT | Requiere cuenta, voz, agente, guion y politica de grabacion.               |
-| Primera llamada controlada   | BLOCKED BY HUMAN INPUT | Requiere egress, numero real y aprobacion explicita.                       |
+| Area                         | Estado                 | Evidencia                                                                        |
+| ---------------------------- | ---------------------- | -------------------------------------------------------------------------------- |
+| Consentimiento sintetico     | STAGING DONE           | Payload D02 dry-run exige `consent.granted=true` y `consent_ref`.                |
+| Elegibilidad/contactabilidad | PARTIAL                | Contratos y rutas existen; falta validacion con datos persistentes reales.       |
+| Cumplimiento                 | PARTIAL                | Politicas y blockers existen; falta matriz final del tenant.                     |
+| Intencion segura             | PARTIAL                | Evals y contratos existen; falta prueba end-to-end con guion aprobado.           |
+| Idempotencia                 | STAGING DONE           | Platform to dialer dry-run valida replay/conflict sin llamadas reales.           |
+| Dispatch                     | STAGING DONE           | Dispatch live queda bloqueado por policy gate.                                   |
+| Eventos de proveedor         | NOT STARTED            | Solo mock/staging sin proveedor real.                                            |
+| Post-call                    | PARTIAL                | Modelo y persistencia existen; falta evento real sanitizado.                     |
+| Auditoria                    | PARTIAL                | Prisma-backed audit existe; falta politica final de retencion.                   |
+| Metricas                     | PARTIAL                | Modelo y resumen existen; R02 ya tiene panel operativo, falta reporte D02 final. |
+| Dashboard                    | STAGING DONE           | R02 tiene dashboard operativo seguro; D02 reporting completo sigue parcial.      |
+| Reportes                     | NOT STARTED            | Requiere datos persistentes y criterios CEDCO.                                   |
+| Provider activation          | BLOCKED BY HUMAN INPUT | Requiere inputs de ElevenLabs/Telyaco/DDI.                                       |
+| Telyaco/DDI                  | BLOCKED BY HUMAN INPUT | Requiere inventario de numeros y SIP.                                            |
+| ElevenLabs agent             | BLOCKED BY HUMAN INPUT | Requiere cuenta, voz, agente, guion y politica de grabacion.                     |
+| Primera llamada controlada   | BLOCKED BY HUMAN INPUT | Requiere egress, numero real y aprobacion explicita.                             |
 
 ## No objetivos actuales
 
@@ -51,3 +51,4 @@ llamada outbound segura:
 - No Telyaco real.
 - No numeros reales.
 - No secretos reales.
+- PBX queda fuera del cierre actual hasta abrir su gate separado.

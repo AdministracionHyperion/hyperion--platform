@@ -30,6 +30,10 @@ describe("CEDCO R02 operational page", () => {
   it("renders internal operator actions without sensitive payload or real-call controls", () => {
     const html = renderR02OperationalPage(createR02OperationalDemoModel());
 
+    expect(html).toContain("data-r02-voice-orb");
+    expect(html).toContain("data-r02-sound-toggle");
+    expect(html).toContain("Sonido del panel");
+    expect(html).not.toMatch(/<audio|autoplay/iu);
     expect(html).not.toMatch(/phoneNumber|rawTranscript|audioUrl|recordingUrl|token|secret/iu);
     expect(html).not.toMatch(/Sembrar demo|seed-demo|cedco-demo/iu);
     expect(html).toContain("fetch(apiBase");

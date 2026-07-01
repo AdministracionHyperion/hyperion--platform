@@ -96,6 +96,16 @@ export interface PrismaBackedApiServicesInput {
   readonly dialerDryRun?: CedcoD02InternalDialerDryRunPort;
 }
 
+function assertTenantOwnership(
+  existing: { readonly tenantId: string } | null | undefined,
+  context: RequestContext,
+  resourceLabel: string,
+): void {
+  if (existing && existing.tenantId !== context.tenantId) {
+    throw conflictError(`${resourceLabel} already belongs to another tenant`);
+  }
+}
+
 export function createPrismaBackedApiServices(input: PrismaBackedApiServicesInput): ApiServices {
   return new PrismaBackedApiServices(
     createPrismaApiComposition(input.prisma),
@@ -304,6 +314,12 @@ class PrismaBackedApiServices implements ApiServices {
   }
 
   private async createAgent(context: RequestContext, input: CreateAgentBody) {
+    const existing = await this.prisma.agent.findUnique({
+      where: { id: input.agentId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existing, context, "agent");
+
     const agent = await this.prisma.agent.upsert({
       where: { id: input.agentId },
       create: {
@@ -378,6 +394,12 @@ class PrismaBackedApiServices implements ApiServices {
   }
 
   private async createCall(context: RequestContext, input: CreateVoiceCallBody) {
+    const existing = await this.prisma.callSession.findUnique({
+      where: { id: input.callId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existing, context, "call session");
+
     const session = await this.prisma.callSession.upsert({
       where: { id: input.callId },
       create: {
@@ -812,6 +834,12 @@ class PrismaBackedApiServices implements ApiServices {
     context: RequestContext,
     flow: CedcoD02MockCallFlowResult,
   ): Promise<void> {
+    const existing = await this.prisma.callSession.findUnique({
+      where: { id: flow.session.sessionId },
+      select: { tenantId: true },
+    });
+    assertTenantOwnership(existing, context, "call session");
+
     await this.prisma.callSession.upsert({
       where: { id: flow.session.sessionId },
       create: {

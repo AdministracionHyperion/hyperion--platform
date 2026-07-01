@@ -18,6 +18,7 @@ const runWhenDatabaseExists = databaseUrl ? describe : describe.skip;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const apiSourceRoot = join(repoRoot, "apps", "api", "src");
 const tenantBase = "/api/v1/tenants/cedco-test";
+const otherTenantBase = "/api/v1/tenants/other-tenant";
 const cedcoBase = `${tenantBase}/products/cedco/d02`;
 const adminHeaders = {
   "x-actor-id": "actor-test",
@@ -153,6 +154,27 @@ runWhenDatabaseExists("API Prisma integration", () => {
     expect(row?.name).toBe("CEDCO Main Agent Test");
   });
 
+  it("does not let another tenant overwrite a persisted agent id", async () => {
+    await createAgent();
+
+    const takeover = await app.inject({
+      method: "POST",
+      url: `${otherTenantBase}/agents`,
+      headers: adminHeaders,
+      payload: {
+        agentId: "cedco-main-agent-test",
+        name: "Other Tenant Agent",
+        defaultLocale: "es-CO",
+      },
+    });
+    expect(takeover.statusCode).toBe(409);
+
+    const row = await harness.prisma.agent.findUnique({
+      where: { id: "cedco-main-agent-test" },
+    });
+    expect(row).toMatchObject({ tenantId: "cedco-test", name: "CEDCO Main Agent Test" });
+  });
+
   it("denies tenant viewer agent creation", async () => {
     const response = await app.inject({
       method: "POST",
@@ -192,6 +214,27 @@ runWhenDatabaseExists("API Prisma integration", () => {
 
     expect(response.statusCode).toBe(201);
     expect(row).toMatchObject({ status: "draft", correlationId: "corr-api-test-voice" });
+  });
+
+  it("does not let another tenant overwrite a persisted call id", async () => {
+    await createVoiceCall();
+
+    const takeover = await app.inject({
+      method: "POST",
+      url: `${otherTenantBase}/voice/calls`,
+      headers: voiceHeaders,
+      payload: { callId: "call-cedco-test-001", direction: "inbound" },
+    });
+    expect(takeover.statusCode).toBe(409);
+
+    const row = await harness.prisma.callSession.findUnique({
+      where: { id: "call-cedco-test-001" },
+    });
+    expect(row).toMatchObject({
+      tenantId: "cedco-test",
+      direction: "outbound",
+      correlationId: "corr-api-test-voice",
+    });
   });
 
   it("reads persisted voice call sessions", async () => {
